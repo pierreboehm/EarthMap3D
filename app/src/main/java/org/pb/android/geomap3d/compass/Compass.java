@@ -32,7 +32,6 @@ public class Compass implements SensorEventListener {
 
     @SuppressWarnings("FieldCanBeLocal")
     private float[] smoothedData = new float[3];
-    private boolean started = false;
 
     @SuppressWarnings("WeakerAccess")
     public Compass(Context context) {
@@ -44,11 +43,8 @@ public class Compass implements SensorEventListener {
     }
 
     public void start() {
-//        if (!started) {
-            sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_UI);
-            sensorManager.registerListener(this, magneticFieldSensor, SensorManager.SENSOR_DELAY_UI);
-//            started = true;
-//        }
+        sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_UI);
+        sensorManager.registerListener(this, magneticFieldSensor, SensorManager.SENSOR_DELAY_UI);
     }
 
     public void stop() {
