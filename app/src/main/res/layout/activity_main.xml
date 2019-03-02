@@ -6,31 +6,9 @@
     android:layout_height="match_parent"
     tools:context="org.pb.android.geomap3d.MainActivity">
 
-    <org.pb.android.geomap3d.view.OpenGLSurfaceView
-        android:id="@+id/glSurfaceView"
+    <FrameLayout
+        android:id="@+id/fragmentContainer"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        />
-
-    <org.pb.android.geomap3d.view.ProgressView
-        android:id="@+id/progressView"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
-        android:layout_centerInParent="true"
-        android:background="#80208fff"
-        android:visibility="invisible"
-        />
-
-    <TextView
-        android:id="@+id/tvInfo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:textStyle="bold"
-        android:textSize="40dp"
-        android:textColor="#ffffff"
-        android:text="0"
-        android:visibility="invisible"
-        />
+        android:layout_height="match_parent"/>
 
 </RelativeLayout>

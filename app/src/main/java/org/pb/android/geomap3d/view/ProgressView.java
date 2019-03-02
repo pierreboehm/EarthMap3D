@@ -11,13 +11,12 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 
-import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EView;
-import org.androidannotations.annotations.UiThread;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.Util;
 
+@EView
 public class ProgressView extends View {
 
     private static final float STROKE_WIDTH = 120f;
@@ -57,16 +56,13 @@ public class ProgressView extends View {
     }
 
     public void update(float percentValue) {
-//        showIfNeeded();
         progressValue = calculateProgressValue(percentValue);
+//        invalidate();
 
         Log.v("XXX", ">> update(): " + percentValue + "%, " + progressValue + "°, visible=" + (getVisibility() == VISIBLE));
 
-//        invalidate();
-
         if (percentValue >= 100f) {
-            EventBus.getDefault().post(new Events.ProgressFinished());
-//            hide();
+            EventBus.getDefault().post(new Events.WidgetReady());
         }
     }
 
@@ -81,21 +77,4 @@ public class ProgressView extends View {
     private float calculateProgressValue(float percentValue) {
         return (float) Util.roundScale(percentValue * 360f / 100f);
     }
-
-//    private void showIfNeeded() {
-//        if (getVisibility() == VISIBLE) {
-//            return;
-//        }
-//
-//        setVisibility(VISIBLE);
-//        bringToFront();
-//    }
-//
-//    private void hide() {
-//        if (getVisibility() == INVISIBLE) {
-//            return;
-//        }
-//
-//        setVisibility(INVISIBLE);
-//    }
 }

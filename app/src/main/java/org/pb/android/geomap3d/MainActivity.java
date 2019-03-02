@@ -1,32 +1,24 @@
 package org.pb.android.geomap3d;
 
 import android.app.ActivityManager;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.TextView;
 
 import org.androidannotations.annotations.AfterViews;
-import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
-
 import org.androidannotations.annotations.SystemService;
-import org.androidannotations.annotations.UiThread;
-import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.pb.android.geomap3d.compass.Compass;
 import org.pb.android.geomap3d.event.Events;
+import org.pb.android.geomap3d.fragment.TerrainFragment;
+import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationManager;
-import org.pb.android.geomap3d.view.OpenGLSurfaceView;
-import org.pb.android.geomap3d.view.ProgressView;
 import org.pb.android.geomap3d.widget.TerrainWidget;
-
-import java.util.Locale;
-
-import static org.androidannotations.annotations.UiThread.Propagation.REUSE;
+import org.pb.android.geomap3d.widget.WidgetManager;
 
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
@@ -37,91 +29,65 @@ public class MainActivity extends AppCompatActivity {
     @Bean
     LocationManager locationManager;
 
-    @ViewById(R.id.glSurfaceView)
-    OpenGLSurfaceView openGLSurfaceView;
-
-    @ViewById(R.id.progressView)
-    ProgressView progressView;
-
-    @ViewById(R.id.tvInfo)
-    TextView tvInfo;
-
     @Bean
-    Compass compass;
-
-    private boolean isInitiated = false;
+    WidgetManager widgetManager;
 
     @AfterViews
     public void init() {
-//        progressView.setVisibility(View.VISIBLE);
-//        progressView.bringToFront();
+//        if (widgetManager.getWidget() == null) {
+//            LoadingFragment loadingFragment = LoadingFragment_.builder().build();
+//            setFragment(loadingFragment, LoadingFragment.TAG);
+//        }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-
         EventBus.getDefault().register(this);
-
-        initSurfaceViewAndCompass();
-
         locationManager.onResume();
-        openGLSurfaceView.onResume();
-        compass.start();
 
-        startWidgetDelayed();
+        if (widgetManager.getWidget() == null) {
+            widgetManager.setWidgetForInitiation(new TerrainWidget(this));
+        }
     }
 
     @Override
     public void onPause() {
         EventBus.getDefault().unregister(this);
-
-        compass.stop();
-        openGLSurfaceView.onPause();
         locationManager.onPause();
-
         super.onPause();
     }
 
-    @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
-    public void onEvent(Events.ProgressUpdate event) {
-        EventBus.getDefault().removeStickyEvent(event);
-        Log.v("XXX", ">> progressUpdate: " + ((int) event.getProgressValue()) + "%");
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onEvent(Events.ProgressUpdate event) {
+//        FragmentManager fragmentManager = getSupportFragmentManager();
+//        Fragment fragment = fragmentManager.findFragmentByTag(LoadingFragment.TAG);
+//        if (fragment != null) {
+//            ((LoadingFragment) fragment).updateProgress(event.getProgressValue());
+//        }
+//    }
 
-//        progressView.update(event.getProgressValue());
-//        progressView.invalidate();
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.WidgetReady event) {
+        TerrainFragment terrainFragment = TerrainFragment_.builder().widget(widgetManager.getWidget()).build();
+        setFragment(terrainFragment, TerrainFragment.TAG);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(Events.ProgressFinished event) {
-        //
+    public void onEvent(Events.FragmentLoaded event) {
+        Log.v(event.getTag(), "fragment loaded.");
+//        if (event.getTag().equals(LoadingFragment.TAG)) {
+//            if (widgetManager.getWidget() == null) {
+//                widgetManager.setWidgetForInitiation(new TerrainWidget(this));
+//            }
+//        }
     }
 
-    @UiThread(propagation = REUSE)
-    void updateDeviceRotation(float azimuth) {
-        openGLSurfaceView.updateDeviceRotation(azimuth);
+    private void setFragment(Fragment fragment, String fragmentTag) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        fragmentManager
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, fragment, fragmentTag)
+                .commit();
     }
-
-    @UiThread(delay = 200)
-    void startWidgetDelayed() {
-        openGLSurfaceView.startWidget();
-    }
-
-    private void initSurfaceViewAndCompass() {
-        if (!isInitiated) {
-            isInitiated = true;
-            openGLSurfaceView.initRenderer(this, activityManager);
-            compass.setListener(getCompassListener());
-        }
-    }
-
-    private Compass.CompassListener getCompassListener() {
-        return new Compass.CompassListener() {
-            @Override
-            public void onNewAzimuth(final float azimuth) {
-                updateDeviceRotation(azimuth);
-            }
-        };
-    }
-
 }

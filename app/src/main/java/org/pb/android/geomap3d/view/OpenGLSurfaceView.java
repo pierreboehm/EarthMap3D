@@ -1,6 +1,5 @@
 package org.pb.android.geomap3d.view;
 
-import android.app.ActivityManager;
 import android.content.Context;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
@@ -10,7 +9,7 @@ import android.view.View;
 
 import org.pb.android.geomap3d.renderer.OpenGLRenderer;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
-import org.pb.android.geomap3d.widget.TerrainWidget;
+import org.pb.android.geomap3d.widget.Widget;
 
 public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchListener {
 
@@ -33,15 +32,6 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
-
-        if (openGLRenderer != null) {
-            ((RendererOpenGL) openGLRenderer).initWidget();
-        }
-    }
-
-    @Override
     public boolean onTouch(View view, MotionEvent motionEvent) {
         // FIXME: prevent hopping. (e.g. by just delegating event if count of pointers is more than 1)
         scaleGestureDetector.onTouchEvent(motionEvent);
@@ -50,8 +40,8 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
         return true;
     }
 
-    public void initRenderer(Context context, ActivityManager activityManager) {
-        openGLRenderer = OpenGLRenderer.loadRenderer(context, activityManager);
+    public void initRenderer(Context context) {
+        openGLRenderer = OpenGLRenderer.loadRenderer(context);
         setRenderer(openGLRenderer);
     }
 
@@ -59,8 +49,8 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
         ((RendererOpenGL) openGLRenderer).updateDeviceRotation(azimuth);
     }
 
-    public void startWidget() {
-        ((RendererOpenGL) openGLRenderer).startWidget();
+    public void setWidget(Widget widget) {
+        ((RendererOpenGL) openGLRenderer).setWidget(widget);
     }
 
     private class ScaleListener extends ScaleGestureDetector.SimpleOnScaleGestureListener {

@@ -5,7 +5,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.view.MotionEvent;
 
-import org.pb.android.geomap3d.widget.TerrainWidget;
+import org.pb.android.geomap3d.widget.Widget;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -16,13 +16,11 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
     public static final float SCALE_INITIAL = .6f;
     private static final float DEPTH_INITIAL = -10f;
 
-    private Context context;
-    private TerrainWidget terrainWidget;
+    private Widget widget;
     private float scale;
 
     public RendererOpenGL(Context context) {
         scale = SCALE_INITIAL;
-        this.context = context;
     }
 
     @Override
@@ -49,7 +47,7 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
         gl10.glMatrixMode(GL10.GL_MODELVIEW);
         gl10.glLoadIdentity();
 
-        if (terrainWidget != null) {
+        if (widget != null) {
             onDrawFrame(gl10);
         }
     }
@@ -62,28 +60,24 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
         gl10.glTranslatef(0f, -1f, DEPTH_INITIAL);
         gl10.glScalef(scale, scale, scale);
 
-        if (terrainWidget != null) {
-            terrainWidget.draw(gl10);
+        if (widget != null) {
+            widget.draw(gl10);
         }
     }
 
-    public void initWidget() {
-        terrainWidget = new TerrainWidget(context);
-    }
-
-    public void startWidget() {
-        terrainWidget.initWidget();
+    public void setWidget(Widget widget) {
+        this.widget = widget;
     }
 
     public void updateTouchEvent(MotionEvent motionEvent) {
-        if (terrainWidget != null) {
-            terrainWidget.updateTouch(motionEvent);
+        if (widget != null) {
+            widget.updateTouch(motionEvent);
         }
     }
 
     public void updateDeviceRotation(float azimuth) {
-        if (terrainWidget != null) {
-            terrainWidget.updateDeviceRotation(azimuth);
+        if (widget != null) {
+            widget.updateDeviceRotation(azimuth);
         }
     }
 

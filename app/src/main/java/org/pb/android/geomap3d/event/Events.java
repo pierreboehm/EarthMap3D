@@ -14,10 +14,21 @@ public class Events {
         }
     }
 
-    public static class ProgressFinished {
+    public static class WidgetReady {
     }
 
     public static class LocationManagerReady {
     }
 
+    public static class FragmentLoaded {
+        private final String tag;
+
+        public FragmentLoaded(String tag) {
+            this.tag = tag;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+    }
 }

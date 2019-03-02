@@ -11,7 +11,7 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.pb.android.geomap3d.location.LocationManager;
 
-@EBean
+@EBean(scope = EBean.Scope.Singleton)
 public class Compass implements SensorEventListener {
 
     @Bean
@@ -32,6 +32,7 @@ public class Compass implements SensorEventListener {
 
     @SuppressWarnings("FieldCanBeLocal")
     private float[] smoothedData = new float[3];
+    private boolean started = false;
 
     @SuppressWarnings("WeakerAccess")
     public Compass(Context context) {
@@ -43,8 +44,11 @@ public class Compass implements SensorEventListener {
     }
 
     public void start() {
-        sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_UI);
-        sensorManager.registerListener(this, magneticFieldSensor, SensorManager.SENSOR_DELAY_UI);
+//        if (!started) {
+            sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_UI);
+            sensorManager.registerListener(this, magneticFieldSensor, SensorManager.SENSOR_DELAY_UI);
+//            started = true;
+//        }
     }
 
     public void stop() {

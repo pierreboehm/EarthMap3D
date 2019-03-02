@@ -24,7 +24,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import static org.pb.android.geomap3d.util.Util.roundScale;
 
-public class TerrainWidget {
+public class TerrainWidget extends Widget {
 
     private Bitmap bitmap;
     private List<Layer> layers;
@@ -48,6 +48,7 @@ public class TerrainWidget {
         layers.add(new TerrainLayer());
     }
 
+    @Override
     public synchronized void draw(GL10 gl) {
         gl.glPushMatrix();
 
@@ -114,16 +115,22 @@ public class TerrainWidget {
         }
     }
 
+    @Override
     public void initWidget() {
-        Pair<Integer, FloatBuffer> layerInitResults = initLayer();
-        numberOfPoints = layerInitResults.first;
-        vertices = layerInitResults.second;
+        new InitiationThread().run();
 
-        yRotation = RendererOpenGL.ROTATION_INITIAL;
-        xRotation = RendererOpenGL.ROTATION_INITIAL;
+//        Pair<Integer, FloatBuffer> layerInitResults = initLayer();
+//        numberOfPoints = layerInitResults.first;
+//        vertices = layerInitResults.second;
+//
+//        yRotation = RendererOpenGL.ROTATION_INITIAL;
+//        xRotation = RendererOpenGL.ROTATION_INITIAL;
+//
+//        EventBus.getDefault().post(new Events.WidgetReady());
     }
 
-    private boolean isInitialized() {
+    @Override
+    public boolean isInitialized() {
         return vertices != null;
     }
 
@@ -131,7 +138,21 @@ public class TerrainWidget {
         float progressValue = (float) currentCount * 100f / (float) maximalCount;
         if ((int) progressValue > lastKnownProgressValue) {
             lastKnownProgressValue = (int) progressValue;
-            EventBus.getDefault().postSticky(new Events.ProgressUpdate(progressValue));
+            EventBus.getDefault().post(new Events.ProgressUpdate(progressValue));
+        }
+    }
+
+    private class InitiationThread implements Runnable {
+        @Override
+        public void run() {
+            Pair<Integer, FloatBuffer> layerInitResults = initLayer();
+            numberOfPoints = layerInitResults.first;
+            vertices = layerInitResults.second;
+
+            yRotation = RendererOpenGL.ROTATION_INITIAL;
+            xRotation = RendererOpenGL.ROTATION_INITIAL;
+
+            EventBus.getDefault().post(new Events.WidgetReady());
         }
     }
 
@@ -146,7 +167,7 @@ public class TerrainWidget {
             for (double zCoordinate = -5.4; zCoordinate <= 5.4; zCoordinate = roundScale(zCoordinate + 0.01)) {
                 float elevationValue = getElevationValueFromLocation(xCoordinate, zCoordinate);
                 points.add(new Util.PointF3D((float) xCoordinate, elevationValue, (float) zCoordinate));
-                sendProgressUpdate(++currentCount, maximalCount);
+//                sendProgressUpdate(++currentCount, maximalCount);
             }
         }
 
