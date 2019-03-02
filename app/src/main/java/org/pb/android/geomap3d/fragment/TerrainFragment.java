@@ -1,7 +1,6 @@
 package org.pb.android.geomap3d.fragment;
 
 import android.support.v4.app.Fragment;
-import android.util.Log;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -47,14 +46,12 @@ public class TerrainFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        Log.v(TAG, "onResume()");
         compass.start();
         EventBus.getDefault().post(new Events.FragmentLoaded(TAG));
     }
 
     @Override
     public void onPause() {
-        Log.v(TAG, "onPause()");
         compass.stop();
         super.onPause();
     }

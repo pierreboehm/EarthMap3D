@@ -7,9 +7,22 @@
 
     <org.pb.android.geomap3d.view.ProgressView_
         android:id="@+id/progressView"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
         android:layout_centerInParent="true"
         />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/progressView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:textStyle="bold"
+        android:textSize="24dp"
+        android:textScaleX="0.7"
+        android:textColor="#9f00ccff"
+        android:text="Loading ..."
+        android:textAllCaps="true"/>
 
 </RelativeLayout>

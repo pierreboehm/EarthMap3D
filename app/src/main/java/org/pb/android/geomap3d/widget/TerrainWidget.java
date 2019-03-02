@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.support.v4.util.Pair;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -115,7 +114,6 @@ public class TerrainWidget extends Widget {
         float roundScaledAzimuth = (float) roundScale(smoothedAzimuth);
         if (Math.abs(yRotation - roundScaledAzimuth) > .04f) {
             yRotation = roundScaledAzimuth;
-            Log.v(TAG, "new azimuth: " + yRotation + "°");
         }
     }
 
@@ -171,7 +169,7 @@ public class TerrainWidget extends Widget {
             for (double zCoordinate = -5.4; zCoordinate <= 5.4; zCoordinate = roundScale(zCoordinate + 0.01)) {
                 float elevationValue = getElevationValueFromLocation(xCoordinate, zCoordinate);
                 points.add(new Util.PointF3D((float) xCoordinate, elevationValue, (float) zCoordinate));
-//                sendProgressUpdate(++currentCount, maximalCount);
+                sendProgressUpdate(++currentCount, maximalCount);
             }
         }
 

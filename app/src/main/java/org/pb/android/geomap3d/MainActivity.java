@@ -4,7 +4,6 @@ import android.app.ActivityManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -57,23 +56,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(Events.ProgressUpdate event) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        Fragment fragment = fragmentManager.findFragmentByTag(LoadingFragment.TAG);
-        if (fragment != null) {
-            ((LoadingFragment) fragment).updateProgress(event.getProgressValue());
-        }
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(Events.WidgetReady event) {
         TerrainFragment terrainFragment = TerrainFragment_.builder().widget(widgetManager.getWidget()).build();
         setFragment(terrainFragment, TerrainFragment.TAG);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEvent(Events.FragmentLoaded event) {
-        Log.v(event.getTag(), "fragment loaded.");
         if (event.getTag().equals(LoadingFragment.TAG)) {
             if (widgetManager.getWidget() == null) {
                 widgetManager.setWidgetForInitiation(new TerrainWidget(this));

@@ -5,6 +5,8 @@ import android.support.v4.app.Fragment;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.view.ProgressView;
@@ -20,16 +22,18 @@ public class LoadingFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        EventBus.getDefault().register(this);
         EventBus.getDefault().post(new Events.FragmentLoaded(TAG));
     }
 
     @Override
     public void onPause() {
+        EventBus.getDefault().unregister(this);
         super.onPause();
     }
 
-    public void updateProgress(float progressValue) {
-        progressView.update(progressValue);
-        progressView.invalidate();
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.ProgressUpdate event) {
+        progressView.update(event.getProgressValue());
     }
 }

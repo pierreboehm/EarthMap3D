@@ -8,7 +8,6 @@ import android.graphics.Rect;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 
 import org.androidannotations.annotations.EView;
@@ -20,7 +19,7 @@ import org.pb.android.geomap3d.util.Util;
 public class ProgressView extends View {
 
     private static final String TAG = ProgressView.class.getSimpleName();
-    private static final float STROKE_WIDTH = 120f;
+    private static final float STROKE_WIDTH = 60f;
 
     private Paint foregroundColor;
     private RectF clipBounds = null;
@@ -51,16 +50,12 @@ public class ProgressView extends View {
         canvas.rotate(-90f, clipBounds.centerX(), clipBounds.centerY());
         canvas.drawArc(clipBounds, 0f, progressValue, false, foregroundColor);
 
-        Log.v(TAG, "onDraw()");
-
         super.onDraw(canvas);
     }
 
     public void update(float percentValue) {
         progressValue = calculateProgressValue(percentValue);
-//        invalidate();
-
-        Log.v(TAG, ">> update(): " + percentValue + "%, " + progressValue + "°, visible=" + (getVisibility() == VISIBLE));
+        invalidate();
 
         if (percentValue >= 100f) {
             EventBus.getDefault().post(new Events.WidgetReady());
