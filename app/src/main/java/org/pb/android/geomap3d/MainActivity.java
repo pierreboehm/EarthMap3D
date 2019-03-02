@@ -14,6 +14,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.event.Events;
+import org.pb.android.geomap3d.fragment.LoadingFragment;
+import org.pb.android.geomap3d.fragment.LoadingFragment_;
 import org.pb.android.geomap3d.fragment.TerrainFragment;
 import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationManager;
@@ -34,10 +36,10 @@ public class MainActivity extends AppCompatActivity {
 
     @AfterViews
     public void init() {
-//        if (widgetManager.getWidget() == null) {
-//            LoadingFragment loadingFragment = LoadingFragment_.builder().build();
-//            setFragment(loadingFragment, LoadingFragment.TAG);
-//        }
+        if (widgetManager.getWidget() == null) {
+            LoadingFragment loadingFragment = LoadingFragment_.builder().build();
+            setFragment(loadingFragment, LoadingFragment.TAG);
+        }
     }
 
     @Override
@@ -45,10 +47,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         EventBus.getDefault().register(this);
         locationManager.onResume();
-
-        if (widgetManager.getWidget() == null) {
-            widgetManager.setWidgetForInitiation(new TerrainWidget(this));
-        }
     }
 
     @Override
@@ -58,14 +56,14 @@ public class MainActivity extends AppCompatActivity {
         super.onPause();
     }
 
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onEvent(Events.ProgressUpdate event) {
-//        FragmentManager fragmentManager = getSupportFragmentManager();
-//        Fragment fragment = fragmentManager.findFragmentByTag(LoadingFragment.TAG);
-//        if (fragment != null) {
-//            ((LoadingFragment) fragment).updateProgress(event.getProgressValue());
-//        }
-//    }
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.ProgressUpdate event) {
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        Fragment fragment = fragmentManager.findFragmentByTag(LoadingFragment.TAG);
+        if (fragment != null) {
+            ((LoadingFragment) fragment).updateProgress(event.getProgressValue());
+        }
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(Events.WidgetReady event) {
@@ -76,11 +74,11 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(Events.FragmentLoaded event) {
         Log.v(event.getTag(), "fragment loaded.");
-//        if (event.getTag().equals(LoadingFragment.TAG)) {
-//            if (widgetManager.getWidget() == null) {
-//                widgetManager.setWidgetForInitiation(new TerrainWidget(this));
-//            }
-//        }
+        if (event.getTag().equals(LoadingFragment.TAG)) {
+            if (widgetManager.getWidget() == null) {
+                widgetManager.setWidgetForInitiation(new TerrainWidget(this));
+            }
+        }
     }
 
     private void setFragment(Fragment fragment, String fragmentTag) {
