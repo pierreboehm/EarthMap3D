@@ -5,6 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.support.v4.util.Pair;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -25,6 +26,8 @@ import javax.microedition.khronos.opengles.GL10;
 import static org.pb.android.geomap3d.util.Util.roundScale;
 
 public class TerrainWidget extends Widget {
+
+    private static final String TAG = TerrainWidget.class.getSimpleName();
 
     private Bitmap bitmap;
     private List<Layer> layers;
@@ -112,6 +115,7 @@ public class TerrainWidget extends Widget {
         float roundScaledAzimuth = (float) roundScale(smoothedAzimuth);
         if (Math.abs(yRotation - roundScaledAzimuth) > .04f) {
             yRotation = roundScaledAzimuth;
+            Log.v(TAG, "new azimuth: " + yRotation + "°");
         }
     }
 

@@ -38,8 +38,8 @@ public class TerrainFragment extends Fragment {
     public void initViews() {
         if (!isInitiated) {
             openGLSurfaceView.initRenderer(getActivity());
-            compass.setListener(getCompassListener());
             openGLSurfaceView.setWidget(widget);
+            compass.setListener(getCompassListener());
             isInitiated = true;
         }
     }

@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicReference;
 @EBean(scope = EBean.Scope.Singleton)
 public class LocationManager implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
 
+    private static final String TAG = LocationManager.class.getSimpleName();
+
     @RootContext
     Context context;
 
@@ -48,7 +50,7 @@ public class LocationManager implements com.google.android.gms.location.Location
     public void onLocationChanged(Location location) {
         if (location != null) {
 
-            Log.v("XXX", "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
+            Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
 
 //            if (geomagneticField == null) {
                 geomagneticField = new GeomagneticField(
@@ -65,7 +67,7 @@ public class LocationManager implements com.google.android.gms.location.Location
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-            Log.v("XXX", "locationManager >> onConnected. Permission check failed.");
+            Log.v(TAG, "locationManager >> onConnected. Permission check failed.");
             return;
         }
 
