@@ -109,12 +109,6 @@ public class TerrainWidget extends Widget {
 
                 break;
             }
-
-            // DON'T FIXME: keep that position as kind of a priority handling
-            case MotionEvent.ACTION_UP: {
-                // deactivate layer (should translate layer from its end position back to center)
-                break;
-            }
         }
 
         for (Layer layer : layers) {
