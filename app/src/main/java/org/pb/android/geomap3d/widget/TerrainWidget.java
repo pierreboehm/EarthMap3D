@@ -118,7 +118,7 @@ public class TerrainWidget extends Widget {
     }
 
     @Override
-    public void initWidget() {
+    public void initWidget(WidgetConfiguration widgetConfiguration) {
         new InitiationThread().run();
 
 //        Pair<Integer, FloatBuffer> layerInitResults = initLayer();

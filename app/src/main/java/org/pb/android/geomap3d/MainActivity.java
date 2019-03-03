@@ -19,6 +19,7 @@ import org.pb.android.geomap3d.fragment.TerrainFragment;
 import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.widget.TerrainWidget;
+import org.pb.android.geomap3d.widget.WidgetConfiguration;
 import org.pb.android.geomap3d.widget.WidgetManager;
 
 @EActivity(R.layout.activity_main)
@@ -65,7 +66,11 @@ public class MainActivity extends AppCompatActivity {
     public void onEvent(Events.FragmentLoaded event) {
         if (event.getTag().equals(LoadingFragment.TAG)) {
             if (widgetManager.getWidget() == null) {
-                widgetManager.setWidgetForInitiation(new TerrainWidget(this));
+                WidgetConfiguration.Builder widgetConfigurationBuilder = WidgetConfiguration.create();
+                widgetConfigurationBuilder.setLocation(locationManager.getLastKnownLocation());
+                WidgetConfiguration widgetConfiguration = widgetConfigurationBuilder.getConfiguration();
+
+                widgetManager.setWidgetForInitiation(new TerrainWidget(this), widgetConfiguration);
             }
         }
     }

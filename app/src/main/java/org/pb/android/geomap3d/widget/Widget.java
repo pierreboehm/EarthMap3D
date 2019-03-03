@@ -14,7 +14,7 @@ public abstract class Widget implements Serializable {
 
     public abstract void updateDeviceRotation(float azimuth);
 
-    public abstract void initWidget();
+    public abstract void initWidget(WidgetConfiguration widgetConfiguration);
 
     public boolean isInitialized() {
         return false;
