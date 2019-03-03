@@ -75,6 +75,10 @@ public class PositionLayer extends Layer {
         points.add(new Util.PointF3D( 0.025f, 0.05f, 0f));
         points.add(new Util.PointF3D(     0f,    0f, 0f));
 
+        points.add(new Util.PointF3D(0f, 0.05f, -0.025f));
+        points.add(new Util.PointF3D(0f, 0.05f,  0.025f));
+        points.add(new Util.PointF3D(0f,    0f,      0f));
+
         vertices = initVertices(points);
         numberOfPoints = points.size();
     }

@@ -37,4 +37,8 @@ public final class LowPassFilter {
     public static float filter(float inputValue, float previousValue, float alpha) {
         return (previousValue + alpha * (inputValue - previousValue));
     }
+
+    public static float filter(float inputValue, float previousValue, float alpha, float modulo) {
+        return (previousValue + alpha * (inputValue - previousValue)) % modulo;
+    }
 }
