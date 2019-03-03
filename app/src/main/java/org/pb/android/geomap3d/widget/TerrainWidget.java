@@ -8,7 +8,6 @@ import android.support.v4.util.Pair;
 import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
-import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.compass.LowPassFilter;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
@@ -28,6 +27,7 @@ public class TerrainWidget extends Widget {
 
     private static final String TAG = TerrainWidget.class.getSimpleName();
 
+    private Context context;
     private Bitmap bitmap;
     private List<Layer> layers;
 
@@ -41,10 +41,9 @@ public class TerrainWidget extends Widget {
     private int lastKnownProgressValue = 0;
 
     public TerrainWidget(Context context) {
-        touch = new Util.PointF3D(0f, 0f, 0f);
+        this.context = context;
 
-        Bitmap rawmap = BitmapFactory.decodeResource(context.getResources(), R.drawable.kaufunger_wald_height_map);
-        bitmap = Bitmap.createScaledBitmap(rawmap, 1081, 1081, true);
+        touch = new Util.PointF3D(0f, 0f, 0f);
 
         layers = new ArrayList<>();
         layers.add(new TerrainLayer());
@@ -119,16 +118,7 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void initWidget(WidgetConfiguration widgetConfiguration) {
-        new InitiationThread().run();
-
-//        Pair<Integer, FloatBuffer> layerInitResults = initLayer();
-//        numberOfPoints = layerInitResults.first;
-//        vertices = layerInitResults.second;
-//
-//        yRotation = RendererOpenGL.ROTATION_INITIAL;
-//        xRotation = RendererOpenGL.ROTATION_INITIAL;
-//
-//        EventBus.getDefault().post(new Events.WidgetReady());
+        new InitiationThread(widgetConfiguration).run();
     }
 
     @Override
@@ -145,6 +135,14 @@ public class TerrainWidget extends Widget {
     }
 
     private class InitiationThread implements Runnable {
+
+        InitiationThread(WidgetConfiguration widgetConfiguration) {
+            if (widgetConfiguration.hasHeightMapResourceId()) {
+                Bitmap rawmap = BitmapFactory.decodeResource(context.getResources(), widgetConfiguration.getHeightMapResourceId());
+                bitmap = Bitmap.createScaledBitmap(rawmap, 1081, 1081, true);
+            }
+        }
+
         @Override
         public void run() {
             Pair<Integer, FloatBuffer> layerInitResults = initLayer();

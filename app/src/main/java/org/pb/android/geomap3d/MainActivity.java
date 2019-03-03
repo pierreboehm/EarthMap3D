@@ -65,13 +65,19 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEvent(Events.FragmentLoaded event) {
         if (event.getTag().equals(LoadingFragment.TAG)) {
-            if (widgetManager.getWidget() == null) {
-                WidgetConfiguration.Builder widgetConfigurationBuilder = WidgetConfiguration.create();
-                widgetConfigurationBuilder.setLocation(locationManager.getLastKnownLocation());
-                WidgetConfiguration widgetConfiguration = widgetConfigurationBuilder.getConfiguration();
+            setupTerrainWidget();
+        }
+    }
 
-                widgetManager.setWidgetForInitiation(new TerrainWidget(this), widgetConfiguration);
-            }
+    private void setupTerrainWidget() {
+        if (widgetManager.getWidget() == null) {
+
+            WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
+                    .setLocation(locationManager.getLastKnownLocation())
+                    .setHeightMapResourceId(R.drawable.kaufunger_wald_height_map)
+                    .getConfiguration();
+
+            widgetManager.setWidgetForInitiation(new TerrainWidget(this), widgetConfiguration);
         }
     }
 
