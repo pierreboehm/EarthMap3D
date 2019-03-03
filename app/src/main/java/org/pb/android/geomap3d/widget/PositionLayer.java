@@ -22,8 +22,8 @@ public class PositionLayer extends Layer {
     private Location location;
 
     private float positionYOffset = 0f;
-    private float positionXOffset = 0.3f;
-    private float positionZOffset = 0.2f;
+    private float positionXOffset = 0.45f;
+    private float positionZOffset = -1.2f;
 
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;

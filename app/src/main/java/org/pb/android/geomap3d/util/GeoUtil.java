@@ -9,7 +9,7 @@ public class GeoUtil {
      */
 
     public static float getHeightAtPosition(Location location) {
-        return 0.55f;
+        return 0.45f;
     }
 
 }
