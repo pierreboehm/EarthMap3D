@@ -1,5 +1,6 @@
 package org.pb.android.geomap3d.fragment;
 
+import android.location.Location;
 import android.support.v4.app.Fragment;
 
 import org.androidannotations.annotations.AfterViews;
@@ -12,6 +13,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.compass.Compass;
 import org.pb.android.geomap3d.event.Events;
+import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
 import org.pb.android.geomap3d.widget.Widget;
 
@@ -26,6 +28,9 @@ public class TerrainFragment extends Fragment {
     Widget widget;
 
     @Bean
+    LocationManager locationManager;
+
+    @Bean
     Compass compass;
 
     @ViewById(R.id.glSurfaceView)
@@ -38,6 +43,7 @@ public class TerrainFragment extends Fragment {
         if (!isInitiated) {
             openGLSurfaceView.initRenderer(getActivity());
             openGLSurfaceView.setWidget(widget);
+
             compass.setListener(getCompassListener());
             isInitiated = true;
         }
@@ -46,13 +52,19 @@ public class TerrainFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        locationManager.onResume();
+        locationManager.setLocationUpdateListener(getLocationUpdateListener());
         compass.start();
+
         EventBus.getDefault().post(new Events.FragmentLoaded(TAG));
     }
 
     @Override
     public void onPause() {
+        locationManager.onPause();
         compass.stop();
+
         super.onPause();
     }
 
@@ -61,11 +73,25 @@ public class TerrainFragment extends Fragment {
         openGLSurfaceView.updateDeviceRotation(azimuth);
     }
 
+    @UiThread(propagation = REUSE)
+    void updateDeviceLocation(Location location) {
+        openGLSurfaceView.updateDeviceLocation(location);
+    }
+
     private Compass.CompassListener getCompassListener() {
         return new Compass.CompassListener() {
             @Override
             public void onNewAzimuth(final float azimuth) {
                 updateDeviceRotation(azimuth);
+            }
+        };
+    }
+
+    private LocationManager.LocationUpdateListener getLocationUpdateListener() {
+        return new LocationManager.LocationUpdateListener() {
+            @Override
+            public void onLocationUpdate(Location location) {
+                updateDeviceLocation(location);
             }
         };
     }

@@ -1,6 +1,7 @@
 package org.pb.android.geomap3d.view;
 
 import android.content.Context;
+import android.location.Location;
 import android.opengl.GLSurfaceView;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
@@ -47,6 +48,10 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
 
     public void updateDeviceRotation(float azimuth) {
         ((RendererOpenGL) openGLRenderer).updateDeviceRotation(azimuth);
+    }
+
+    public void updateDeviceLocation(Location location) {
+        ((RendererOpenGL) openGLRenderer).updateDeviceLocation(location);
     }
 
     public void setWidget(Widget widget) {

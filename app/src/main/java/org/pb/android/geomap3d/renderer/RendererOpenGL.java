@@ -1,6 +1,7 @@
 package org.pb.android.geomap3d.renderer;
 
 import android.content.Context;
+import android.location.Location;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.view.MotionEvent;
@@ -78,6 +79,12 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
     public void updateDeviceRotation(float azimuth) {
         if (widget != null) {
             widget.updateDeviceRotation(azimuth);
+        }
+    }
+
+    public void updateDeviceLocation(Location location) {
+        if (widget != null) {
+            widget.updateDeviceLocation(location);
         }
     }
 

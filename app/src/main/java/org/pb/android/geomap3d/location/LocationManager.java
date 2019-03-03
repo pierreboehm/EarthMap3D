@@ -29,12 +29,17 @@ public class LocationManager implements com.google.android.gms.location.Location
 
     private static final String TAG = LocationManager.class.getSimpleName();
 
+    public interface LocationUpdateListener {
+        void onLocationUpdate(Location location);
+    }
+
     @RootContext
     Context context;
 
     private AtomicReference<GoogleApiClient> googleApiClient = new AtomicReference<>();
     private static final long UPDATE_INTERVAL = 5000, FASTEST_INTERVAL = 5000;
 
+    private LocationUpdateListener locationUpdateListener;
     private GeomagneticField geomagneticField;
 
     @AfterInject
@@ -50,15 +55,16 @@ public class LocationManager implements com.google.android.gms.location.Location
     public void onLocationChanged(Location location) {
         if (location != null) {
 
-            Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
+            geomagneticField = new GeomagneticField(
+                    (float) location.getLatitude(),
+                    (float) location.getLongitude(),
+                    (float) location.getAltitude(),
+                    location.getTime()
+            );
 
-//            if (geomagneticField == null) {
-                geomagneticField = new GeomagneticField(
-                        (float) location.getLatitude(),
-                        (float) location.getLongitude(),
-                        (float) location.getAltitude(),
-                        location.getTime());
-//            }
+            if (locationUpdateListener != null) {
+                locationUpdateListener.onLocationUpdate(location);
+            }
         }
     }
 
@@ -87,26 +93,33 @@ public class LocationManager implements com.google.android.gms.location.Location
     }
 
     public void onResume() {
-        if (googleApiClient.get() != null) {
-            googleApiClient.get().connect();
+        GoogleApiClient apiClient = googleApiClient.get();
+        if (apiClient != null) {
+            apiClient.connect();
         }
     }
 
     public void onPause() {
-        if (googleApiClient.get() != null) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(googleApiClient.get(), this);
-            googleApiClient.get().disconnect();
+        GoogleApiClient apiClient = googleApiClient.get();
+        if (apiClient != null && apiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
+            apiClient.disconnect();
         }
+    }
+
+    public void setLocationUpdateListener(LocationUpdateListener locationUpdateListener) {
+        this.locationUpdateListener = locationUpdateListener;
     }
 
     @Nullable
     public Location getLastKnownLocation() {
-        if (googleApiClient.get() == null) {
+        GoogleApiClient apiClient = googleApiClient.get();
+        if (apiClient == null || !apiClient.isConnected()) {
             return null;
         }
 
         try {
-            return LocationServices.FusedLocationApi.getLastLocation(googleApiClient.get());
+            return LocationServices.FusedLocationApi.getLastLocation(apiClient);
         } catch (SecurityException securityException) {
             return null;
         }
