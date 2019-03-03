@@ -17,9 +17,6 @@ public class Events {
     public static class WidgetReady {
     }
 
-    public static class LocationManagerReady {
-    }
-
     public static class FragmentLoaded {
         private final String tag;
 
