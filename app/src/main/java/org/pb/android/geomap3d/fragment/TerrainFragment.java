@@ -70,12 +70,16 @@ public class TerrainFragment extends Fragment {
 
     @UiThread(propagation = REUSE)
     void updateDeviceRotation(float azimuth) {
-        openGLSurfaceView.updateDeviceRotation(azimuth);
+        if (openGLSurfaceView != null) {
+            openGLSurfaceView.updateDeviceRotation(azimuth);
+        }
     }
 
     @UiThread(propagation = REUSE)
     void updateDeviceLocation(Location location) {
-        openGLSurfaceView.updateDeviceLocation(location);
+        if (openGLSurfaceView != null) {
+            openGLSurfaceView.updateDeviceLocation(location);
+        }
     }
 
     private Compass.CompassListener getCompassListener() {
