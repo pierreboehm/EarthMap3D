@@ -130,12 +130,13 @@ public class TerrainWidget extends Widget {
     @Override
     public void updateDeviceLocation(Location location) {
         PositionLayer positionLayer = getPositionLayer();
-        if (positionLayer != null) {
-            positionLayer.updateLocation(location);
-        } else {
+
+        if (positionLayer == null) {
             positionLayer = new PositionLayer(location);
             layers.add(positionLayer);
         }
+
+        positionLayer.updateLocation(location);
     }
 
     @Override

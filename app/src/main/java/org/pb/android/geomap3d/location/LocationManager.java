@@ -113,9 +113,8 @@ public class LocationManager {
                 })
                 .addOnFailureListener(new OnFailureListener() {
                     @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.d("MapDemoActivity", "Error trying to get last GPS location");
-                        e.printStackTrace();
+                    public void onFailure(@NonNull Exception exception) {
+                        Log.v(TAG, exception.getLocalizedMessage());
                     }
                 });
     }

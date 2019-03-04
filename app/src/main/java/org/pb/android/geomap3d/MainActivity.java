@@ -23,6 +23,7 @@ import org.pb.android.geomap3d.fragment.LoadingFragment_;
 import org.pb.android.geomap3d.fragment.TerrainFragment;
 import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationManager;
+import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.WidgetConfiguration;
 import org.pb.android.geomap3d.widget.WidgetManager;
@@ -43,8 +44,16 @@ public class MainActivity extends AppCompatActivity {
 
     @AfterViews
     public void init() {
+
+        if (!Util.isGPSEnabled(this)) {
+            Util.openLocationSourceSettings(this);
+            // TODO: handle result
+        }
+
         if (checkPermissions()) {
             initWidgetAfterPermissionCheck();
+        } else {
+            // TODO: handle negative result. (user does not grant permissions)
         }
     }
 

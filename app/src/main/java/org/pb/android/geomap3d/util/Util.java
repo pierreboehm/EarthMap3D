@@ -2,7 +2,10 @@ package org.pb.android.geomap3d.util;
 
 import android.app.ActivityManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
+import android.location.LocationManager;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
 
@@ -36,6 +39,23 @@ public class Util {
             return OpenGLVersion.valueOf(info.reqGlEsVersion);
         }
 
+    }
+
+    public static boolean isGPSEnabled(Context context) {
+        final LocationManager manager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+
+        if (manager == null) {
+            return false;
+        }
+
+        return manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+    public static void openLocationSourceSettings(Context context) {
+        Intent intent = new Intent();
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        intent.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+        context.startActivity(intent);
     }
 
     public static class PointF3D {
