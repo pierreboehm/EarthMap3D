@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.GeomagneticField;
 import android.location.Location;
-import android.os.Bundle;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -13,19 +12,21 @@ import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationAvailability;
+import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 
-import java.util.concurrent.atomic.AtomicReference;
-
 @EBean(scope = EBean.Scope.Singleton)
-public class LocationManager implements com.google.android.gms.location.LocationListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener {
+public class LocationManager {
 
     private static final String TAG = LocationManager.class.getSimpleName();
 
@@ -36,75 +37,28 @@ public class LocationManager implements com.google.android.gms.location.Location
     @RootContext
     Context context;
 
-    private AtomicReference<GoogleApiClient> googleApiClient = new AtomicReference<>();
+    private FusedLocationProviderClient fusedLocationProviderClient;
     private static final long UPDATE_INTERVAL = 5000, FASTEST_INTERVAL = 5000;
 
     private LocationUpdateListener locationUpdateListener;
     private GeomagneticField geomagneticField;
 
+    private Location lastKnownLocation;
+    private LocationCallback locationCallback;
+
     @AfterInject
     void init() {
-        googleApiClient = new AtomicReference<>(new GoogleApiClient.Builder(context)
-            .addApi(LocationServices.API)
-            .addConnectionCallbacks(this)
-            .addOnConnectionFailedListener(this)
-            .build());
-    }
-
-    @Override
-    public void onLocationChanged(Location location) {
-        if (location != null) {
-
-            geomagneticField = new GeomagneticField(
-                    (float) location.getLatitude(),
-                    (float) location.getLongitude(),
-                    (float) location.getAltitude(),
-                    location.getTime()
-            );
-
-            if (locationUpdateListener != null) {
-                locationUpdateListener.onLocationUpdate(location);
-            }
-        }
-    }
-
-    @Override
-    public void onConnected(@Nullable Bundle bundle) {
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
-            Log.v(TAG, "locationManager >> onConnected. Permission check failed.");
-            return;
-        }
-
-        // Permissions ok, we get last location
-        onLocationChanged(LocationServices.FusedLocationApi.getLastLocation(googleApiClient.get()));
-        startLocationUpdates();
-    }
-
-    @Override
-    public void onConnectionSuspended(int i) {
-        // not implemented
-    }
-
-    @Override
-    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-        // not implemented
+        fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context);
+        requestLastLocation();
+        locationCallback = getLocationCallback();
     }
 
     public void onResume() {
-        GoogleApiClient apiClient = googleApiClient.get();
-        if (apiClient != null) {
-            apiClient.connect();
-        }
+        startLocationUpdates();
     }
 
     public void onPause() {
-        GoogleApiClient apiClient = googleApiClient.get();
-        if (apiClient != null && apiClient.isConnected()) {
-            LocationServices.FusedLocationApi.removeLocationUpdates(apiClient, this);
-            apiClient.disconnect();
-        }
+        stopLocationUpdates();
     }
 
     public void setLocationUpdateListener(LocationUpdateListener locationUpdateListener) {
@@ -113,16 +67,7 @@ public class LocationManager implements com.google.android.gms.location.Location
 
     @Nullable
     public Location getLastKnownLocation() {
-        GoogleApiClient apiClient = googleApiClient.get();
-        if (apiClient == null || !apiClient.isConnected()) {
-            return null;
-        }
-
-        try {
-            return LocationServices.FusedLocationApi.getLastLocation(apiClient);
-        } catch (SecurityException securityException) {
-            return null;
-        }
+        return lastKnownLocation;
     }
 
     public synchronized GeomagneticField getGeomagneticField() {
@@ -138,8 +83,71 @@ public class LocationManager implements com.google.android.gms.location.Location
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
                 &&  ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(context, "You need to enable permissions to display location !", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-        LocationServices.FusedLocationApi.requestLocationUpdates(googleApiClient.get(), locationRequest, this, Looper.getMainLooper());
+        if (fusedLocationProviderClient != null) {
+            fusedLocationProviderClient.requestLocationUpdates(locationRequest, locationCallback, Looper.getMainLooper());
+        }
+    }
+
+    private void stopLocationUpdates() {
+        if (fusedLocationProviderClient != null) {
+            fusedLocationProviderClient.removeLocationUpdates(locationCallback);
+        }
+    }
+
+    private void requestLastLocation() {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                &&  ActivityCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(context, "You need to enable permissions to display location !", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        fusedLocationProviderClient.getLastLocation()
+                .addOnSuccessListener(new OnSuccessListener<Location>() {
+                    @Override
+                    public void onSuccess(Location location) {
+                        setLocationResult(location);
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.d("MapDemoActivity", "Error trying to get last GPS location");
+                        e.printStackTrace();
+                    }
+                });
+    }
+
+    private void setLocationResult(Location location) {
+        if (location != null) {
+
+            geomagneticField = new GeomagneticField(
+                    (float) location.getLatitude(),
+                    (float) location.getLongitude(),
+                    (float) location.getAltitude(),
+                    location.getTime()
+            );
+
+            lastKnownLocation = location;
+
+            if (locationUpdateListener != null) {
+                locationUpdateListener.onLocationUpdate(location);
+            }
+        }
+    }
+
+    private LocationCallback getLocationCallback() {
+        return new LocationCallback() {
+            @Override
+            public void onLocationResult(LocationResult locationResult) {
+                setLocationResult(locationResult.getLastLocation());
+            }
+
+            @Override
+            public void onLocationAvailability(LocationAvailability var1) {
+            }
+        };
     }
 }
