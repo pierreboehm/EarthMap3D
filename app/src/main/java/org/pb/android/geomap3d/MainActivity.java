@@ -133,7 +133,7 @@ public class MainActivity extends AppCompatActivity {
 
             WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
                     .setLocation(locationManager.getLastKnownLocation())
-                    .setHeightMapResourceId(R.drawable.kaufunger_wald_height_map)
+                    .setHeightMapResourceId(R.drawable.kaufunger_wald_2_height_map)
                     .getConfiguration();
 
             widgetManager.setWidgetForInitiation(new TerrainWidget(this), widgetConfiguration);
