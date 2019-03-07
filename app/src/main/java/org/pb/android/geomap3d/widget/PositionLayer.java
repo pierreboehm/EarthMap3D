@@ -27,7 +27,7 @@ public class PositionLayer extends Layer {
 
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
-    private int numberOfPoints;
+    private float scale = 0.5f;
 
     public PositionLayer(Location location) {
         this.location = location;
@@ -36,23 +36,36 @@ public class PositionLayer extends Layer {
 
     @Override
     public void draw(GL10 gl, FloatBuffer p1, int p2) {
-        // use GL_TRIANGLES
-
         gl.glPushMatrix();
 
-            gl.glTranslatef(positionXOffset, positionYOffset, positionZOffset);
+        gl.glTranslatef(positionXOffset, positionYOffset, positionZOffset);
 
-            gl.glPointSize(9f);
-            gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertices);
-            gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
-            gl.glColor4f(1f, 1f, 1f, 1f);
-    //        gl.glEnable(GL10.GL_BLEND);
-    //        gl.glBlendFunc(GLES10.GL_SRC_ALPHA, GLES10.GL_ONE_MINUS_SRC_ALPHA);
-            gl.glDrawArrays(GL10.GL_TRIANGLES, 0, numberOfPoints);
-    //        gl.glDisable(GL10.GL_BLEND);
-            gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
+        gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
+        gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertices);
+        gl.glColor4f(1f, 1f, 1f, 1f);
 
+        // draw center point w/o scale
+        gl.glPointSize(12f);
+        gl.glDrawArrays(GL10.GL_POINTS, 0, 1);
+
+        // draw line
+        gl.glLineWidth(1f); // or 1f
+        gl.glDrawArrays(GL10.GL_LINES, 1, 2);
+
+        // draw animated ring
+        gl.glScalef(scale, 1f, scale);
+
+        // draw ring
+        gl.glLineWidth(5f);
+        gl.glDrawArrays(GL10.GL_LINE_LOOP, 3, 359);
+
+        gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glPopMatrix();
+
+        scale = scale + 0.02f;
+        if (scale > 4f) {
+            scale = 0.5f;
+        }
     }
 
     @Override
@@ -71,16 +84,23 @@ public class PositionLayer extends Layer {
     private void initLayer() {
         points = new ArrayList<>();
 
-        points.add(new Util.PointF3D(-0.025f, 0.05f, 0f));
-        points.add(new Util.PointF3D( 0.025f, 0.05f, 0f));
-        points.add(new Util.PointF3D(     0f,    0f, 0f));
+        // point
+        points.add(new Util.PointF3D(0f, 0.1f, 0f));
 
-        points.add(new Util.PointF3D(0f, 0.05f, -0.025f));
-        points.add(new Util.PointF3D(0f, 0.05f,  0.025f));
-        points.add(new Util.PointF3D(0f,    0f,      0f));
+        // line
+        points.add(new Util.PointF3D(0f, 0.1f, 0f));
+        points.add(new Util.PointF3D(0f, 0f, 0f));
+
+        // ring
+        for (int i = 9; i < 368; i++) {
+            points.add(new Util.PointF3D(
+                    (float) (Math.cos((double) (i - 9) * Math.PI / 180.0) * 0.01f),
+                    0f,
+                    (float) (Math.sin((double) (i - 9) * Math.PI / 180.0) * 0.01f)
+            ));
+        }
 
         vertices = initVertices(points);
-        numberOfPoints = points.size();
     }
 
     private FloatBuffer initVertices(List<Util.PointF3D> points) {
