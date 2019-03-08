@@ -149,8 +149,8 @@ public class MainActivity extends AppCompatActivity {
 
             // we use mock location here to have a correctly initialized terrain widget
             Location mockLocation = new Location("");
-            mockLocation.setLongitude(51.281761);
-            mockLocation.setLatitude(9.800702);
+            mockLocation.setLatitude(51.281761);
+            mockLocation.setLongitude(9.800702);
 
             WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
                     .setLocation(mockLocation/*locationManager.getLastKnownLocation()*/)

@@ -3,6 +3,7 @@ package org.pb.android.geomap3d.util;
 import android.location.Location;
 
 import org.pb.android.geomap3d.data.GeoModel;
+import org.pb.android.geomap3d.widget.TerrainWidget;
 
 import static java.lang.Math.asin;
 import static java.lang.Math.cos;
@@ -16,16 +17,10 @@ public class GeoUtil {
 
     private static final int RADIUS_OF_EARTH_IN_KILOMETER = 6371;
 
-    public static float getHeightAtPosition(Location location, GeoModel geoModel) {
-        return 0.45f;
-    }
+    private static final String TAG = GeoUtil.class.getSimpleName();
 
-    public static float getXOffsetAtPosition(Location location, GeoModel geoModel) {
-        return 0.45f;
-    }
-
-    public static float getZOffsetAtPosition(Location location, GeoModel geoModel) {
-        return -1.2f;
+    public static PositionOffsets getPositionOffsets(Location location, GeoModel geoModel) {
+        return new PositionOffsets(location, geoModel);
     }
 
     // TODO: compare correctness of results of both methods
@@ -61,5 +56,17 @@ public class GeoUtil {
         double c = 2 * asin(Math.sqrt(a));
 
         return RADIUS_OF_EARTH_IN_KILOMETER * c;
+    }
+
+    public static class PositionOffsets {
+
+        public float xOffset, yOffset, zOffset;
+
+        PositionOffsets(Location location, GeoModel geoModel) {
+            xOffset = (float) ((TerrainWidget.XZ_DIMENSION * (location.getLongitude() - geoModel.getCenterPoint().getLongitude())) / (geoModel.getBoxEndPoint().getLongitude() - geoModel.getCenterPoint().getLongitude()));
+            zOffset = -(float) ((TerrainWidget.XZ_DIMENSION * (location.getLatitude() - geoModel.getCenterPoint().getLatitude())) / (geoModel.getBoxStartPoint().getLatitude() - geoModel.getCenterPoint().getLatitude()));
+            yOffset = TerrainWidget.getElevationValueFromLocation(geoModel.getHeightMapBitmap(), (double) xOffset, (double) zOffset);
+        }
+
     }
 }

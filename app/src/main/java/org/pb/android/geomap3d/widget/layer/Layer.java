@@ -8,6 +8,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 public abstract class Layer {
 
+    public abstract LayerType getLayerType();
+
     public abstract void draw(GL10 gl, FloatBuffer vertices, int numberOfPoints);
 
     public abstract void updateTouch(MotionEvent motionEvent, float xRotation, float yRotation);

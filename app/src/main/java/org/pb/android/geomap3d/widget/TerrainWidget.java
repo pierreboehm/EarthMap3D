@@ -138,7 +138,7 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void updateDeviceLocation(Location location) {
-        PositionLayer positionLayer = getPositionLayer();
+        PositionLayer positionLayer = getDevicePositionLayer();
 
         if (positionLayer == null) {
             positionLayer = new PositionLayer(location, Layer.LayerType.CDP);
@@ -206,8 +206,9 @@ public class TerrainWidget extends Widget {
         return new Pair<>(points.size(), initVertices(points));
     }
 
+    // FIXME: move to GeoUtil
     // vertical scale is 0 (black) to 1,024 (white) meters
-    private float getElevationValueFromLocation(Bitmap bitmap, double xCoordinate, double zCoordinate) {
+    public static float getElevationValueFromLocation(Bitmap bitmap, double xCoordinate, double zCoordinate) {
         int xPosition = (int) roundScale((xCoordinate + XZ_DIMENSION) * 100);
         int zPosition = (int) roundScale((zCoordinate + XZ_DIMENSION) * 100);
 
@@ -218,9 +219,10 @@ public class TerrainWidget extends Widget {
         return (float) yCoordinate / 4f;
     }
 
-    private PositionLayer getPositionLayer() {
+    private PositionLayer getDevicePositionLayer() {
         for (Layer layer : layers) {
-            if (layer instanceof PositionLayer) {
+            if (layer instanceof PositionLayer
+                    && layer.getLayerType() == Layer.LayerType.CDP) {
                 return (PositionLayer) layer;
             }
         }
@@ -232,6 +234,7 @@ public class TerrainWidget extends Widget {
         InitiationThread(WidgetConfiguration widgetConfiguration) {
             if (widgetConfiguration.hasLocation()) {
                 layers.add(new PositionLayer(widgetConfiguration.getLocation(), Layer.LayerType.CDP));
+                EventBus.getDefault().post(new Events.VibrationEvent());
             }
             terrainGeoModel = widgetConfiguration.getGeoModel();
         }

@@ -9,6 +9,11 @@ import javax.microedition.khronos.opengles.GL10;
 public class TerrainLayer extends Layer {
 
     @Override
+    public LayerType getLayerType() {
+        return null;
+    }
+
+    @Override
     public void draw(GL10 gl, FloatBuffer vertices, int numberOfPoints) {
         gl.glPointSize(1f);
         gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertices);

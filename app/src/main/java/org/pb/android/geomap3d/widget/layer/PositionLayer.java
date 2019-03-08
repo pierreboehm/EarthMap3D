@@ -24,8 +24,8 @@ public class PositionLayer extends Layer {
     private LayerType layerType;
 
     private float positionYOffset = 0f;
-    private float positionXOffset = 0.45f;
-    private float positionZOffset = -1.2f;
+    private float positionXOffset = 0f;
+    private float positionZOffset = 0f;
 
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
@@ -36,6 +36,11 @@ public class PositionLayer extends Layer {
         this.layerType = layerType;
 
         initLayer();
+    }
+
+    @Override
+    public LayerType getLayerType() {
+        return layerType;
     }
 
     @Override
@@ -82,9 +87,10 @@ public class PositionLayer extends Layer {
     public void updateLocation(Location location, GeoModel geoModel) {
         this.location = location;
 
-        positionXOffset = GeoUtil.getXOffsetAtPosition(location, geoModel);
-        positionYOffset = GeoUtil.getHeightAtPosition(location, geoModel);
-        positionZOffset = GeoUtil.getZOffsetAtPosition(location, geoModel);
+        GeoUtil.PositionOffsets positionOffsets = GeoUtil.getPositionOffsets(location, geoModel);
+        positionXOffset = positionOffsets.xOffset;
+        positionYOffset = positionOffsets.yOffset;
+        positionZOffset = positionOffsets.zOffset;
 
         Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
     }
