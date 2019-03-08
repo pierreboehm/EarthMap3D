@@ -135,7 +135,7 @@ public class TerrainWidget extends Widget {
         PositionLayer positionLayer = getPositionLayer();
 
         if (positionLayer == null) {
-            positionLayer = new PositionLayer(location);
+            positionLayer = new PositionLayer(location, Layer.LayerType.CDP);
             layers.add(positionLayer);
 
             EventBus.getDefault().post(new Events.VibrationEvent());
@@ -228,7 +228,7 @@ public class TerrainWidget extends Widget {
         InitiationThread(WidgetConfiguration widgetConfiguration) {
 
             if (widgetConfiguration.hasLocation()) {
-                layers.add(new PositionLayer(widgetConfiguration.getLocation()));
+                layers.add(new PositionLayer(widgetConfiguration.getLocation(), Layer.LayerType.CDP));
             }
 
             if (widgetConfiguration.hasHeightMapResourceId()) {

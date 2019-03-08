@@ -20,6 +20,7 @@ public class PositionLayer extends Layer {
     private static final String TAG = PositionLayer.class.getSimpleName();
 
     private Location location;
+    private LayerType layerType;
 
     private float positionYOffset = 0f;
     private float positionXOffset = 0.45f;
@@ -29,8 +30,10 @@ public class PositionLayer extends Layer {
     private FloatBuffer vertices;
     private float scale = 0.5f;
 
-    public PositionLayer(Location location) {
+    public PositionLayer(Location location, LayerType layerType) {
         this.location = location;
+        this.layerType = layerType;
+
         initLayer();
     }
 
@@ -52,20 +55,22 @@ public class PositionLayer extends Layer {
         gl.glLineWidth(1f); // or 1f
         gl.glDrawArrays(GL10.GL_LINES, 1, 2);
 
-        // draw animated ring
-        gl.glScalef(scale, 1f, scale);
+        // draw animated ring just for CDP
+        if (layerType == LayerType.CDP) {
+            gl.glScalef(scale, 1f, scale);
 
-        // draw ring
-        gl.glLineWidth(5f);
-        gl.glDrawArrays(GL10.GL_LINE_LOOP, 3, 359);
+            // draw ring
+            gl.glLineWidth(5f);
+            gl.glDrawArrays(GL10.GL_LINE_LOOP, 3, 359);
+
+            scale = scale + 0.02f;
+            if (scale > 4f) {
+                scale = 0.5f;
+            }
+        }
 
         gl.glDisableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glPopMatrix();
-
-        scale = scale + 0.02f;
-        if (scale > 4f) {
-            scale = 0.5f;
-        }
     }
 
     @Override
@@ -92,12 +97,14 @@ public class PositionLayer extends Layer {
         points.add(new Util.PointF3D(0f, 0f, 0f));
 
         // ring
-        for (int i = 9; i < 368; i++) {
-            points.add(new Util.PointF3D(
-                    (float) (Math.cos((double) (i - 9) * Math.PI / 180.0) * 0.01f),
-                    0f,
-                    (float) (Math.sin((double) (i - 9) * Math.PI / 180.0) * 0.01f)
-            ));
+        if (layerType == LayerType.CDP) {
+            for (int i = 9; i < 368; i++) {
+                points.add(new Util.PointF3D(
+                        (float) (Math.cos((double) (i - 9) * Math.PI / 180.0) * 0.01f),
+                        0f,
+                        (float) (Math.sin((double) (i - 9) * Math.PI / 180.0) * 0.01f)
+                ));
+            }
         }
 
         vertices = initVertices(points);
