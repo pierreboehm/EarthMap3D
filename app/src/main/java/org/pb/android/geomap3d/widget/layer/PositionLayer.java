@@ -45,7 +45,7 @@ public class PositionLayer extends Layer {
 
         gl.glEnableClientState(GL10.GL_VERTEX_ARRAY);
         gl.glVertexPointer(3, GL10.GL_FLOAT, 0, vertices);
-        gl.glColor4f(1f, 1f, 1f, 1f);
+        gl.glColor4f(layerType.getGlColor().red, layerType.getGlColor().green, layerType.getGlColor().blue, 1f);
 
         // draw center point w/o scale
         gl.glPointSize(12f);
@@ -81,7 +81,9 @@ public class PositionLayer extends Layer {
     public void updateLocation(Location location) {
         this.location = location;
 
+//        positionXOffset = GeoUtil.getXOffsetAtPosition(location);
         positionYOffset = GeoUtil.getHeightAtPosition(location);
+//        positionZOffset = GeoUtil.getZOffsetAtPosition(location);
 
         Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
     }

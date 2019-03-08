@@ -8,18 +8,41 @@ import javax.microedition.khronos.opengles.GL10;
 
 public abstract class Layer {
 
-    // TODO: create complex enum that also contains pin-color
-
-    public enum LayerType {
-        CDP,    // C(urrent) D(evice) P(osition)        --> white pin with animated ring at bottom
-        TDP,    // T(racked) D(evice) P(osition)        --> white pin
-        CMP,    // camp                                 --> yellow pin
-        POO,    // P(oint) O(f) O(bservation)           --> green pin
-        POL,    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)   --> blue pin
-    }
-
     public abstract void draw(GL10 gl, FloatBuffer vertices, int numberOfPoints);
 
     public abstract void updateTouch(MotionEvent motionEvent, float xRotation, float yRotation);
 
+    public enum LayerType {
+        CDP(GLColor.WHITE),    // C(urrent) D(evice) P(osition)
+        TDP(GLColor.WHITE),    // T(racked) D(evice) P(osition)
+        CMP(GLColor.YELLOW),    // camp
+        POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
+
+        POL(GLColor.BLUE);    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
+
+        private final GLColor glColor;
+
+        LayerType(GLColor glColor) {
+            this.glColor = glColor;
+        }
+        public GLColor getGlColor() {
+            return glColor;
+        }
+
+    }
+
+    public enum GLColor {
+        WHITE(1f, 1f, 1f),
+        YELLOW(1f, .5f, 0f),
+        GREEN(0f, 1f, 0f),
+        BLUE(0f, 0f, 1f);
+
+        public final float red, green, blue;
+
+        GLColor(float red, float green, float blue) {
+            this.red = red;
+            this.green = green;
+            this.blue = blue;
+        }
+    }
 }
