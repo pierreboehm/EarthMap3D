@@ -1,7 +1,9 @@
-package org.pb.android.geomap3d.widget;
+package org.pb.android.geomap3d.widget.layer;
 
 import android.view.MotionEvent;
+
 import java.nio.FloatBuffer;
+
 import javax.microedition.khronos.opengles.GL10;
 
 public class TerrainLayer extends Layer {

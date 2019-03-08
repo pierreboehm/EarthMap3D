@@ -15,6 +15,9 @@ import org.pb.android.geomap3d.compass.LowPassFilter;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.util.Util;
+import org.pb.android.geomap3d.widget.layer.Layer;
+import org.pb.android.geomap3d.widget.layer.PositionLayer;
+import org.pb.android.geomap3d.widget.layer.TerrainLayer;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
