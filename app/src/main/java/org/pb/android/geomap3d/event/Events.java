@@ -28,4 +28,7 @@ public class Events {
             return tag;
         }
     }
+
+    public static class VibrationEvent {
+    }
 }

@@ -3,6 +3,9 @@ package org.pb.android.geomap3d;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.pm.PackageManager;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
@@ -35,6 +38,9 @@ public class MainActivity extends AppCompatActivity {
 
     @SystemService
     ActivityManager activityManager;
+
+    @SystemService
+    Vibrator vibrator;
 
     @Bean
     LocationManager locationManager;
@@ -102,6 +108,15 @@ public class MainActivity extends AppCompatActivity {
     public void onEvent(Events.FragmentLoaded event) {
         if (event.getTag().equals(LoadingFragment.TAG)) {
             setupTerrainWidget();
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.VibrationEvent event) {
+        if (Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vibrator.vibrate(100);
         }
     }
 

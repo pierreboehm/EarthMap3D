@@ -12,6 +12,7 @@ import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.compass.Compass;
+import org.pb.android.geomap3d.data.GeoDatabaseManager;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
@@ -29,6 +30,9 @@ public class TerrainFragment extends Fragment {
 
     @Bean
     LocationManager locationManager;
+
+    @Bean
+    GeoDatabaseManager geoDatabaseManager;
 
     @Bean
     Compass compass;

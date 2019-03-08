@@ -134,6 +134,8 @@ public class TerrainWidget extends Widget {
         if (positionLayer == null) {
             positionLayer = new PositionLayer(location);
             layers.add(positionLayer);
+
+            EventBus.getDefault().post(new Events.VibrationEvent());
         }
 
         positionLayer.updateLocation(location);
