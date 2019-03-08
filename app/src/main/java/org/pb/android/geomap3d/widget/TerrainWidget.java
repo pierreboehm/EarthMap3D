@@ -3,7 +3,6 @@ package org.pb.android.geomap3d.widget;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Parcel;
@@ -12,6 +11,7 @@ import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.compass.LowPassFilter;
+import org.pb.android.geomap3d.data.GeoModel;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.util.Util;
@@ -32,6 +32,10 @@ import static org.pb.android.geomap3d.util.Util.roundScale;
 @SuppressLint("ParcelCreator")
 public class TerrainWidget extends Widget {
 
+    public static final int BITMAP_DIMENSION = 1081;
+    public static final double XZ_DIMENSION = 5.4;
+    public static final double XZ_STRIDE = 0.01;
+
     private static final String TAG = TerrainWidget.class.getSimpleName();
 
     private Context context;
@@ -45,6 +49,8 @@ public class TerrainWidget extends Widget {
 
     private Util.PointF3D touch;
     private int lastKnownProgressValue = 0;
+
+    private GeoModel terrainGeoModel;
 
     public TerrainWidget(Context context) {
         this.context = context;
@@ -141,7 +147,7 @@ public class TerrainWidget extends Widget {
             EventBus.getDefault().post(new Events.VibrationEvent());
         }
 
-        positionLayer.updateLocation(location);
+        positionLayer.updateLocation(location, terrainGeoModel);
     }
 
     @Override
@@ -166,11 +172,11 @@ public class TerrainWidget extends Widget {
         List<Util.PointF3D> points = new ArrayList<>();
 
         int currentCount = 0;
-        int maximalCount = 1081 * 1081;
+        int maximalCount = BITMAP_DIMENSION * BITMAP_DIMENSION;
 
         // Just create flat with 1081 x 1081 points. Values are based on generated elevation map.
-        for (double xCoordinate = -5.4; xCoordinate <= 5.4; xCoordinate = roundScale(xCoordinate + 0.01)) {
-            for (double zCoordinate = -5.4; zCoordinate <= 5.4; zCoordinate = roundScale(zCoordinate + 0.01)) {
+        for (double xCoordinate = -XZ_DIMENSION; xCoordinate <= XZ_DIMENSION; xCoordinate = roundScale(xCoordinate + XZ_STRIDE)) {
+            for (double zCoordinate = -XZ_DIMENSION; zCoordinate <= XZ_DIMENSION; zCoordinate = roundScale(zCoordinate + XZ_STRIDE)) {
                 float elevationValue = getElevationValueFromLocation(bitmap, xCoordinate, zCoordinate);
                 points.add(new Util.PointF3D((float) xCoordinate, elevationValue, (float) zCoordinate));
                 sendProgressUpdate(++currentCount, maximalCount);
@@ -202,13 +208,13 @@ public class TerrainWidget extends Widget {
 
     // vertical scale is 0 (black) to 1,024 (white) meters
     private float getElevationValueFromLocation(Bitmap bitmap, double xCoordinate, double zCoordinate) {
-        int xPosition = (int) roundScale((xCoordinate + 5.4) * 100);
-        int zPosition = (int) roundScale((zCoordinate + 5.4) * 100);
+        int xPosition = (int) roundScale((xCoordinate + XZ_DIMENSION) * 100);
+        int zPosition = (int) roundScale((zCoordinate + XZ_DIMENSION) * 100);
 
         int color = bitmap.getPixel(xPosition, zPosition);      // 0 .. 255
         int rgbValue = Color.red(color);
 
-        double yCoordinate = rgbValue * 4 * 5.4 / 1024;
+        double yCoordinate = rgbValue * 4 * XZ_DIMENSION / 1024;
         return (float) yCoordinate / 4f;
     }
 
@@ -223,27 +229,16 @@ public class TerrainWidget extends Widget {
 
     private class InitiationThread implements Runnable {
 
-        private final Bitmap bitmap;
-
         InitiationThread(WidgetConfiguration widgetConfiguration) {
-
             if (widgetConfiguration.hasLocation()) {
                 layers.add(new PositionLayer(widgetConfiguration.getLocation(), Layer.LayerType.CDP));
             }
-
-            if (widgetConfiguration.hasHeightMapResourceId()) {
-                Bitmap rawmap = BitmapFactory.decodeResource(context.getResources(), widgetConfiguration.getHeightMapResourceId());
-                bitmap = Bitmap.createScaledBitmap(rawmap, 1081, 1081, true);
-            } else if (widgetConfiguration.hasHeightMapBitmap()) {
-                bitmap = Bitmap.createScaledBitmap(widgetConfiguration.getHeightMapBitmap(), 1081, 1081, true);
-            } else {
-                bitmap = Bitmap.createBitmap(1081, 1081, Bitmap.Config.RGB_565);
-            }
+            terrainGeoModel = widgetConfiguration.getGeoModel();
         }
 
         @Override
         public void run() {
-            Pair<Integer, FloatBuffer> layerInitResults = initLayer(bitmap);
+            Pair<Integer, FloatBuffer> layerInitResults = initLayer(terrainGeoModel.getHeightMapBitmap());
             numberOfPoints = layerInitResults.first;
             vertices = layerInitResults.second;
 

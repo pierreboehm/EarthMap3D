@@ -4,6 +4,7 @@ import android.location.Location;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import org.pb.android.geomap3d.data.GeoModel;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
 
@@ -60,11 +61,11 @@ public class PositionLayer extends Layer {
             gl.glScalef(scale, 1f, scale);
 
             // draw ring
-            gl.glLineWidth(5f);
+            gl.glLineWidth(4f);
             gl.glDrawArrays(GL10.GL_LINE_LOOP, 3, 359);
 
             scale = scale + 0.02f;
-            if (scale > 4f) {
+            if (scale > 5f) {
                 scale = 0.5f;
             }
         }
@@ -78,12 +79,12 @@ public class PositionLayer extends Layer {
         // not implemented
     }
 
-    public void updateLocation(Location location) {
+    public void updateLocation(Location location, GeoModel geoModel) {
         this.location = location;
 
-//        positionXOffset = GeoUtil.getXOffsetAtPosition(location);
-        positionYOffset = GeoUtil.getHeightAtPosition(location);
-//        positionZOffset = GeoUtil.getZOffsetAtPosition(location);
+        positionXOffset = GeoUtil.getXOffsetAtPosition(location, geoModel);
+        positionYOffset = GeoUtil.getHeightAtPosition(location, geoModel);
+        positionZOffset = GeoUtil.getZOffsetAtPosition(location, geoModel);
 
         Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
     }

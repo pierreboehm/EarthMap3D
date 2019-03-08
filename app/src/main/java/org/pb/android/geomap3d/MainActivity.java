@@ -3,6 +3,7 @@ package org.pb.android.geomap3d;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.pm.PackageManager;
+import android.location.Location;
 import android.os.Build;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
@@ -146,9 +147,14 @@ public class MainActivity extends AppCompatActivity {
     private void setupTerrainWidget() {
         if (widgetManager.getWidget() == null) {
 
+            // we use mock location here to have a correctly initialized terrain widget
+            Location mockLocation = new Location("");
+            mockLocation.setLongitude(51.281761);
+            mockLocation.setLatitude(9.800702);
+
             WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
-                    .setLocation(locationManager.getLastKnownLocation())
-                    .setHeightMapResourceId(R.drawable.kaufunger_wald_2_height_map)
+                    .setLocation(mockLocation/*locationManager.getLastKnownLocation()*/)
+                    .setHeightMapBitmapFromResource(this, R.drawable.kaufunger_wald_2_height_map)
                     .getConfiguration();
 
             widgetManager.setWidgetForInitiation(new TerrainWidget(this), widgetConfiguration);
