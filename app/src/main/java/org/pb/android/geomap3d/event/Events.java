@@ -31,4 +31,16 @@ public class Events {
 
     public static class VibrationEvent {
     }
+
+    public static class ShowToast {
+        private final String message;
+
+        public ShowToast(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
+        }
+    }
 }

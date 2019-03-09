@@ -44,6 +44,7 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
     public void initRenderer(Context context) {
         openGLRenderer = OpenGLRenderer.loadRenderer(context);
         setRenderer(openGLRenderer);
+        scaleFactor = ((RendererOpenGL) openGLRenderer).getScale();
     }
 
     public void updateDeviceRotation(float azimuth) {

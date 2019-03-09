@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.content.PermissionChecker;
 import android.support.v7.app.AppCompatActivity;
+import android.widget.Toast;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -35,6 +36,7 @@ import org.pb.android.geomap3d.widget.WidgetManager;
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = MainActivity.class.getSimpleName();
     private static final int PERMISSION_REQUEST_CODE = 7321;
 
     @SystemService
@@ -119,6 +121,11 @@ public class MainActivity extends AppCompatActivity {
         } else {
             vibrator.vibrate(100);
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.ShowToast event) {
+        Toast.makeText(this, event.getMessage(), Toast.LENGTH_LONG).show();
     }
 
     private boolean checkPermissions() {

@@ -4,7 +4,9 @@ import android.location.Location;
 import android.util.Log;
 import android.view.MotionEvent;
 
+import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.data.GeoModel;
+import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
 
@@ -30,6 +32,7 @@ public class PositionLayer extends Layer {
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
     private float scale = 0.5f;
+    private boolean showPointer = false;
 
     public PositionLayer(Location location, LayerType layerType) {
         this.location = location;
@@ -45,6 +48,11 @@ public class PositionLayer extends Layer {
 
     @Override
     public void draw(GL10 gl, FloatBuffer p1, int p2) {
+
+        if (!showPointer) {
+            return;
+        }
+
         gl.glPushMatrix();
 
         gl.glTranslatef(positionXOffset, positionYOffset, positionZOffset);
@@ -69,8 +77,8 @@ public class PositionLayer extends Layer {
             gl.glLineWidth(4f);
             gl.glDrawArrays(GL10.GL_LINE_LOOP, 3, 359);
 
-            scale = scale + 0.02f;
-            if (scale > 5f) {
+            scale = scale + 0.04f;
+            if (scale > 6f) {
                 scale = 0.5f;
             }
         }
@@ -86,13 +94,34 @@ public class PositionLayer extends Layer {
 
     public void updateLocation(Location location, GeoModel geoModel) {
         this.location = location;
-
-        GeoUtil.PositionOffsets positionOffsets = GeoUtil.getPositionOffsets(location, geoModel);
-        positionXOffset = positionOffsets.xOffset;
-        positionYOffset = positionOffsets.yOffset;
-        positionZOffset = positionOffsets.zOffset;
-
         Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
+
+        if (GeoUtil.isLocationOnMap(location, geoModel)) {
+
+            if (!showPointer) {
+                EventBus.getDefault().post(new Events.VibrationEvent());
+            }
+
+            showPointer = true;
+
+            GeoUtil.PositionOffsets positionOffsets = GeoUtil.getPositionOffsets(location, geoModel);
+            positionXOffset = positionOffsets.xOffset;
+            positionYOffset = positionOffsets.yOffset;
+            positionZOffset = positionOffsets.zOffset;
+        } else {
+            if (showPointer) {
+                EventBus.getDefault().post(new Events.ShowToast("Position outside of map"));
+            }
+
+            showPointer = false;
+
+            positionXOffset = 0f;
+            positionYOffset = 0f;
+            positionZOffset = 0f;
+
+            Log.i(TAG, "Position outside of map");
+        }
+
     }
 
     private void initLayer() {

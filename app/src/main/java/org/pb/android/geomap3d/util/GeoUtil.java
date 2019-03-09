@@ -19,6 +19,13 @@ public class GeoUtil {
 
     private static final String TAG = GeoUtil.class.getSimpleName();
 
+    public static boolean isLocationOnMap(Location location, GeoModel geoModel) {
+        return location.getLatitude() <= geoModel.getBoxStartPoint().getLatitude()
+                && location.getLatitude() >= geoModel.getBoxEndPoint().getLatitude()
+                && location.getLongitude() >= geoModel.getBoxStartPoint().getLongitude()
+                && location.getLongitude() <= geoModel.getBoxEndPoint().getLongitude();
+    }
+
     public static PositionOffsets getPositionOffsets(Location location, GeoModel geoModel) {
         return new PositionOffsets(location, geoModel);
     }

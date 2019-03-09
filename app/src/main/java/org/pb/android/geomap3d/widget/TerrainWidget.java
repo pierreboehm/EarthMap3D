@@ -143,8 +143,6 @@ public class TerrainWidget extends Widget {
         if (positionLayer == null) {
             positionLayer = new PositionLayer(location, Layer.LayerType.CDP);
             layers.add(positionLayer);
-
-            EventBus.getDefault().post(new Events.VibrationEvent());
         }
 
         positionLayer.updateLocation(location, terrainGeoModel);
@@ -234,7 +232,6 @@ public class TerrainWidget extends Widget {
         InitiationThread(WidgetConfiguration widgetConfiguration) {
             if (widgetConfiguration.hasLocation()) {
                 layers.add(new PositionLayer(widgetConfiguration.getLocation(), Layer.LayerType.CDP));
-                EventBus.getDefault().post(new Events.VibrationEvent());
             }
             terrainGeoModel = widgetConfiguration.getGeoModel();
         }
@@ -246,7 +243,7 @@ public class TerrainWidget extends Widget {
             vertices = layerInitResults.second;
 
             yRotation = RendererOpenGL.ROTATION_INITIAL;
-            xRotation = RendererOpenGL.ROTATION_INITIAL;
+            xRotation = RendererOpenGL.ROTATION_INITIAL / 2f;
 
             EventBus.getDefault().post(new Events.WidgetReady());
         }

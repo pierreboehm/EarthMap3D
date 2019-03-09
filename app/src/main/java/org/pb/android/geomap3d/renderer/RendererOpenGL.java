@@ -1,6 +1,7 @@
 package org.pb.android.geomap3d.renderer;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.location.Location;
 import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
@@ -13,12 +14,15 @@ import javax.microedition.khronos.opengles.GL10;
 
 public class RendererOpenGL implements GLSurfaceView.Renderer {
 
+    private static final String TAG = RendererOpenGL.class.getSimpleName();
+
     public static final float ROTATION_INITIAL = 20f;
     public static final float SCALE_INITIAL = .6f;
     private static final float DEPTH_INITIAL = -10f;
 
     private Widget widget;
     private float scale;
+    private int orientation;
 
     public RendererOpenGL(Context context) {
         scale = SCALE_INITIAL;
@@ -37,6 +41,8 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
 
     @Override
     public void onSurfaceChanged(GL10 gl10, int width, int height) {
+        orientation = (width > height) ? Configuration.ORIENTATION_LANDSCAPE : Configuration.ORIENTATION_PORTRAIT;
+
         gl10.glViewport(0, 0, width, height);
 
         gl10.glMatrixMode(GL10.GL_PROJECTION);
@@ -58,12 +64,26 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
         gl10.glClear(GL10.GL_COLOR_BUFFER_BIT | GL10.GL_DEPTH_BUFFER_BIT);
 
         gl10.glLoadIdentity();
+
         gl10.glTranslatef(0f, -1f, DEPTH_INITIAL);
-        gl10.glScalef(scale, scale, scale);
+
+        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            gl10.glScalef(scale * 2f, scale * 2f, scale * 2f);
+        } else {
+            gl10.glScalef(scale, scale, scale);
+        }
+
+//        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
+//            gl10.glRotatef(90f, 0f, 1f, 0f);
+//        }
 
         if (widget != null) {
             widget.draw(gl10);
         }
+    }
+
+    public float getScale() {
+        return scale;
     }
 
     public void setWidget(Widget widget) {
