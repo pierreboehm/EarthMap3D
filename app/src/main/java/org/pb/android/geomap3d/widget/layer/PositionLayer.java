@@ -98,7 +98,7 @@ public class PositionLayer extends Layer {
 
         if (GeoUtil.isLocationOnMap(location, geoModel)) {
 
-            if (!showPointer) {
+            if (!showPointer && (layerType == LayerType.CDP)) {
                 EventBus.getDefault().post(new Events.VibrationEvent());
             }
 

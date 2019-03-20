@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.location.Location;
 import android.os.Parcel;
 import android.support.v4.util.Pair;
+import android.util.Log;
 import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -14,6 +15,7 @@ import org.pb.android.geomap3d.compass.LowPassFilter;
 import org.pb.android.geomap3d.data.GeoModel;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
+import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.layer.Layer;
 import org.pb.android.geomap3d.widget.layer.PositionLayer;
@@ -51,6 +53,9 @@ public class TerrainWidget extends Widget {
     private int lastKnownProgressValue = 0;
 
     private GeoModel terrainGeoModel;
+    private Location lastKnownLocation;
+
+    private int trackDistanceInMeters = 250;
 
     public TerrainWidget(Context context) {
         this.context = context;
@@ -130,9 +135,10 @@ public class TerrainWidget extends Widget {
         // FIXME: value sequence 359° --> 0° --> 359° produces a calculation error while smoothing. (modulo doesn't help)
         float smoothedAzimuth = LowPassFilter.filter(azimuth, yRotation, .005f);
         float roundScaledAzimuth = (float) roundScale(smoothedAzimuth);
+//        Log.v(TAG, "roundScaledAzimuth = " + roundScaledAzimuth + "°");
         if (Math.abs(yRotation - roundScaledAzimuth) > .04f) {
             yRotation = roundScaledAzimuth;
-//            Log.v(TAG, "yRotation = " + yRotation + "°");
+            Log.v(TAG, "yRotation = " + yRotation + "°");
         }
     }
 
@@ -146,6 +152,31 @@ public class TerrainWidget extends Widget {
         }
 
         positionLayer.updateLocation(location, terrainGeoModel);
+
+        if (location != null && trackDistanceInMeters > 0) {
+
+            if (lastKnownLocation == null) {
+                lastKnownLocation = location;
+            }
+
+            // FIXME: make distance-value modifiable
+            if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownLocation, location) > (float) trackDistanceInMeters) {
+                // add new positionLayer from type TDP
+                PositionLayer trackedDevicePositionLayer = new PositionLayer(lastKnownLocation, Layer.LayerType.TDP);
+                trackedDevicePositionLayer.updateLocation(lastKnownLocation, terrainGeoModel);
+
+                synchronized (this) {
+                    layers.add(trackedDevicePositionLayer);
+                }
+
+                lastKnownLocation = location;
+            }
+        }
+    }
+
+    @Override
+    public void updateTrackDistance(int trackDistanceInMeters) {
+        this.trackDistanceInMeters = trackDistanceInMeters;
     }
 
     @Override

@@ -51,6 +51,16 @@ public class Util {
         return manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
     }
 
+    public static int getDisplayHeight(Context context) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return metrics.heightPixels;
+    }
+
+    public static int getDisplayWidth(Context context) {
+        DisplayMetrics metrics = context.getResources().getDisplayMetrics();
+        return metrics.widthPixels;
+    }
+
     public static void openLocationSourceSettings(Context context) {
         Intent intent = new Intent();
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -70,6 +80,10 @@ public class Util {
 
     public static double roundScale(double d) {
         return Math.rint(d * 100) / 100.;
+    }
+
+    public static int roundUp(int num, int multipleOf) {
+        return (int) (Math.ceil((double) num / (double) multipleOf) * (double) multipleOf);
     }
 
     public static float convertDPToPixel(Context context, float valueInDp) {
