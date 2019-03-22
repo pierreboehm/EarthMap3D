@@ -108,6 +108,10 @@ public class TerrainFragment extends Fragment {
             compass.start();
         }
 
+        boolean trackPosition = preferences.trackPosition().getOr(true);
+        switchAutomaticTrack.setText(trackPosition ? R.string.trackOnText : R.string.trackOffText);
+        switchAutomaticTrack.setChecked(trackPosition);
+
         if (openGLSurfaceView != null) {
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
         }
@@ -203,9 +207,11 @@ public class TerrainFragment extends Fragment {
 
     @Click(R.id.switchCompass)
     public void onSwitchCompassClicked() {
-        preferences.useCompass().put(switchCompass.isChecked());
-        switchCompass.setText(preferences.useCompass().get() ? R.string.compassOnText : R.string.compassOffText);
-        if (preferences.useCompass().get()) {
+        boolean useCompass = switchCompass.isChecked();
+        preferences.useCompass().put(useCompass);
+
+        switchCompass.setText(useCompass ? R.string.compassOnText : R.string.compassOffText);
+        if (useCompass) {
             compass.start();
         } else {
             compass.stop();
@@ -215,6 +221,7 @@ public class TerrainFragment extends Fragment {
     @Click(R.id.switchAutomaticTrack)
     public void onSwitchAutomaticTrackClicked() {
         boolean isTrackOn = switchAutomaticTrack.isChecked();
+        preferences.trackPosition().put(isTrackOn);
 
         seekBarTrackDistance.setEnabled(isTrackOn);
         switchAutomaticTrack.setText(isTrackOn ? R.string.trackOnText : R.string.trackOffText);

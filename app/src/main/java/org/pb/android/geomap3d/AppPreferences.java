@@ -10,6 +10,9 @@ public interface AppPreferences {
     @DefaultBoolean(true)
     boolean useCompass();
 
+    @DefaultBoolean(true)
+    boolean trackPosition();
+
     @DefaultInt(250)
     int defaultTrackDistanceInMeters();
 }
