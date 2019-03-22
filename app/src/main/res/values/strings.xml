@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">3DGeoMap</string>
+
+    <string name="compassOnText">Compass enabled</string>
+    <string name="compassOffText">Compass disabled</string>
+
+    <string name="trackOnText">Automatic track position enabled</string>
+    <string name="trackOffText">Automatic track position disabled</string>
+
+    <string name="locationNoData">-- N, -- E</string>
+    <string name="locationDataFormat">%.06f N, %.06f E</string>
 </resources>

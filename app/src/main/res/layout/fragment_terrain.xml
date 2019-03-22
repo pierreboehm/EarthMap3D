@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent" xmlns:tools="http://schemas.android.com/tools">
+    android:layout_height="match_parent">
 
     <org.pb.android.geomap3d.view.OpenGLSurfaceView
         android:id="@+id/glSurfaceView"
@@ -21,7 +22,7 @@
         android:layout_marginRight="4dp"
         android:paddingStart="10dp"
         android:paddingEnd="10dp"
-        android:background="#a01091ff"
+        android:background="@color/shiftMenu_backgroundColor"
         android:visibility="visible">
 
         <ImageView
@@ -35,7 +36,7 @@
             android:paddingStart="10dp"
             android:paddingEnd="10dp"
             android:src="@drawable/shifter_menu_btn_down"
-            android:tint="#a01091ff"/>
+            android:tint="@color/shiftButton_tintColor"/>
 
         <TextView
             android:id="@+id/tvDevicePosition"
@@ -43,7 +44,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:layout_marginTop="10dp"
-            android:text="-- N, -- E"
+            android:text="@string/locationNoData"
             tools:text="51.281761 N, 9.800702 E"
             />
 
@@ -53,10 +54,10 @@
             android:layout_height="wrap_content"
             android:checked="true"
             android:layout_marginTop="20dp"
-            android:thumbTint="#ffffff"
-            android:trackTint="#80ffffff"
-            android:textColor="#a0ffffff"
-            android:text="Compass enabled"
+            android:thumbTint="@color/switch_thumbColor"
+            android:trackTint="@color/switch_trackColor"
+            android:textColor="@color/switch_textColor"
+            tools:text="@string/compassOnText"
             />
 
         <Switch
@@ -65,10 +66,10 @@
             android:layout_height="wrap_content"
             android:checked="true"
             android:layout_marginTop="20dp"
-            android:thumbTint="#ffffff"
-            android:trackTint="#80ffffff"
-            android:textColor="#a0ffffff"
-            android:text="Automatic track position enabled"
+            android:thumbTint="@color/switch_thumbColor"
+            android:trackTint="@color/switch_trackColor"
+            android:textColor="@color/switch_textColor"
+            tools:text="@string/trackOnText"
             />
 
         <LinearLayout
@@ -84,6 +85,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:labelFor="@id/sbTrackDistance"
+                android:textColor="@color/seekBar_textColor"
                 android:text="250"/>
 
             <SeekBar
@@ -91,8 +93,8 @@
                 style="@style/Widget.AppCompat.SeekBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:thumbTint="#ffffff"
-                android:progressTint="#80ffffff"
+                android:thumbTint="@color/seekBar_thumbColor"
+                android:progressTint="@color/seekBar_progressColor"
                 android:max="1000"
                 android:progress="250"
                 />

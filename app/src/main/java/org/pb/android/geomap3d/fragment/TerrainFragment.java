@@ -102,7 +102,7 @@ public class TerrainFragment extends Fragment {
         locationManager.setLocationUpdateListener(getLocationUpdateListener());
 
         boolean useCompass = preferences.useCompass().getOr(true);
-        switchCompass.setText(useCompass ? "Compass enabled" : "Compass disabled");
+        switchCompass.setText(useCompass ? R.string.compassOnText : R.string.compassOffText);
         switchCompass.setChecked(useCompass);
         if (useCompass) {
             compass.start();
@@ -144,7 +144,7 @@ public class TerrainFragment extends Fragment {
 
     @UiThread(propagation = REUSE)
     void updateDeviceLocation(Location location) {
-        tvDevicePosition.setText(String.format(Locale.US, "%.06f N, %.06f E", location.getLatitude(), location.getLongitude()));
+        tvDevicePosition.setText(String.format(Locale.US, getString(R.string.locationDataFormat), location.getLatitude(), location.getLongitude()));
         if (openGLSurfaceView != null) {
             openGLSurfaceView.updateDeviceLocation(location);
         }
@@ -204,7 +204,7 @@ public class TerrainFragment extends Fragment {
     @Click(R.id.switchCompass)
     public void onSwitchCompassClicked() {
         preferences.useCompass().put(switchCompass.isChecked());
-        switchCompass.setText(preferences.useCompass().get() ? "Compass enabled" : "Compass disabled");
+        switchCompass.setText(preferences.useCompass().get() ? R.string.compassOnText : R.string.compassOffText);
         if (preferences.useCompass().get()) {
             compass.start();
         } else {
@@ -214,15 +214,11 @@ public class TerrainFragment extends Fragment {
 
     @Click(R.id.switchAutomaticTrack)
     public void onSwitchAutomaticTrackClicked() {
-        if (switchAutomaticTrack.isChecked()) {
-            switchAutomaticTrack.setText("Automatic track position enabled");
-            seekBarTrackDistance.setEnabled(true);
-            openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
-        } else {
-            switchAutomaticTrack.setText("Automatic track position disabled");
-            seekBarTrackDistance.setEnabled(false);
-            openGLSurfaceView.setTrackDistance(0);  // disables the tracking
-        }
+        boolean isTrackOn = switchAutomaticTrack.isChecked();
+
+        seekBarTrackDistance.setEnabled(isTrackOn);
+        switchAutomaticTrack.setText(isTrackOn ? R.string.trackOnText : R.string.trackOffText);
+        openGLSurfaceView.setTrackDistance(isTrackOn ? preferences.defaultTrackDistanceInMeters().getOr(250) : 0);
     }
 
     @SeekBarProgressChange(R.id.sbTrackDistance)
@@ -239,14 +235,6 @@ public class TerrainFragment extends Fragment {
             openGLSurfaceView.setTrackDistance(progressValue);
         }
     }
-
-//    private void handleCompassPreference() {
-//
-//    }
-//
-//    private void handleTrackDistancePreference() {
-//
-//    }
 
     private Compass.CompassListener getCompassListener() {
         return new Compass.CompassListener() {
