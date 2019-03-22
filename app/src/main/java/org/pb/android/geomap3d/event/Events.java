@@ -1,5 +1,7 @@
 package org.pb.android.geomap3d.event;
 
+import android.location.Location;
+
 public class Events {
 
     public static class ProgressUpdate {
@@ -41,6 +43,18 @@ public class Events {
 
         public String getMessage() {
             return message;
+        }
+    }
+
+    public static class OutsideOfMap {
+        private final Location location;
+
+        public OutsideOfMap(Location location) {
+            this.location = location;
+        }
+
+        public Location getLocation() {
+            return location;
         }
     }
 }

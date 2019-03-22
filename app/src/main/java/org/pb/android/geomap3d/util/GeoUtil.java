@@ -21,6 +21,13 @@ public class GeoUtil {
                 && location.getLongitude() <= geoModel.getBoxEndPoint().getLongitude();
     }
 
+    public static boolean isLocationInsideBounds(Location location, Location boundStartLocation, Location boundEndLocation) {
+        return location.getLatitude() <= boundStartLocation.getLatitude()
+                && location.getLatitude() >= boundEndLocation.getLatitude()
+                && location.getLongitude() >= boundStartLocation.getLongitude()
+                && location.getLongitude() <= boundEndLocation.getLongitude();
+    }
+
     public static PositionOffsets getPositionOffsets(Location location, GeoModel geoModel) {
         return new PositionOffsets(location, geoModel);
     }

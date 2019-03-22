@@ -22,6 +22,7 @@ import org.androidannotations.annotations.SystemService;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.pb.android.geomap3d.data.config.TerrainConfig;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.LoadingFragment;
 import org.pb.android.geomap3d.fragment.LoadingFragment_;
@@ -30,6 +31,7 @@ import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.TerrainWidget;
+import org.pb.android.geomap3d.widget.Widget;
 import org.pb.android.geomap3d.widget.WidgetConfiguration;
 import org.pb.android.geomap3d.widget.WidgetManager;
 
@@ -110,7 +112,7 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEvent(Events.FragmentLoaded event) {
         if (event.getTag().equals(LoadingFragment.TAG)) {
-            setupTerrainWidget();
+            setupTerrainWidget(new Location(""));
         }
     }
 
@@ -126,6 +128,12 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(Events.ShowToast event) {
         Toast.makeText(this, event.getMessage(), Toast.LENGTH_LONG).show();
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
+    public void onEvent(Events.OutsideOfMap event) {
+        EventBus.getDefault().removeStickyEvent(event);
+        setupTerrainWidget(event.getLocation());
     }
 
     private boolean checkPermissions() {
@@ -151,21 +159,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void setupTerrainWidget() {
-        if (widgetManager.getWidget() == null) {
-
-            // we use mock location here to have a correctly initialized terrain widget
-            Location mockLocation = new Location("");
-            mockLocation.setLatitude(51.281761);
-            mockLocation.setLongitude(9.800702);
+    private void setupTerrainWidget(@NonNull Location location) {
+            // 51.281761,9.685705
+            TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
+            Location mockLocation = terrainConfig.getLocation();
 
             WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
-                    .setLocation(mockLocation/*locationManager.getLastKnownLocation()*/)
-                    .setHeightMapBitmapFromResource(this, R.drawable.kaufunger_wald_2_height_map)
+                    .setLocation(mockLocation)
+                    .setHeightMapBitmapFromResource(this, terrainConfig.getHeightMapResourceId())
                     .getConfiguration();
 
-            widgetManager.setWidgetForInitiation(new TerrainWidget(this), widgetConfiguration);
-        }
+            Widget terrainWidget = widgetManager.getWidget();
+
+            if (terrainWidget == null) {
+                terrainWidget = new TerrainWidget(this);
+            }
+
+            widgetManager.setWidgetForInitiation(terrainWidget, widgetConfiguration);
     }
 
     private void setFragment(Fragment fragment, String fragmentTag) {

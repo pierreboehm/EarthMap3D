@@ -32,7 +32,7 @@ public class PositionLayer extends Layer {
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
     private float scale = 0.5f;
-    private boolean showPointer = false;
+    private boolean showPointer = true;     // FIXME: should be false, until first location update
 
     public PositionLayer(Location location, LayerType layerType) {
         this.location = location;
@@ -92,6 +92,10 @@ public class PositionLayer extends Layer {
         // not implemented
     }
 
+    public Location getLocation() {
+        return location;
+    }
+
     public void updateLocation(Location location, GeoModel geoModel) {
         this.location = location;
         Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
@@ -110,7 +114,8 @@ public class PositionLayer extends Layer {
             positionZOffset = positionOffsets.zOffset;
         } else {
             if (showPointer) {
-                EventBus.getDefault().post(new Events.ShowToast("Position outside of map"));
+//                EventBus.getDefault().post(new Events.ShowToast("Position outside of map"));
+                EventBus.getDefault().postSticky(new Events.OutsideOfMap(location));
             }
 
             showPointer = false;

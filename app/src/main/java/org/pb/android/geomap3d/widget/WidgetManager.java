@@ -16,7 +16,9 @@ public class WidgetManager {
             Log.v("WidgetManager", "start widget initiation for widget: " + widget.toString());
             widget.initWidget(widgetConfiguration);
         } else {
-            Log.v("WidgetManager", "widget almost initiated. (" + widget.toString() + ")");
+            Log.v("WidgetManager", "update widget configuration. (" + widget.toString() + ")");
+            widget.updateWidget(widgetConfiguration);
+
         }
     }
 

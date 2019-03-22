@@ -75,7 +75,14 @@ public class TerrainWidget extends Widget {
 
         if (isInitialized()) {
             for (Layer layer : layers) {
-                layer.draw(gl, vertices, numberOfPoints);
+                if (layer instanceof PositionLayer) {
+                    // filter all positionLayer visible in this terrain
+                    if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoModel)) {
+                        layer.draw(gl, vertices, numberOfPoints);
+                    }
+                } else {
+                    layer.draw(gl, vertices, numberOfPoints);
+                }
             }
         }
 
@@ -84,6 +91,11 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void initWidget(WidgetConfiguration widgetConfiguration) {
+        new InitiationThread(widgetConfiguration).run();
+    }
+
+    @Override
+    public void updateWidget(WidgetConfiguration widgetConfiguration) {
         new InitiationThread(widgetConfiguration).run();
     }
 
@@ -261,10 +273,42 @@ public class TerrainWidget extends Widget {
     private class InitiationThread implements Runnable {
 
         InitiationThread(WidgetConfiguration widgetConfiguration) {
+
             if (widgetConfiguration.hasLocation()) {
-                layers.add(new PositionLayer(widgetConfiguration.getLocation(), Layer.LayerType.CDP));
+                PositionLayer positionLayer = getDevicePositionLayer();
+
+                if (positionLayer == null) {
+                    layers.add(new PositionLayer(widgetConfiguration.getLocation(), Layer.LayerType.CDP));
+                } else {
+                    positionLayer.updateLocation(widgetConfiguration.getLocation(), widgetConfiguration.getGeoModel());
+                }
             }
+
             terrainGeoModel = widgetConfiguration.getGeoModel();
+
+            /*
+            Location boxStartPoint = terrainGeoModel.getBoxStartPoint();
+            Location boxEndPoint = terrainGeoModel.getBoxEndPoint();
+
+            Location newBoxStartPoint = new Location("");
+            newBoxStartPoint.setLatitude(boxStartPoint.getLatitude());
+            newBoxStartPoint.setLongitude(boxEndPoint.getLongitude());
+
+            Location newBoxEndPoint = new Location("");
+            newBoxEndPoint.setLatitude(boxEndPoint.getLatitude());
+            newBoxEndPoint.setLongitude(boxEndPoint.getLongitude() - GeoUtil.DELTA_LONGITUDE);
+
+            String centerPoint = String.format(Locale.getDefault().US, "%.06f,%.06f", newBoxEndPoint.getLatitude() + GeoUtil.DELTA_LATITUDE / 2f, newBoxEndPoint.getLongitude() + GeoUtil.DELTA_LONGITUDE / 2f);
+            Log.v(TAG, ">> " + centerPoint);
+            */
+
+            /*
+            String link = String.format(Locale.getDefault().US,"http://terrain.party/api/export?name=kauffunger_wald_2&box=%.06f,%.06f,%.06f,%.06f",
+                    newBoxStartPoint.getLongitude(), newBoxStartPoint.getLatitude(),
+                    newBoxEndPoint.getLongitude(), newBoxEndPoint.getLatitude());
+
+            Log.v(TAG, ">> " + link);
+            */
         }
 
         @Override
