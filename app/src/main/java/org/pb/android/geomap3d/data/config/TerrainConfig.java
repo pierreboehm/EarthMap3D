@@ -7,6 +7,7 @@ import org.pb.android.geomap3d.util.GeoUtil;
 
 public enum TerrainConfig {
 
+    BERLIN_STADTMITTE(R.drawable.berlin_stadtmitte_height_map, 52.529731, 13.391537),
     KAUFFUNGER_WALD_1(R.drawable.kauffunger_wald_2_height_map, 51.281761, 9.800702),
     KAUFFUNGER_WALD_2(R.drawable.kauffunger_wald_3_height_map, 51.281761, 9.685705);
 
