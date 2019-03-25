@@ -24,6 +24,11 @@
 
         <activity android:name="org.pb.android.geomap3d.MainActivity_" />
 
+        <service
+            android:name="org.pb.android.geomap3d.location.LocationService_"
+            android:exported="true"
+            />
+
     </application>
 
 </manifest>

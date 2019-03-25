@@ -2,6 +2,7 @@ package org.pb.android.geomap3d.fragment;
 
 import android.location.Location;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
@@ -22,6 +23,8 @@ import org.androidannotations.annotations.UiThread;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.AppPreferences_;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.compass.Compass;
@@ -98,7 +101,7 @@ public class TerrainFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        locationManager.onResume();
+        EventBus.getDefault().register(this);
         locationManager.setLocationUpdateListener(getLocationUpdateListener());
 
         boolean useCompass = preferences.useCompass().getOr(true);
@@ -129,7 +132,9 @@ public class TerrainFragment extends Fragment {
 
     @Override
     public void onPause() {
-        locationManager.onPause();
+        locationManager.removeLocationUpdateListener();
+
+        EventBus.getDefault().unregister(this);
 
         boolean useCompass = preferences.useCompass().getOr(true);
         if (useCompass) {
@@ -137,6 +142,20 @@ public class TerrainFragment extends Fragment {
         }
 
         super.onPause();
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
+    public void onEvent(Events.LocationUpdate event) {
+        EventBus.getDefault().removeStickyEvent(event);
+        Log.v(TAG, "collected locations: " + event.getLocations().size());
+
+        // FIXME: if location is NOT at CDP add as new PositionLayer
+        // NOTE: may be that logic should be handled by widget itself
+//        updateDeviceLocation(event.getLocation());
+
+        for (Location location : event.getLocations()) {
+            Log.v(TAG, ">> " + location.toString());
+        }
     }
 
     @UiThread(propagation = REUSE)

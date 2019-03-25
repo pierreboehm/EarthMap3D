@@ -2,6 +2,9 @@ package org.pb.android.geomap3d.event;
 
 import android.location.Location;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Events {
 
     public static class ProgressUpdate {
@@ -55,6 +58,18 @@ public class Events {
 
         public Location getLocation() {
             return location;
+        }
+    }
+
+    public static class LocationUpdate {
+        private final List<Location> locations;
+
+        public LocationUpdate(List<Location> locations) {
+            this.locations = new ArrayList<>(locations);
+        }
+
+        public List<Location> getLocations() {
+            return locations;
         }
     }
 }

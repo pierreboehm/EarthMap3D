@@ -5,9 +5,11 @@ import android.app.ActivityManager;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -28,7 +30,7 @@ import org.pb.android.geomap3d.fragment.LoadingFragment;
 import org.pb.android.geomap3d.fragment.LoadingFragment_;
 import org.pb.android.geomap3d.fragment.TerrainFragment;
 import org.pb.android.geomap3d.fragment.TerrainFragment_;
-import org.pb.android.geomap3d.location.LocationManager;
+import org.pb.android.geomap3d.location.LocationService_;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
@@ -46,9 +48,6 @@ public class MainActivity extends AppCompatActivity {
 
     @SystemService
     Vibrator vibrator;
-
-    @Bean
-    LocationManager locationManager;
 
     @Bean
     WidgetManager widgetManager;
@@ -69,17 +68,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        LocationService_.intent(getApplicationContext()).start();
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         EventBus.getDefault().register(this);
-        locationManager.onResume();
     }
 
     @Override
     public void onPause() {
         EventBus.getDefault().unregister(this);
-        locationManager.onPause();
         super.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        LocationService_.intent(getApplicationContext()).stop();
+        super.onDestroy();
     }
 
     @Override

@@ -24,6 +24,14 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
+import org.androidannotations.annotations.sharedpreferences.Pref;
+import org.greenrobot.eventbus.EventBus;
+import org.pb.android.geomap3d.AppPreferences_;
+import org.pb.android.geomap3d.event.Events;
+import org.pb.android.geomap3d.util.GeoUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @EBean(scope = EBean.Scope.Singleton)
 public class LocationManager {
@@ -37,6 +45,9 @@ public class LocationManager {
     @RootContext
     Context context;
 
+    @Pref
+    AppPreferences_ preferences;
+
     private FusedLocationProviderClient fusedLocationProviderClient;
     private static final long UPDATE_INTERVAL = 5000, FASTEST_INTERVAL = 5000;
 
@@ -44,6 +55,7 @@ public class LocationManager {
     private GeomagneticField geomagneticField;
 
     private Location lastKnownLocation;
+    private List<Location> trackedLocations = new ArrayList<>();
     private LocationCallback locationCallback;
 
     @AfterInject
@@ -65,6 +77,10 @@ public class LocationManager {
         this.locationUpdateListener = locationUpdateListener;
     }
 
+    public void removeLocationUpdateListener() {
+        locationUpdateListener = null;
+    }
+
     @Nullable
     public Location getLastKnownLocation() {
         return lastKnownLocation;
@@ -75,6 +91,7 @@ public class LocationManager {
     }
 
     private void startLocationUpdates() {
+        Log.v(TAG, "startLocationUpdates()");
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(UPDATE_INTERVAL);
@@ -92,6 +109,7 @@ public class LocationManager {
     }
 
     private void stopLocationUpdates() {
+        Log.v(TAG, "stopLocationUpdates()");
         if (fusedLocationProviderClient != null) {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback);
         }
@@ -129,10 +147,24 @@ public class LocationManager {
                     location.getTime()
             );
 
-            lastKnownLocation = location;
-
             if (locationUpdateListener != null) {
+
+                if (!trackedLocations.isEmpty()) {
+                    EventBus.getDefault().postSticky(new Events.LocationUpdate(trackedLocations));
+                    trackedLocations.clear();
+                }
+
+                lastKnownLocation = location;
                 locationUpdateListener.onLocationUpdate(location);
+            } else {
+
+                if (preferences.trackPosition().getOr(true) && lastKnownLocation != null) {
+                    Location lastKnownTrackedLocation = trackedLocations.isEmpty() ? lastKnownLocation : trackedLocations.get(trackedLocations.size() - 1);
+                    if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(250)) {
+                        Log.v(TAG, "new location tracked: " + location.toString());
+                        trackedLocations.add(location);
+                    }
+                }
             }
         }
     }

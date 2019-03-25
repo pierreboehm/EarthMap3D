@@ -319,8 +319,6 @@ public class TerrainWidget extends Widget {
 
             yRotation = RendererOpenGL.ROTATION_INITIAL;
             xRotation = RendererOpenGL.ROTATION_INITIAL / 2f;
-
-            EventBus.getDefault().post(new Events.WidgetReady());
         }
     }
 }
