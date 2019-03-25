@@ -187,6 +187,16 @@ public class TerrainWidget extends Widget {
     }
 
     @Override
+    public void updateTrackedLocation(Location location) {
+        PositionLayer trackedDevicePositionLayer = new PositionLayer(location, Layer.LayerType.TDP);
+        trackedDevicePositionLayer.updateLocation(location, terrainGeoModel);
+
+        synchronized (this) {
+            layers.add(trackedDevicePositionLayer);
+        }
+    }
+
+    @Override
     public void updateTrackDistance(int trackDistanceInMeters) {
         this.trackDistanceInMeters = trackDistanceInMeters;
     }

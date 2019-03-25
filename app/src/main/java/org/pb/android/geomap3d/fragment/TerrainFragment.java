@@ -149,12 +149,8 @@ public class TerrainFragment extends Fragment {
         EventBus.getDefault().removeStickyEvent(event);
         Log.v(TAG, "collected locations: " + event.getLocations().size());
 
-        // FIXME: if location is NOT at CDP add as new PositionLayer
-        // NOTE: may be that logic should be handled by widget itself
-//        updateDeviceLocation(event.getLocation());
-
         for (Location location : event.getLocations()) {
-            Log.v(TAG, ">> " + location.toString());
+            updateTrackedLocation(location);
         }
     }
 
@@ -170,6 +166,13 @@ public class TerrainFragment extends Fragment {
         tvDevicePosition.setText(String.format(Locale.US, getString(R.string.locationDataFormat), location.getLatitude(), location.getLongitude()));
         if (openGLSurfaceView != null) {
             openGLSurfaceView.updateDeviceLocation(location);
+        }
+    }
+
+    @UiThread(propagation = REUSE)
+    void updateTrackedLocation(Location location) {
+        if (openGLSurfaceView != null) {
+            openGLSurfaceView.updateTrackedLocation(location);
         }
     }
 

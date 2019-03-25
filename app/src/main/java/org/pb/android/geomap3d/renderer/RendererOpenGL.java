@@ -108,6 +108,12 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
         }
     }
 
+    public void updateTrackedLocation(Location location) {
+        if (widget != null) {
+            widget.updateTrackedLocation(location);
+        }
+    }
+
     public void setTrackDistance(int trackDistance) {
         if (widget != null) {
             widget.updateTrackDistance(trackDistance);
