@@ -5,7 +5,10 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.hardware.GeomagneticField;
 import android.location.Location;
+import android.os.Build;
 import android.os.Looper;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
@@ -24,6 +27,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
+import org.androidannotations.annotations.SystemService;
 import org.androidannotations.annotations.sharedpreferences.Pref;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.AppPreferences_;
@@ -44,6 +48,9 @@ public class LocationManager {
 
     @RootContext
     Context context;
+
+    @SystemService
+    Vibrator vibrator;
 
     @Pref
     AppPreferences_ preferences;
@@ -163,6 +170,7 @@ public class LocationManager {
                     if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(250)) {
                         Log.v(TAG, "new location tracked: " + location.toString());
                         trackedLocations.add(location);
+                        vibrateTrackedPositionFound();
                     }
                 }
             }
@@ -180,5 +188,13 @@ public class LocationManager {
             public void onLocationAvailability(LocationAvailability var1) {
             }
         };
+    }
+
+    private void vibrateTrackedPositionFound() {
+        if (Build.VERSION.SDK_INT >= 26) {
+            vibrator.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE));
+        } else {
+            vibrator.vibrate(50);
+        }
     }
 }

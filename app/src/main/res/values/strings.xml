@@ -7,6 +7,8 @@
     <string name="trackOnText">Automatic track position enabled</string>
     <string name="trackOffText">Automatic track position disabled</string>
 
+    <string name="backPressedHintText">Press again to close the app.</string>
+
     <string name="locationNoData">-- N, -- E</string>
     <string name="locationDataFormat">%.06f N, %.06f E</string>
 </resources>
