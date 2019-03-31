@@ -16,7 +16,7 @@ public abstract class Layer {
 
     public enum LayerType {
         CDP(GLColor.WHITE),    // C(urrent) D(evice) P(osition)
-        TDP(GLColor.WHITE),    // T(racked) D(evice) P(osition)
+        TDP(GLColor.GRAY),    // T(racked) D(evice) P(osition)
         CMP(GLColor.YELLOW),    // camp
         POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
 
@@ -37,7 +37,8 @@ public abstract class Layer {
         WHITE(1f, 1f, 1f),
         YELLOW(1f, .5f, 0f),
         GREEN(0f, 1f, 0f),
-        BLUE(0f, 0f, 1f);
+        BLUE(0f, 0f, 1f),
+        GRAY(.7f, .7f, .7f);
 
         public final float red, green, blue;
 

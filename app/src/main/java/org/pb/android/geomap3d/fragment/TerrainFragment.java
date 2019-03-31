@@ -247,6 +247,7 @@ public class TerrainFragment extends Fragment {
 
         seekBarTrackDistance.setEnabled(isTrackOn);
         switchAutomaticTrack.setText(isTrackOn ? R.string.trackOnText : R.string.trackOffText);
+        openGLSurfaceView.setTrackEnabled(isTrackOn);
         openGLSurfaceView.setTrackDistance(isTrackOn ? preferences.defaultTrackDistanceInMeters().getOr(250) : 0);
     }
 

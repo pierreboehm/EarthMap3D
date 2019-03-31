@@ -55,6 +55,7 @@ public class TerrainWidget extends Widget {
     private GeoModel terrainGeoModel;
     private Location lastKnownLocation;
 
+    private boolean trackEnabled = true;
     private int trackDistanceInMeters = 250;
 
     public TerrainWidget(Context context) {
@@ -77,7 +78,8 @@ public class TerrainWidget extends Widget {
             for (Layer layer : layers) {
                 if (layer instanceof PositionLayer) {
                     // filter all positionLayer visible in this terrain
-                    if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoModel)) {
+                    if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoModel) &&
+                            (trackEnabled || layer.getLayerType() == Layer.LayerType.CDP)) {
                         layer.draw(gl, vertices, numberOfPoints);
                     }
                 } else {
@@ -199,6 +201,14 @@ public class TerrainWidget extends Widget {
     @Override
     public void updateTrackDistance(int trackDistanceInMeters) {
         this.trackDistanceInMeters = trackDistanceInMeters;
+        if (trackDistanceInMeters == 0) {
+            trackEnabled = false;
+        }
+    }
+
+    @Override
+    public void updateTrackEnabled(boolean trackEnabled) {
+        this.trackEnabled = trackEnabled;
     }
 
     @Override
@@ -284,17 +294,11 @@ public class TerrainWidget extends Widget {
 
         InitiationThread(WidgetConfiguration widgetConfiguration) {
 
-            if (widgetConfiguration.hasLocation()) {
-                PositionLayer positionLayer = getDevicePositionLayer();
-
-                if (positionLayer == null) {
-                    layers.add(new PositionLayer(widgetConfiguration.getLocation(), Layer.LayerType.CDP));
-                } else {
-                    positionLayer.updateLocation(widgetConfiguration.getLocation(), widgetConfiguration.getGeoModel());
-                }
-            }
-
             terrainGeoModel = widgetConfiguration.getGeoModel();
+
+            if (widgetConfiguration.hasLocation()) {
+                updateDeviceLocation(widgetConfiguration.getLocation());
+            }
 
             /*
             Location boxStartPoint = terrainGeoModel.getBoxStartPoint();

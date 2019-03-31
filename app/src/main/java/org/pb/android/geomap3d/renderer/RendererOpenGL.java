@@ -120,6 +120,12 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
         }
     }
 
+    public void setTackEnabled(boolean trackEnabled) {
+        if (widget != null) {
+            widget.updateTrackEnabled(trackEnabled);
+        }
+    }
+
     public synchronized void updateScale(float scale) {
         this.scale = scale;
     }

@@ -36,6 +36,7 @@ import org.pb.android.geomap3d.util.GeoUtil;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @EBean(scope = EBean.Scope.Singleton)
 public class LocationManager {
@@ -168,7 +169,7 @@ public class LocationManager {
                 if (preferences.trackPosition().getOr(true) && lastKnownLocation != null) {
                     Location lastKnownTrackedLocation = trackedLocations.isEmpty() ? lastKnownLocation : trackedLocations.get(trackedLocations.size() - 1);
                     if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(250)) {
-                        Log.v(TAG, "new location tracked: " + location.toString());
+                        Log.v(TAG, String.format(Locale.US, "new location tracked: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
                         trackedLocations.add(location);
                         vibrateTrackedPositionFound();
                     }

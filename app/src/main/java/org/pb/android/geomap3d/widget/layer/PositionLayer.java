@@ -15,6 +15,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -32,7 +33,7 @@ public class PositionLayer extends Layer {
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
     private float scale = 0.5f;
-    private boolean showPointer = true;     // FIXME: should be false, until first location update
+    private boolean showPointer = false;     // FIXME: should be false, until first location update
 
     public PositionLayer(Location location, LayerType layerType) {
         this.location = location;
@@ -49,7 +50,7 @@ public class PositionLayer extends Layer {
     @Override
     public void draw(GL10 gl, FloatBuffer p1, int p2) {
 
-        if (!showPointer) {
+        if (!showPointer || (positionXOffset == 0f && positionZOffset == 0f)) {
             return;
         }
 
@@ -98,7 +99,7 @@ public class PositionLayer extends Layer {
 
     public void updateLocation(Location location, GeoModel geoModel) {
         this.location = location;
-        Log.v(TAG, "new location: lat=" + location.getLatitude() + ", longitude=" + location.getLongitude());
+        Log.v(TAG, String.format(Locale.US, "new location: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
 
         if (GeoUtil.isLocationOnMap(location, geoModel)) {
 
