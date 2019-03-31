@@ -128,7 +128,15 @@ public class TerrainWidget extends Widget {
                 if (Math.abs(diffX) > Math.abs(diffY)) {
                     yRotation = (yRotation + diffX / 10f) % 360f;
                 } else if (Math.abs(diffY) > Math.abs(diffX)) {
-                    xRotation = (xRotation + diffY / 10f) % 360f;
+                    float rotationX = (xRotation + diffY / 10f) % 360f;
+
+                    if (rotationX < 0f) {
+                        xRotation = 0f;
+                    } else if (rotationX > 30f) {
+                        xRotation = 30f;
+                    } else {
+                        xRotation = rotationX;
+                    }
                 }
 
                 touch.x = motionEvent.getX();
