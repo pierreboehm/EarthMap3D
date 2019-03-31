@@ -1,7 +1,6 @@
 package org.pb.android.geomap3d.widget;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
@@ -40,7 +39,6 @@ public class TerrainWidget extends Widget {
 
     private static final String TAG = TerrainWidget.class.getSimpleName();
 
-    private Context context;
     private List<Layer> layers;
 
     private FloatBuffer vertices;
@@ -58,9 +56,7 @@ public class TerrainWidget extends Widget {
     private boolean trackEnabled = true;
     private int trackDistanceInMeters = 250;
 
-    public TerrainWidget(Context context) {
-        this.context = context;
-
+    public TerrainWidget() {
         touch = new Util.PointF3D(0f, 0f, 0f);
 
         layers = new ArrayList<>();

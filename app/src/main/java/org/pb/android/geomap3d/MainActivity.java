@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity {
             Widget terrainWidget = widgetManager.getWidget();
 
             if (terrainWidget == null) {
-                terrainWidget = new TerrainWidget(this);
+                terrainWidget = new TerrainWidget();
             }
 
             widgetManager.setWidgetForInitiation(terrainWidget, widgetConfiguration);
