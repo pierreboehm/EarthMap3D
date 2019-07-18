@@ -8,13 +8,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.content.PermissionChecker;
-import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import org.androidannotations.annotations.AfterViews;
@@ -38,6 +31,14 @@ import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
 import org.pb.android.geomap3d.widget.WidgetConfiguration;
 import org.pb.android.geomap3d.widget.WidgetManager;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.PermissionChecker;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 @EActivity(R.layout.activity_main)
 public class MainActivity extends AppCompatActivity {

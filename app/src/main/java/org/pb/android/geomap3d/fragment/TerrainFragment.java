@@ -1,7 +1,6 @@
 package org.pb.android.geomap3d.fragment;
 
 import android.location.Location;
-import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -36,6 +35,8 @@ import org.pb.android.geomap3d.view.OpenGLSurfaceView;
 import org.pb.android.geomap3d.widget.Widget;
 
 import java.util.Locale;
+
+import androidx.fragment.app.Fragment;
 
 import static org.androidannotations.annotations.UiThread.Propagation.REUSE;
 
@@ -120,6 +121,8 @@ public class TerrainFragment extends Fragment {
         }
 
         EventBus.getDefault().post(new Events.FragmentLoaded(TAG));
+
+        shiftMenu.requestFocus();
 
 //        shiftButton.setImageResource(R.drawable.shifter_menu_btn_up);
 //        shiftMenu.animate()

@@ -4,9 +4,10 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
-import android.support.annotation.Nullable;
 
 import org.pb.android.geomap3d.data.GeoModel;
+
+import androidx.annotation.Nullable;
 
 import static org.pb.android.geomap3d.widget.TerrainWidget.BITMAP_DIMENSION;
 

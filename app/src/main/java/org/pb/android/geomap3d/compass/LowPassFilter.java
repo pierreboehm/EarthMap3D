@@ -1,6 +1,6 @@
 package org.pb.android.geomap3d.compass;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 public final class LowPassFilter {
 

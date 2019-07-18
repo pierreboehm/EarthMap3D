@@ -1,7 +1,5 @@
 package org.pb.android.geomap3d.fragment;
 
-import android.support.v4.app.Fragment;
-
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
@@ -10,6 +8,8 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.view.ProgressView;
+
+import androidx.fragment.app.Fragment;
 
 @EFragment(R.layout.fragment_loading)
 public class LoadingFragment extends Fragment {

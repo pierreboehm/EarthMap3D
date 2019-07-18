@@ -6,7 +6,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
-import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -14,6 +13,8 @@ import org.androidannotations.annotations.EView;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.Util;
+
+import androidx.annotation.Nullable;
 
 @EView
 public class ProgressView extends View {

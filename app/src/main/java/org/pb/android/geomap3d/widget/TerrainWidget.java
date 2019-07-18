@@ -5,7 +5,6 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.location.Location;
 import android.os.Parcel;
-import android.support.v4.util.Pair;
 import android.util.Log;
 import android.view.MotionEvent;
 
@@ -27,6 +26,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
+
+import androidx.core.util.Pair;
 
 import static org.pb.android.geomap3d.util.Util.roundScale;
 
