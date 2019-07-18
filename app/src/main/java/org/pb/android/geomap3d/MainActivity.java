@@ -3,14 +3,17 @@ package org.pb.android.geomap3d;
 import android.Manifest;
 import android.app.ActivityManager;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.widget.Toast;
 
 import org.androidannotations.annotations.AfterViews;
+import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EActivity;
 import org.androidannotations.annotations.SystemService;
@@ -20,6 +23,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.data.config.TerrainConfig;
+import org.pb.android.geomap3d.data.map.service.TerrainService;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.LoadingFragment;
 import org.pb.android.geomap3d.fragment.LoadingFragment_;
@@ -57,6 +61,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Bean
     WidgetManager widgetManager;
+
+    @Bean
+    TerrainService terrainService;
 
     private Toast closeAppToast;
 
@@ -214,6 +221,8 @@ public class MainActivity extends AppCompatActivity {
             TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
             Location mockLocation = terrainConfig.getLocation();
 
+            loadMapForLocation(mockLocation);
+
             WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
                     .setLocation(mockLocation)
                     .setHeightMapBitmapFromResource(this, terrainConfig.getHeightMapResourceId())
@@ -234,5 +243,11 @@ public class MainActivity extends AppCompatActivity {
                 .beginTransaction()
                 .replace(R.id.fragmentContainer, fragment, fragmentTag)
                 .commit();
+    }
+
+    @Background
+    public void loadMapForLocation(Location location) {
+        Bitmap bitmap = terrainService.getMapForLocation(location);
+        Log.v(TAG, "loaded map for location (" + location.toString() + ")");
     }
 }
