@@ -30,6 +30,7 @@ import org.pb.android.geomap3d.fragment.LoadingFragment_;
 import org.pb.android.geomap3d.fragment.TerrainFragment;
 import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationService_;
+import org.pb.android.geomap3d.util.NetworkAvailabilityUtil;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
@@ -76,6 +77,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (checkPermissions()) {
+            initNetworkAvailabilityUtil();
             initWidgetAfterPermissionCheck();
         } else {
             // TODO: handle negative result. (user does not grant permissions)
@@ -209,6 +211,15 @@ public class MainActivity extends AppCompatActivity {
                 PERMISSION_REQUEST_CODE);
     }
 
+    private void initNetworkAvailabilityUtil() {
+        NetworkAvailabilityUtil.setNetworkAvailabilityCheck(new NetworkAvailabilityUtil.NetworkAvailabilityCheck() {
+            @Override
+            public boolean isNetworkAvailable() {
+                return Util.isNetworkAvailable(getBaseContext());
+            }
+        });
+    }
+
     private void initWidgetAfterPermissionCheck() {
         if (widgetManager.getWidget() == null) {
             LoadingFragment loadingFragment = LoadingFragment_.builder().build();
@@ -221,7 +232,11 @@ public class MainActivity extends AppCompatActivity {
             TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
             Location mockLocation = terrainConfig.getLocation();
 
-            loadMapForLocation(mockLocation);
+            // TODO/1: Remove this at a later step.
+            // TODO/2: We'll call that later from a separate GoogleMapFragment.
+            if (NetworkAvailabilityUtil.isNetworkAvailable()) {
+                loadMapForLocation(mockLocation);
+            }
 
             WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
                     .setLocation(mockLocation)

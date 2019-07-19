@@ -5,9 +5,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
 import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.TypedValue;
+
+import androidx.annotation.Nullable;
 
 public class Util {
 
@@ -49,6 +53,20 @@ public class Util {
         }
 
         return manager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+    }
+
+    public static boolean isNetworkAvailable(@Nullable Context context) {
+        if (context == null) {
+            return true;
+        }
+
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        if (connectivityManager == null) {
+            return true;
+        }
+
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isAvailable() && activeNetworkInfo.isConnected();
     }
 
     public static int getDisplayHeight(Context context) {
