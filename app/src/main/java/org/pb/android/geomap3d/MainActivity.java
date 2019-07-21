@@ -26,7 +26,8 @@ import org.pb.android.geomap3d.data.config.TerrainConfig;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.LoadingFragment;
-import org.pb.android.geomap3d.fragment.LoadingFragment_;
+import org.pb.android.geomap3d.fragment.MapFragment;
+import org.pb.android.geomap3d.fragment.MapFragment_;
 import org.pb.android.geomap3d.fragment.TerrainFragment;
 import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationService_;
@@ -222,8 +223,10 @@ public class MainActivity extends AppCompatActivity {
 
     private void initWidgetAfterPermissionCheck() {
         if (widgetManager.getWidget() == null) {
-            LoadingFragment loadingFragment = LoadingFragment_.builder().build();
-            setFragment(loadingFragment, LoadingFragment.TAG);
+//            LoadingFragment loadingFragment = LoadingFragment_.builder().build();
+//            setFragment(loadingFragment, LoadingFragment.TAG);
+            MapFragment mapFragment = MapFragment_.builder().build();
+            setFragment(mapFragment, MapFragment.TAG);
         }
     }
 
