@@ -2,20 +2,23 @@ package org.pb.android.geomap3d.data.map.model;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 
-import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
+import java.util.zip.ZipFile;
 
 import okhttp3.ResponseBody;
 
 public class TerrainMapData {
+
+    private static final String TAG = TerrainMapData.class.getSimpleName();
 
     public enum LoadingState {
         LOADING_INTERRUPTED,
@@ -27,8 +30,7 @@ public class TerrainMapData {
     private LoadingState loadingState;
 
     public TerrainMapData(Activity activity, ResponseBody responseBody) {
-        loadingState = LoadingState.LOADING_SUCCESS;
-        saveZipAndExtractBitmap(activity, responseBody);
+        loadingState = saveZipAndExtractBitmap(activity, responseBody);
     }
 
     public TerrainMapData(LoadingState loadingState) {
@@ -43,9 +45,11 @@ public class TerrainMapData {
         return bitmap;
     }
 
-    private void saveZipAndExtractBitmap(Activity activity, ResponseBody responseBody) {
+    // FIXME: !!! optimize !!!
+    private LoadingState saveZipAndExtractBitmap(Activity activity, ResponseBody responseBody) {
         boolean downloadSuccess = true;
         InputStream inputStream = null;
+        File zipFile = null;
 
         try {
             inputStream = responseBody.byteStream();
@@ -54,7 +58,7 @@ public class TerrainMapData {
             long currentSize = 0;
             long targetSize = responseBody.contentLength();
 
-            File zipFile = new File(activity.getCacheDir(), "map.zip");
+            zipFile = new File(activity.getCacheDir(), "map.zip");
             OutputStream output = new FileOutputStream(zipFile);
 
             while (currentSize < targetSize) {
@@ -82,48 +86,26 @@ public class TerrainMapData {
             }
         }
 
-        if (downloadSuccess) {
-            Log.v("TerrainMapData", "Map zip-file successfully downloaded.");
-        } else {
-            Log.v("TerrainMapData", "Map zip-file download failed.");
-        }
+        downloadSuccess &= readZipAndExtractBitmap(zipFile);
+        return downloadSuccess ? LoadingState.LOADING_SUCCESS : LoadingState.LOADING_FAILED;
     }
 
-    private Bitmap extractBitmapFromZip(ZipInputStream zipInputStream) throws Exception {
-        ZipInputStream zipIn = new ZipInputStream(zipInputStream);
-        ZipEntry entry = zipIn.getNextEntry();
-        // iterates over entries in the zip file
-        while (entry != null) {
-            String filePath = entry.getName();
-            if (!entry.isDirectory()) {
-                // if the entry is a file, extracts it
-                extractFile(zipIn, filePath);
-            } else {
-                // if the entry is a directory, make the directory
-                File dir = new File(filePath);
-                dir.mkdir();
+    private boolean readZipAndExtractBitmap(File downloadedZipFile) {
+        boolean bitmapExtracted = false;
+
+        try {
+            ZipFile zipFile = new ZipFile(downloadedZipFile);
+            for (ZipEntry zipEntry : Collections.list(zipFile.entries())) {
+                if (!zipEntry.isDirectory() && zipEntry.getName().toLowerCase().contains("merged")) {
+                    bitmap = BitmapFactory.decodeStream(zipFile.getInputStream(zipEntry));
+                    bitmapExtracted = true;
+                    break;
+                }
             }
-            zipIn.closeEntry();
-            entry = zipIn.getNextEntry();
+        } catch (Exception exception) {
+            Log.e(TAG, exception.getLocalizedMessage());
         }
 
-        zipIn.close();
-
-        return null;
-    }
-    /**
-     * Extracts a zip entry (file entry)
-     * @param zipIn
-     * @param filePath
-     * @throws IOException
-     */
-    private void extractFile(ZipInputStream zipIn, String filePath) throws IOException {
-        BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(filePath));
-        byte[] bytesIn = new byte[4096];
-        int read = 0;
-        while ((read = zipIn.read(bytesIn)) != -1) {
-            bos.write(bytesIn, 0, read);
-        }
-        bos.close();
+        return bitmapExtracted;
     }
 }
