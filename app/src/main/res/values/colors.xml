@@ -12,4 +12,7 @@
     <color name="seekBar_progressColor">#80ffffff</color>
     <color name="seekBar_textColor">#a0ffffff</color>
 
+    <color name="warm_blue">#00AAFA</color>
+    <color name="warm_blue_with_alpha_16">#3900AAFA</color>
+
 </resources>
