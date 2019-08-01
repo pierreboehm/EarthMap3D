@@ -5,6 +5,27 @@
         android:id="@+id/mapContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="horizontal"
-    />
+        android:orientation="horizontal"/>
+
+    <RelativeLayout
+        android:id="@+id/mapPaddingContainer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <View
+            android:id="@+id/rectangleShape"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:layout_centerInParent="true"
+            android:layout_margin="20dp"
+            android:background="@drawable/rectangle_shape"
+            android:visibility="invisible"/>
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_centerInParent="true"
+            android:src="@drawable/icn_center_device_c01"/>
+
+    </RelativeLayout>
 </merge>
