@@ -5,12 +5,17 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 
+import org.greenrobot.eventbus.EventBus;
+import org.pb.android.geomap3d.event.Events;
+import org.pb.android.geomap3d.util.AsyncRunnable;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -29,8 +34,19 @@ public class TerrainMapData {
     private Bitmap bitmap;
     private LoadingState loadingState;
 
-    public TerrainMapData(Activity activity, ResponseBody responseBody) {
-        loadingState = saveZipAndExtractBitmap(activity, responseBody);
+    public TerrainMapData(final Activity activity, final ResponseBody responseBody) {
+        loadingState = AsyncRunnable.wait(new AsyncRunnable<LoadingState>() {
+            @Override
+            public void run(final AtomicReference<LoadingState> notifier) {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        LoadingState loadingState = saveZipAndExtractBitmap(activity, responseBody);
+                        finish(notifier, loadingState);
+                    }
+                }).start();
+            }
+        });
     }
 
     public TerrainMapData(LoadingState loadingState) {
@@ -69,6 +85,9 @@ public class TerrainMapData {
 
                 output.write(byteBuffer, 0, readSize);
                 currentSize += readSize;
+
+                float progressValue = (float) currentSize * 100f / (float) targetSize;
+                EventBus.getDefault().post(new Events.ProgressUpdate(progressValue));
             }
 
             output.flush();
