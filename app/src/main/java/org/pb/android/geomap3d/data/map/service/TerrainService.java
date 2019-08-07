@@ -38,6 +38,7 @@ public class TerrainService {
         TerrainMapData terrainMapData = loadMapDataForLocation(location);
 
         if (terrainMapData.getLoadingState() == TerrainMapData.LoadingState.LOADING_SUCCESS) {
+            Log.v(TAG, "getMapForLocation(): LOADING_SUCCESS");
             return terrainMapData.getBitmap();
         }
 
@@ -62,6 +63,7 @@ public class TerrainService {
                 return new TerrainMapData(activity, loadMapDataResponse.body());
             }
         } catch (InterruptedIOException interruptedException) {
+            Log.e(TAG, "Error: " + interruptedException.getLocalizedMessage());
             return new TerrainMapData(TerrainMapData.LoadingState.LOADING_INTERRUPTED);
         } catch (Exception exception) {
             Log.e(TAG, "Error: " + exception.getLocalizedMessage());
@@ -71,13 +73,10 @@ public class TerrainService {
     }
 
     private String getMapDataLocationUrl(LatLngBounds targetBounds) {
-        String url = String.format(Locale.US,"%s?name=%s&box=%.06f,%.06f,%.06f,%.06f",
+        return String.format(Locale.US,"%s?name=%s&box=%.06f,%.06f,%.06f,%.06f",
                 BASEURL, Long.toHexString(System.currentTimeMillis()),
                 targetBounds.northeast.longitude, targetBounds.northeast.latitude,
                 targetBounds.southwest.longitude, targetBounds.southwest.latitude);
-
-        return url;
-//        http://terrain.party/api/export?name=kaufunger_wald_2&box=9.858200,51.317693,9.743203,51.245828
     }
 
 }
