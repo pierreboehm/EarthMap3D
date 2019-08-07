@@ -115,7 +115,6 @@ public class PositionLayer extends Layer {
             positionZOffset = positionOffsets.zOffset;
         } else {
             if (showPointer) {
-//                EventBus.getDefault().post(new Events.ShowToast("Position outside of map"));
                 EventBus.getDefault().postSticky(new Events.OutsideOfMap(location));
             }
 
