@@ -23,20 +23,25 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.data.config.TerrainConfig;
+import org.pb.android.geomap3d.data.map.model.GeoPlace;
+import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
+import org.pb.android.geomap3d.data.map.service.GeoPlaceService;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
 import org.pb.android.geomap3d.event.Events;
-import org.pb.android.geomap3d.fragment.LoadingFragment;
 import org.pb.android.geomap3d.fragment.MapFragment;
 import org.pb.android.geomap3d.fragment.MapFragment_;
 import org.pb.android.geomap3d.fragment.TerrainFragment;
 import org.pb.android.geomap3d.fragment.TerrainFragment_;
 import org.pb.android.geomap3d.location.LocationService_;
+import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.NetworkAvailabilityUtil;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
 import org.pb.android.geomap3d.widget.WidgetConfiguration;
 import org.pb.android.geomap3d.widget.WidgetManager;
+
+import java.util.List;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -67,11 +72,13 @@ public class MainActivity extends AppCompatActivity {
     @Bean
     TerrainService terrainService;
 
+    @Bean
+    GeoPlaceService geoPlaceService;
+
     private Toast closeAppToast;
 
     @AfterViews
     public void init() {
-
         if (!Util.isGPSEnabled(this)) {
             Util.openLocationSourceSettings(this);
             // TODO: handle result
@@ -107,7 +114,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
-
         if (!preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).stop();
         }
@@ -164,16 +170,27 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(Events.WidgetReady event) {
+    public void onEvent(Events.ShowMapFragment event) {
+        MapFragment mapFragment = MapFragment_.builder().lastKnownLocation(event.getLocation()).build();
+        setFragment(mapFragment, MapFragment.TAG);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.ShowTerrainFragment event) {
         TerrainFragment terrainFragment = TerrainFragment_.builder().widget(widgetManager.getWidget()).build();
         setFragment(terrainFragment, TerrainFragment.TAG);
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onEvent(Events.WidgetReady event) {
+        Log.v(TAG, "Widget is ready");
+//        TerrainFragment terrainFragment = TerrainFragment_.builder().widget(widgetManager.getWidget()).build();
+//        setFragment(terrainFragment, TerrainFragment.TAG);
+    }
+
+    @Deprecated
+    @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEvent(Events.FragmentLoaded event) {
-        if (event.getTag().equals(LoadingFragment.TAG)) {
-            setupTerrainWidget(new Location(""));
-        }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -194,6 +211,21 @@ public class MainActivity extends AppCompatActivity {
     public void onEvent(Events.OutsideOfMap event) {
         EventBus.getDefault().removeStickyEvent(event);
         setupTerrainWidget(event.getLocation());
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(final Events.MapReadyEvent event) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setupTerrainWidget(event.getCurrentLocation());
+            }
+        }).start();
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.LoadHeightMap event) {
+        preloadMapForLocation(event.getTargetLocation());
     }
 
     private boolean checkPermissions() {
@@ -222,37 +254,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initWidgetAfterPermissionCheck() {
-        if (widgetManager.getWidget() == null) {
-//            LoadingFragment loadingFragment = LoadingFragment_.builder().build();
-//            setFragment(loadingFragment, LoadingFragment.TAG);
-            MapFragment mapFragment = MapFragment_.builder().build();
-            setFragment(mapFragment, MapFragment.TAG);
+        MapFragment mapFragment = MapFragment_.builder().build();
+        setFragment(mapFragment, MapFragment.TAG);
+    }
+
+    private void preloadMapForLocation(@NonNull Location location) {
+        if (NetworkAvailabilityUtil.isNetworkAvailable()) {
+            loadMapForLocation(location);
         }
     }
 
     private void setupTerrainWidget(@NonNull Location location) {
-            // 51.281761,9.685705
-            TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
-            Location mockLocation = terrainConfig.getLocation();
+        TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
+        Location terrainLocation = terrainConfig.getLocation();
 
-            // TODO/1: Remove this at a later step.
-            // TODO/2: We'll call that later from a separate GoogleMapFragment.
-            if (NetworkAvailabilityUtil.isNetworkAvailable()) {
-                loadMapForLocation(mockLocation);
-            }
+        WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
+                .setLocation(terrainLocation)
+                .setHeightMapBitmapFromResource(this, terrainConfig.getHeightMapResourceId())
+                .getConfiguration();
 
-            WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
-                    .setLocation(mockLocation)
-                    .setHeightMapBitmapFromResource(this, terrainConfig.getHeightMapResourceId())
-                    .getConfiguration();
+        Widget terrainWidget = widgetManager.getWidget();
 
-            Widget terrainWidget = widgetManager.getWidget();
+        if (terrainWidget == null) {
+            terrainWidget = new TerrainWidget();
+        }
 
-            if (terrainWidget == null) {
-                terrainWidget = new TerrainWidget();
-            }
-
-            widgetManager.setWidgetForInitiation(terrainWidget, widgetConfiguration);
+        widgetManager.setWidgetForInitiation(terrainWidget, widgetConfiguration);
     }
 
     private void setFragment(Fragment fragment, String fragmentTag) {
@@ -265,7 +292,19 @@ public class MainActivity extends AppCompatActivity {
 
     @Background
     public void loadMapForLocation(Location location) {
+        // store that data as part of new TerrainConfig
+        List<GeoPlace> geoPlaces = geoPlaceService.findGeoPlacesForLocation(GeoUtil.getLatLngFromLocation(location));
+
+        // store that data as part of new TerrainConfig
         Bitmap bitmap = terrainService.getMapForLocation(location);
-        Log.v(TAG, "loaded map for location (" + location.toString() + ")");
+
+        // (just) signal that a new TerrainConfig is available. (Stored data will be reloaded then and map-UI will be updated)
+        LoadingState loadingState = bitmap == null ? LoadingState.LOADING_FAILED : LoadingState.LOADING_SUCCESS;
+        notifyHeightMapLoaded(location, loadingState);
+    }
+
+    @UiThread
+    public void notifyHeightMapLoaded(Location location, LoadingState loadingState) {
+        EventBus.getDefault().post(new Events.HeightMapLoaded(location, loadingState));
     }
 }
