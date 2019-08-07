@@ -11,4 +11,6 @@
 
     <string name="locationNoData">-- N, -- E</string>
     <string name="locationDataFormat">%.06f N, %.06f E</string>
+
+    <string name="noInternet">No internet connection available.</string>
 </resources>

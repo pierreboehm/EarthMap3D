@@ -27,6 +27,7 @@ import org.pb.android.geomap3d.data.map.model.GeoPlace;
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
 import org.pb.android.geomap3d.data.map.service.GeoPlaceService;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
+import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.MapFragment;
 import org.pb.android.geomap3d.fragment.MapFragment_;
@@ -261,6 +262,13 @@ public class MainActivity extends AppCompatActivity {
     private void preloadMapForLocation(@NonNull Location location) {
         if (NetworkAvailabilityUtil.isNetworkAvailable()) {
             loadMapForLocation(location);
+        } else {
+            notifyHeightMapLoaded(null, LoadingState.LOADING_FAILED);
+
+            new ConfirmDialog.Builder(this)
+                    .setMessage(getString(R.string.noInternet))
+                    .build()
+                    .show();
         }
     }
 
