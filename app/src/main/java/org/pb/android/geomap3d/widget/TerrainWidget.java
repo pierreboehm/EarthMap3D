@@ -27,6 +27,7 @@ import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import androidx.annotation.Nullable;
 import androidx.core.util.Pair;
 
 import static org.pb.android.geomap3d.util.Util.roundScale;
@@ -59,9 +60,7 @@ public class TerrainWidget extends Widget {
 
     public TerrainWidget() {
         touch = new Util.PointF3D(0f, 0f, 0f);
-
-        layers = new ArrayList<>();
-        layers.add(new TerrainLayer());
+        initLayers();
     }
 
     @Override
@@ -95,6 +94,7 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void updateWidget(WidgetConfiguration widgetConfiguration) {
+        initLayers();
         new InitiationThread(widgetConfiguration).run();
     }
 
@@ -226,6 +226,11 @@ public class TerrainWidget extends Widget {
         // not implemented
     }
 
+    @Nullable
+    public Location getLastKnownLocation() {
+        return lastKnownLocation;
+    }
+
     private void sendProgressUpdate(int currentCount, int maximalCount) {
         float progressValue = (float) currentCount * 100f / (float) maximalCount;
         if ((int) progressValue > lastKnownProgressValue) {
@@ -236,6 +241,9 @@ public class TerrainWidget extends Widget {
 
     private List<Util.PointF3D> initPoints(Bitmap bitmap) {
         List<Util.PointF3D> points = new ArrayList<>();
+
+        // FIXME: be sure assumed bitmap-dimension is correct
+        // TODO: !!! would be better to resize bitmap even while import !!!
 
         int currentCount = 0;
         int maximalCount = BITMAP_DIMENSION * BITMAP_DIMENSION;
@@ -272,8 +280,8 @@ public class TerrainWidget extends Widget {
         return new Pair<>(points.size(), initVertices(points));
     }
 
-    // FIXME: move to GeoUtil
-    // vertical scale is 0 (black) to 1,024 (white) meters
+    // NOTE: vertical scale is 0 (black) to 1,024 (white) meters
+    // TODO: See comment in README of map-archive. Elevation calculation was adapted. May be, calculation must be adapted here.
     public static float getElevationValueFromLocation(Bitmap bitmap, double xCoordinate, double zCoordinate) {
         int xPosition = (int) roundScale((xCoordinate + XZ_DIMENSION) * 100);
         int zPosition = (int) roundScale((zCoordinate + XZ_DIMENSION) * 100);
@@ -295,39 +303,22 @@ public class TerrainWidget extends Widget {
         return null;
     }
 
+    private void initLayers() {
+        lastKnownLocation = null;
+        if (layers == null || layers.size() > 1) {
+            layers = new ArrayList<>();
+            layers.add(new TerrainLayer());
+        }
+    }
+
     private class InitiationThread implements Runnable {
 
         InitiationThread(WidgetConfiguration widgetConfiguration) {
-
             terrainGeoModel = widgetConfiguration.getGeoModel();
 
             if (widgetConfiguration.hasLocation()) {
                 updateDeviceLocation(widgetConfiguration.getLocation());
             }
-
-            /*
-            Location boxStartPoint = terrainGeoModel.getBoxStartPoint();
-            Location boxEndPoint = terrainGeoModel.getBoxEndPoint();
-
-            Location newBoxStartPoint = new Location("");
-            newBoxStartPoint.setLatitude(boxStartPoint.getLatitude());
-            newBoxStartPoint.setLongitude(boxEndPoint.getLongitude());
-
-            Location newBoxEndPoint = new Location("");
-            newBoxEndPoint.setLatitude(boxEndPoint.getLatitude());
-            newBoxEndPoint.setLongitude(boxEndPoint.getLongitude() - GeoUtil.DELTA_LONGITUDE);
-
-            String centerPoint = String.format(Locale.getDefault().US, "%.06f,%.06f", newBoxEndPoint.getLatitude() + GeoUtil.DELTA_LATITUDE / 2f, newBoxEndPoint.getLongitude() + GeoUtil.DELTA_LONGITUDE / 2f);
-            Log.v(TAG, ">> " + centerPoint);
-            */
-
-            /*
-            String link = String.format(Locale.getDefault().US,"http://terrain.party/api/export?name=kauffunger_wald_2&box=%.06f,%.06f,%.06f,%.06f",
-                    newBoxStartPoint.getLongitude(), newBoxStartPoint.getLatitude(),
-                    newBoxEndPoint.getLongitude(), newBoxEndPoint.getLatitude());
-
-            Log.v(TAG, ">> " + link);
-            */
         }
 
         @Override
@@ -338,6 +329,8 @@ public class TerrainWidget extends Widget {
 
             yRotation = RendererOpenGL.ROTATION_INITIAL;
             xRotation = RendererOpenGL.ROTATION_INITIAL / 2f;
+
+            EventBus.getDefault().post(new Events.WidgetReady());
         }
     }
 }
