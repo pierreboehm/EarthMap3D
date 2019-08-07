@@ -59,6 +59,13 @@ public class MapFragment extends Fragment {
             Log.v(TAG, "Set last known location: " + lastKnownLocation);
             mapView.resetToInitialState();
             mapView.updateLocation(lastKnownLocation);
+        } else if (locationManager.getLastKnownLocation() != null) {
+            Location lastKnownLocation = locationManager.getLastKnownLocation();
+            Log.v(TAG, "Set last known location: " + lastKnownLocation);
+            mapView.resetToInitialState();
+            mapView.updateLocation(lastKnownLocation);
+        } else {
+            Log.v(TAG, "No last known location available. Waiting for incoming location update.");
         }
     }
 
