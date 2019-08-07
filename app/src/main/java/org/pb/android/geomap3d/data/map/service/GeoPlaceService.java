@@ -7,7 +7,7 @@ import com.google.android.gms.maps.model.LatLng;
 
 import org.androidannotations.annotations.EBean;
 import org.pb.android.geomap3d.data.map.model.GeoPlace;
-import org.pb.android.geomap3d.data.map.model.GeoPlaceResponse;
+import org.pb.android.geomap3d.data.map.model.GeoPlaceData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +48,9 @@ public class GeoPlaceService {
 
                 String jsonData = loadGeoPlacesResponse.body().string();
 
-                GeoPlaceResponse geoPlaceResponse = objectMapper.readValue(jsonData, GeoPlaceResponse.class);
-                if (geoPlaceResponse != null && geoPlaceResponse.getGeoPlaces() != null) {
-                    return geoPlaceResponse.getGeoPlaces();
+                GeoPlaceData geoPlaceData = objectMapper.readValue(jsonData, GeoPlaceData.class);
+                if (geoPlaceData != null) {
+                    return geoPlaceData.getGeoPlaces();
                 }
             }
         } catch (Exception exception) {
