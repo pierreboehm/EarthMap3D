@@ -5,6 +5,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.view.Window;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -19,6 +20,12 @@ public class ConfirmDialog extends LinearLayout {
     @ViewById(R.id.tvMessage)
     TextView tvMessage;
 
+    @ViewById(R.id.btnConfirm)
+    Button btnConfirm;
+
+    @ViewById(R.id.btnCancel)
+    Button btnCancel;
+
     private Runnable confirmAction;
     private Dialog dialog;
 
@@ -28,6 +35,12 @@ public class ConfirmDialog extends LinearLayout {
 
     public void show() {
         if (dialog == null) {
+
+            if (confirmAction == null) {
+                btnConfirm.setVisibility(GONE);
+                btnCancel.setText("OK");
+            }
+
             dialog = new AlertDialog.Builder(getContext()).setView(this).create();
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
