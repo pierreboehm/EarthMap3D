@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -25,6 +26,10 @@ public class ProgressView extends View {
     private Paint foregroundColor;
     private RectF clipBounds = null;
     private float progressValue = 0f;
+    private float strokeWidth = STROKE_WIDTH;
+    private boolean fireWidgetReadyEvent = true;
+    private int color = Color.argb(255, 0, 204, 255);
+    private Handler handler;
 
     public ProgressView(Context context) {
         this(context, null, 0);
@@ -54,21 +59,73 @@ public class ProgressView extends View {
         super.onDraw(canvas);
     }
 
-    public void update(float percentValue) {
+    public void setStrokeWidth(float strokeWidth) {
+        this.strokeWidth = strokeWidth;
+        foregroundColor.setStrokeWidth(strokeWidth);
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+        foregroundColor.setColor(color);
+    }
+
+    public void startBlink() {
+        progressValue = calculateProgressValue(100f);
+
+        final boolean[] decrease = {true};
+        final int[] alpha = {255};
+
+        handler = new Handler();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if (decrease[0] && alpha[0] > 20) {
+                    alpha[0] -= 5;
+                    if (alpha[0] <= 20) {
+                        decrease[0] = false;
+                    }
+                } else if (!decrease[0] && alpha[0] < 255) {
+                    alpha[0] += 5;
+                    if (alpha[0] >= 255) {
+                        decrease[0] = true;
+                    }
+                }
+
+                foregroundColor.setAlpha(alpha[0]);
+
+                invalidate();
+                handler.postDelayed(this, 20);
+            }
+        }).start();
+    }
+
+    public void stopBlink() {
+        if (handler != null) {
+            foregroundColor.setAlpha(255);
+            handler.removeCallbacksAndMessages(null);
+            handler = null;
+        }
+    }
+
+    public void fireWidgetReadyEvent(boolean fireWidgetReadyEvent) {
+        this.fireWidgetReadyEvent = fireWidgetReadyEvent;
+    }
+
+    public synchronized void update(float percentValue) {
         progressValue = calculateProgressValue(percentValue);
         invalidate();
 
-        if (percentValue >= 100f) {
+        if (percentValue >= 100f && fireWidgetReadyEvent) {
             EventBus.getDefault().post(new Events.WidgetReady());
         }
     }
 
     private void initView() {
         foregroundColor = new Paint();
-        foregroundColor.setColor(Color.argb(96, 0, 204, 255));
+        foregroundColor.setColor(color);
         foregroundColor.setStrokeCap(Paint.Cap.BUTT);
         foregroundColor.setStyle(Paint.Style.STROKE);
-        foregroundColor.setStrokeWidth(STROKE_WIDTH);
+        foregroundColor.setStrokeWidth(strokeWidth);
     }
 
     private float calculateProgressValue(float percentValue) {
