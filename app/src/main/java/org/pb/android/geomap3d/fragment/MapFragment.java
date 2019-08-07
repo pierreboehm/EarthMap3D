@@ -104,8 +104,11 @@ public class MapFragment extends Fragment {
 //        mapView.updateMapAfterHeightMapLoaded();
 
         progressView.setVisibility(View.GONE);
+
         if (event.getLoadingState() == LoadingState.LOADING_SUCCESS) {
             mapView.addStoredArea(event.getAreaLocation());
+        } else {
+            progressView.stopBlink();
         }
     }
 
