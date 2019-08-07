@@ -23,14 +23,22 @@ import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.R;
+import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
+
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
@@ -38,12 +46,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.FragmentManager;
 
 @EViewGroup(R.layout.map_view)
-public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener {
+public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMap.OnMyLocationButtonClickListener, GoogleMap.OnPolygonClickListener {
 
     public static final String TAG = MapView.class.getSimpleName();
     public static final double MINIMUM_GEO_FENCE_SIZE_IN_METER = 8000;
 
-    private static final int STANDARD_ZOOM_PADDING = 50;
+    private static final int STANDARD_ZOOM_PADDING = 500;
     private static final float STANDARD_ZOOM_LEVEL = 8f;   // relates to 11km side length
     private static final float INITIAL_ZOOM = -1f;
 
@@ -56,6 +64,9 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
 
     private float currentZoom = INITIAL_ZOOM;
     private boolean initialZooming = true;
+
+    private int areaCount = 0;
+    private Map<String, Polygon> areas = new HashMap<>();
 
     public MapView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -101,7 +112,7 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         uiSettings.setCompassEnabled(true);
 
         googleMap.setIndoorEnabled(false);
-        googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+//        googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
 
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             googleMap.setMyLocationEnabled(true);
@@ -118,8 +129,8 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
                     currentZoom = cameraPosition.zoom;
                     rectangleShape.setVisibility(VISIBLE);
 
-                    Pair<Long, Long> rectAngleGeoSize = getRectangleGeoSize();
-                    Log.v(TAG, "cameraMove: currentZoom = " + currentZoom + ", W x H = " + rectAngleGeoSize.first + ", " + rectAngleGeoSize.second + " meters");
+//                    Pair<Long, Long> rectAngleGeoSize = getRectangleGeoSize();
+//                    Log.v(TAG, "cameraMove: currentZoom = " + currentZoom + ", W x H = " + rectAngleGeoSize.first + ", " + rectAngleGeoSize.second + " meters");
 
                     if (!initialZooming) {
                         adjustRectangle();
@@ -137,9 +148,18 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
 //                    googleMap.setMaxZoomPreference(currentZoom);
 //                }
 
-                Log.v(TAG, "onCameraIdle(): currentZoom = " + currentZoom);
+//                Log.v(TAG, "onCameraIdle(): currentZoom = " + currentZoom);
             }
         });
+
+        // TODO: shift up again if possible (if setMapType does not override custom style)
+        try {
+            boolean successfulStyled = this.googleMap.setMapStyle(MapStyleOptions.loadRawResourceStyle(getContext(), R.raw.map_style_night));
+            Log.v(TAG, "map styling " + (successfulStyled ? "success" : "failed"));
+        } catch (Exception exception) {
+            // not implemented
+            Log.v(TAG, "map styling failed. (" + exception.getLocalizedMessage() + ")");
+        }
     }
 
     @Override
@@ -152,17 +172,45 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         return false;
     }
 
+    @Override
+    public void onPolygonClick(final Polygon polygon) {
+        new ConfirmDialog.Builder(getContext())
+                .setMessage("Remove this area from map?")
+                .setConfirmAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        String areaId = polygon.getTag().toString();
+                        areas.get(areaId).remove();
+                        areas.remove(areaId);
+                    }
+                })
+                .build()
+                .show();
+    }
+
     @Click(R.id.rectangleShape)
     public void rectangleShapeClick() {
         if (googleMap == null) {
             return;
         }
 
-        LatLng targetLocation = googleMap.getCameraPosition().target;
-//        Toast.makeText(getContext(), String.format(Locale.US, "Load high-map from: %.6f %.6f", targetLocation.latitude, targetLocation.longitude), Toast.LENGTH_SHORT).show();
+        new ConfirmDialog.Builder(getContext())
+                .setMessage("Load and add this area to map?")
+                .setConfirmAction(new Runnable() {
+                    @Override
+                    public void run() {
+                        LatLng targetLocation = googleMap.getCameraPosition().target;
+                        Log.i(TAG, String.format(Locale.US, "Load high-map from: %.6f %.6f", targetLocation.latitude, targetLocation.longitude));
+                        EventBus.getDefault().post(new Events.HeightMapLoadStart());
+                        EventBus.getDefault().post(new Events.LoadHeightMap(targetLocation));
+                    }
+                })
+                .build()
+                .show();
+    }
 
-        EventBus.getDefault().post(new Events.LoadHeightMap(targetLocation));
-        // TODO: show loading icon (top-left?)
+    public void resetToInitialState() {
+        initialZooming = true;
     }
 
     public void updateLocation(Location location) {
@@ -172,11 +220,36 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         if (initialZooming && googleMap != null) {
             currentZoom = calculateMaximumZoomLevel(currentLocation);
             initialZooming = false;
+            EventBus.getDefault().post(new Events.MapReadyEvent(location));
         }
     }
 
-    public void updateMapAfterHeightMapLoaded() {
-        // TODO: hide loading icon again
+    public void addStoredArea(LatLng areaLocation) {
+        LatLngBounds areaBounds = GeoUtil.getRectangleLatLngBounds(areaLocation, 8);
+
+        LatLng northwest = new LatLng(areaBounds.northeast.latitude, areaBounds.southwest.longitude);
+        LatLng southeast = new LatLng(areaBounds.southwest.latitude, areaBounds.northeast.longitude);
+
+//        Log.i(TAG, "ne:" + areaBounds.northeast.toString() + ", se:" + southeast.toString() + ", sw:" + areaBounds.southwest.toString() + ", nw:" + northwest.toString());
+
+        Polygon area = googleMap.addPolygon(new PolygonOptions()
+                .clickable(true)
+                .add(areaBounds.northeast)
+                .add(southeast)
+                .add(areaBounds.southwest)
+                .add(northwest)
+        );
+
+        String areaId = "area#" + areaCount++;
+
+        area.setStrokeWidth(2);
+        area.setStrokeColor(getContext().getColor(R.color.warm_orange));
+        area.setFillColor(getContext().getColor(R.color.warm_orange_with_alpha_35));
+        area.setTag(areaId);
+
+        areas.put(areaId, area);
+
+        googleMap.setOnPolygonClickListener(this);
     }
 
     private void zoomToBoundary(LatLngBounds boundary, boolean animate, int paddingOfBoundary) {
@@ -265,5 +338,22 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         layoutParams.width = areaWidth;
         layoutParams.height = areaHeight;
         rectangleShape.setLayoutParams(layoutParams);
+    }
+
+    private LatLng snapToNearestArea(LatLng targetLocation) {
+
+        if (areas.isEmpty()) {
+            return targetLocation;
+        }
+
+        LatLng snapLocation = new LatLng(targetLocation.latitude, targetLocation.longitude);
+
+        // loop through polygons
+//        for (Polygon area : areas.values()) {
+//            List<LatLng> points = area.getPoints();
+//
+//        }
+
+        return snapLocation;
     }
 }

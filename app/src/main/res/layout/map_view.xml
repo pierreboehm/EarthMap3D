@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<merge xmlns:android="http://schemas.android.com/apk/res/android">
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+       xmlns:tools="http://schemas.android.com/tools">
 
     <LinearLayout
         android:id="@+id/mapContainer"
@@ -19,13 +20,14 @@
             android:layout_centerInParent="true"
             android:layout_margin="20dp"
             android:background="@drawable/rectangle_shape"
-            android:visibility="invisible"/>
+            android:visibility="invisible"
+            tools:visibility="visible"/>
 
         <ImageView
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_centerInParent="true"
-            android:src="@drawable/icn_center_device_c01"/>
+            android:src="@drawable/icn_center_device_c03"/>
 
     </RelativeLayout>
 </merge>
