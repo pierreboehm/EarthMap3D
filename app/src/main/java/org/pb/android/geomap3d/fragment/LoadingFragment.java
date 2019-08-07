@@ -11,6 +11,7 @@ import org.pb.android.geomap3d.view.ProgressView;
 
 import androidx.fragment.app.Fragment;
 
+@Deprecated
 @EFragment(R.layout.fragment_loading)
 public class LoadingFragment extends Fragment {
 
