@@ -80,18 +80,6 @@ public class Events {
         }
     }
 
-    public static class MapCenterUpdate {
-        private final LatLng centerOfMap;
-
-        public MapCenterUpdate(LatLng centerOfMap) {
-            this.centerOfMap = centerOfMap;
-        }
-
-        public LatLng getCenterOfMap() {
-            return centerOfMap;
-        }
-    }
-
     public static class HeightMapLoadStart {
     }
 

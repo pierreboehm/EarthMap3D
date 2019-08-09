@@ -4,7 +4,6 @@ import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
 
 import com.google.android.gms.maps.model.LatLng;
 
@@ -37,9 +36,6 @@ public class MapFragment extends Fragment {
     @ViewById(R.id.mapView)
     MapView mapView;
 
-    @ViewById(R.id.tvCenterOfMap)
-    TextView tvCenterOfMap;
-
     @ViewById(R.id.progressView)
     ProgressView progressView;
 
@@ -50,7 +46,7 @@ public class MapFragment extends Fragment {
     Location lastKnownLocation;
 
     @AfterViews
-    public void initViews() {
+    void initViews() {
         progressView.setStrokeWidth(10f);
         progressView.setColor(getContext().getColor(R.color.warm_blue));
         progressView.fireWidgetReadyEvent(false);
@@ -87,14 +83,8 @@ public class MapFragment extends Fragment {
     }
 
     @Click(R.id.screenSwitch)
-    public void onScreenSwitchClick() {
+    void onScreenSwitchClick() {
         EventBus.getDefault().post(new Events.ShowTerrainFragment());
-    }
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent(Events.MapCenterUpdate event) {
-        String formattedLocation = getFormattedLocation(event.getCenterOfMap());
-        tvCenterOfMap.setText(formattedLocation);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

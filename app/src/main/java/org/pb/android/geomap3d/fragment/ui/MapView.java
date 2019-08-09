@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -51,9 +52,15 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
     public static final String TAG = MapView.class.getSimpleName();
     public static final double MINIMUM_GEO_FENCE_SIZE_IN_METER = 8000;
 
+    private static final int TOGGLE_WIDTH = 400;
     private static final int STANDARD_ZOOM_PADDING = 500;
-    private static final float STANDARD_ZOOM_LEVEL = 8f;   // relates to 11km side length
     private static final float INITIAL_ZOOM = -1f;
+
+    @ViewById(R.id.tvCenterOfMap)
+    TextView tvCenterOfMap;
+
+    @ViewById(R.id.tvCenterOfMapOutside)
+    TextView tvCenterOfMapOutside;
 
     @ViewById(R.id.rectangleShape)
     View rectangleShape;
@@ -127,6 +134,7 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
 
                 if (cameraPosition.zoom != currentZoom) {
                     currentZoom = cameraPosition.zoom;
+
                     rectangleShape.setVisibility(VISIBLE);
 
 //                    Pair<Long, Long> rectAngleGeoSize = getRectangleGeoSize();
@@ -136,6 +144,8 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
                         adjustRectangle();
                     }
                 }
+
+                updateCenterOfMapView(cameraPosition.target);
             }
         });
 
@@ -338,6 +348,25 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         layoutParams.width = areaWidth;
         layoutParams.height = areaHeight;
         rectangleShape.setLayoutParams(layoutParams);
+    }
+
+    private void updateCenterOfMapView(LatLng centerOfMap) {
+        if (rectangleShape.getVisibility() != VISIBLE) {
+            return;
+        }
+
+        String positionText = String.format(Locale.US, "%.06f\n%.06f", centerOfMap.latitude, centerOfMap.longitude);
+        ViewGroup.LayoutParams layoutParams = rectangleShape.getLayoutParams();
+
+        if (layoutParams.width > TOGGLE_WIDTH) {
+            tvCenterOfMap.setText(positionText);
+            tvCenterOfMap.setVisibility(VISIBLE);
+            tvCenterOfMapOutside.setVisibility(GONE);
+        } else {
+            tvCenterOfMapOutside.setText(positionText);
+            tvCenterOfMap.setVisibility(GONE);
+            tvCenterOfMapOutside.setVisibility(VISIBLE);
+        }
     }
 
     private LatLng snapToNearestArea(LatLng targetLocation) {
