@@ -28,7 +28,8 @@ public class TerrainService {
     // http://terrain.party/api/export?name=kaufunger_wald_2&box=9.858200,51.317693,9.743203,51.245828
 
     private static final String BASEURL = "http://terrain.party/api/export/";
-    private static final double MINIMUM_ALTITUDE_IN_KILOMETERS = 8;
+
+    private LatLngBounds lastTargetBounds;
 
     @RootContext
     Activity activity;
@@ -45,16 +46,20 @@ public class TerrainService {
         return null;
     }
 
+    @Nullable
+    public LatLngBounds getLastTargetBounds() {
+        return lastTargetBounds;
+    }
+
     private TerrainMapData loadMapDataForLocation(Location location) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
 
         clientBuilder.connectTimeout(5, SECONDS);
         clientBuilder.readTimeout(30, SECONDS);
 
-        // TODO: test if result is correct !
-        LatLngBounds targetBounds = GeoUtil.getRectangleLatLngBounds(GeoUtil.getLatLngFromLocation(location), MINIMUM_ALTITUDE_IN_KILOMETERS);
+        lastTargetBounds = GeoUtil.getDefaultRectangleLatLngBounds(GeoUtil.getLatLngFromLocation(location));
 
-        Request loadMapDataRequest = new Request.Builder().get().url(getMapDataLocationUrl(targetBounds)).build();
+        Request loadMapDataRequest = new Request.Builder().get().url(getMapDataLocationUrl(lastTargetBounds)).build();
         okhttp3.Call loadMapDataCall = clientBuilder.build().newCall(loadMapDataRequest);
 
         try {
@@ -69,6 +74,7 @@ public class TerrainService {
             Log.e(TAG, "Error: " + exception.getLocalizedMessage());
         }
 
+        lastTargetBounds = null;    // be sure it's cleared again in error case
         return new TerrainMapData(TerrainMapData.LoadingState.LOADING_FAILED);
     }
 
