@@ -7,6 +7,7 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
 import org.pb.android.geomap3d.data.GeoModel;
+import org.pb.android.geomap3d.fragment.ui.MapView;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 
 import androidx.annotation.Nullable;
@@ -26,6 +27,7 @@ public class GeoUtil {
     public static final double DELTA_LONGITUDE = 0.114997;
 
     private static final int RADIUS_OF_EARTH_IN_KILOMETER = 6371;
+    private static final double DEFAULT_SIDE_LENGTH = MapView.MINIMUM_GEO_FENCE_SIZE_IN_METER / 1000;
 
     public static boolean isLocationOnMap(Location location, GeoModel geoModel) {
         return location.getLatitude() <= geoModel.getBoxStartPoint().getLatitude()
@@ -73,15 +75,30 @@ public class GeoUtil {
         return location == null ? null : new LatLng(location.getLatitude(), location.getLongitude());
     }
 
-    public static LatLngBounds getRectangleLatLngBounds(LatLng centerOfMap, double sideLengthInKilometers) {
-        return new LatLngBounds(getSouthWestLatLng(centerOfMap, sideLengthInKilometers), getNorthEastLatLng(centerOfMap, sideLengthInKilometers));
+    public static LatLngBounds getDefaultRectangleLatLngBounds(LatLng centerOfMap) {
+        return getRectangleLatLngBounds(centerOfMap, DEFAULT_SIDE_LENGTH);
     }
 
     public static double getDistanceBetweenTwoPointsInMeter(LatLng startPoint, LatLng endPoint) {
         return 1000 * getDistanceBetweenTwoPointsInKilometer(startPoint, endPoint);
     }
 
-    public static double getDistanceBetweenTwoPointsInKilometer(LatLng startPoint, LatLng endPoint) {
+    public static LatLng computeOffset(LatLng from, double distance, double heading) {
+        distance /= RADIUS_OF_EARTH_IN_KILOMETER;
+        heading = toRadians(heading);
+        // http://williams.best.vwh.net/avform.htm#LL
+        double fromLat = toRadians(from.latitude);
+        double fromLng = toRadians(from.longitude);
+        double cosDistance = cos(distance);
+        double sinDistance = sin(distance);
+        double sinFromLat = sin(fromLat);
+        double cosFromLat = cos(fromLat);
+        double sinLat = cosDistance * sinFromLat + sinDistance * cosFromLat * cos(heading);
+        double dLng = atan2(sinDistance * cosFromLat * sin(heading), cosDistance - sinFromLat * sinLat);
+        return new LatLng(toDegrees(asin(sinLat)), toDegrees(fromLng + dLng));
+    }
+
+    private static double getDistanceBetweenTwoPointsInKilometer(LatLng startPoint, LatLng endPoint) {
         if (startPoint == null || endPoint == null) {
             Log.e(TAG, "get Distance to null location");
             return 0;
@@ -102,6 +119,10 @@ public class GeoUtil {
 
     }
 
+    private static LatLngBounds getRectangleLatLngBounds(LatLng centerOfMap, double sideLengthInKilometers) {
+        return new LatLngBounds(getSouthWestLatLng(centerOfMap, sideLengthInKilometers), getNorthEastLatLng(centerOfMap, sideLengthInKilometers));
+    }
+
     private static LatLng getNorthEastLatLng(LatLng centerOfMap, double sideLengthInKilometers) {
         LatLng southWest = computeOffset(centerOfMap, sideLengthInKilometers / 2, 90);
         southWest = computeOffset(southWest, sideLengthInKilometers / 2, 0);
@@ -112,21 +133,6 @@ public class GeoUtil {
         LatLng northEast = computeOffset(centerOfMap, sideLengthInKilometers / 2, 270);
         northEast = computeOffset(northEast, sideLengthInKilometers / 2, 180);
         return northEast;
-    }
-
-    public static LatLng computeOffset(LatLng from, double distance, double heading) {
-        distance /= RADIUS_OF_EARTH_IN_KILOMETER;
-        heading = toRadians(heading);
-        // http://williams.best.vwh.net/avform.htm#LL
-        double fromLat = toRadians(from.latitude);
-        double fromLng = toRadians(from.longitude);
-        double cosDistance = cos(distance);
-        double sinDistance = sin(distance);
-        double sinFromLat = sin(fromLat);
-        double cosFromLat = cos(fromLat);
-        double sinLat = cosDistance * sinFromLat + sinDistance * cosFromLat * cos(heading);
-        double dLng = atan2(sinDistance * cosFromLat * sin(heading), cosDistance - sinFromLat * sinLat);
-        return new LatLng(toDegrees(asin(sinLat)), toDegrees(fromLng + dLng));
     }
 
 //    public static double getDistanceBetweenTwoPointsInMeter(Location startPoint, Location endPoint) {
