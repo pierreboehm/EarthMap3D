@@ -99,10 +99,12 @@ public class Events {
     }
 
     public static class HeightMapLoaded {
+        private final String areaName;
         private final Location areaLocation;
         private final LoadingState loadingState;
 
-        public HeightMapLoaded(Location areaLocation, LoadingState loadingState) {
+        public HeightMapLoaded(@Nullable String areaName, Location areaLocation, LoadingState loadingState) {
+            this.areaName = areaName;
             this.areaLocation = areaLocation;
             this.loadingState = loadingState;
         }
@@ -113,6 +115,11 @@ public class Events {
 
         public LoadingState getLoadingState() {
             return loadingState;
+        }
+
+        @Nullable
+        public String getAreaName() {
+            return areaName;
         }
     }
 
