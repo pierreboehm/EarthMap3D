@@ -2,6 +2,7 @@ package org.pb.android.geomap3d.data;
 
 import android.content.Context;
 
+import com.google.android.gms.maps.model.LatLng;
 import com.raizlabs.android.dbflow.config.FlowConfig;
 import com.raizlabs.android.dbflow.config.FlowManager;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
@@ -11,6 +12,8 @@ import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 
 import java.util.List;
+
+import androidx.annotation.Nullable;
 
 @EBean
 public class GeoDatabaseDao {
@@ -27,4 +30,18 @@ public class GeoDatabaseDao {
         return SQLite.select().from(GeoModel.class).orderBy(GeoModel_Table.id, true).queryList();
     }
 
+    @Nullable
+    public GeoModel findForLocation(LatLng location) {
+        return SQLite.select()
+                .from(GeoModel.class)
+                .where(GeoModel_Table.northEastLatitude.greaterThan(location.latitude))
+                .and(GeoModel_Table.northEastLongitude.greaterThan(location.longitude))
+                .and(GeoModel_Table.southWestLatitude.lessThan(location.latitude))
+                .and(GeoModel_Table.southWestLongitude.lessThan(location.longitude))
+                .querySingle();
+    }
+
+    public GeoModel findByName(String geoModelName) {
+        return SQLite.select().from(GeoModel.class).where(GeoModel_Table.name.eq(geoModelName)).querySingle();
+    }
 }

@@ -22,6 +22,8 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.pb.android.geomap3d.data.GeoDatabaseManager;
+import org.pb.android.geomap3d.data.GeoModel;
 import org.pb.android.geomap3d.data.config.TerrainConfig;
 import org.pb.android.geomap3d.data.map.model.GeoPlace;
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
@@ -76,6 +78,9 @@ public class MainActivity extends AppCompatActivity {
     @Bean
     GeoPlaceService geoPlaceService;
 
+    @Bean
+    GeoDatabaseManager geoDatabaseManager;
+
     private Toast closeAppToast;
 
     @AfterViews
@@ -89,7 +94,8 @@ public class MainActivity extends AppCompatActivity {
             initNetworkAvailabilityUtil();
             initWidgetAfterPermissionCheck();
         } else {
-            // TODO: handle negative result. (user does not grant permissions)
+            // TODO: handle negative result. --> grantPermissions()? (e.g. user does not grant permissions)
+            // FIXME: activity needs to be restarted. show confirm-dialog, so user knows what happens.
         }
     }
 
@@ -263,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
         if (NetworkAvailabilityUtil.isNetworkAvailable()) {
             loadMapForLocation(location);
         } else {
-            notifyHeightMapLoaded(null, LoadingState.LOADING_FAILED);
+            notifyHeightMapLoaded(null, location, LoadingState.LOADING_FAILED);
 
             new ConfirmDialog.Builder(this)
                     .setMessage(getString(R.string.noInternet))
@@ -273,13 +279,25 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupTerrainWidget(@NonNull Location location) {
-        TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
-        Location terrainLocation = terrainConfig.getLocation();
+        WidgetConfiguration widgetConfiguration;
+        GeoModel geoModel = geoDatabaseManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
 
-        WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
-                .setLocation(terrainLocation)
-                .setHeightMapBitmapFromResource(this, terrainConfig.getHeightMapResourceId())
-                .getConfiguration();
+        if (geoModel != null) {
+            widgetConfiguration = WidgetConfiguration.create()
+                    .setLocation(geoModel.getCenterPoint())
+                    .setHeightMapBitmap(geoModel.getHeightMapBitmap())
+                    .getConfiguration();
+        } else {
+            // FIXME: If no geoModel is stored: disable topology-screen-switch in MapFragment
+            // TODO: After that remove TerrainConfig
+            TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
+            Location terrainLocation = terrainConfig.getLocation();
+
+            widgetConfiguration = WidgetConfiguration.create()
+                    .setLocation(terrainLocation)
+                    .setHeightMapBitmapFromResource(this, terrainConfig.getHeightMapResourceId())
+                    .getConfiguration();
+        }
 
         Widget terrainWidget = widgetManager.getWidget();
 
@@ -308,11 +326,19 @@ public class MainActivity extends AppCompatActivity {
 
         // (just) signal that a new TerrainConfig is available. (Stored data will be reloaded then and map-UI will be updated)
         LoadingState loadingState = bitmap == null ? LoadingState.LOADING_FAILED : LoadingState.LOADING_SUCCESS;
-        notifyHeightMapLoaded(location, loadingState);
+
+        GeoModel geoModel = null;
+
+        if (loadingState == LoadingState.LOADING_SUCCESS) {
+            geoModel = geoDatabaseManager.storeGeoModel(bitmap, GeoUtil.getLatLngFromLocation(location), terrainService.getLastTargetBounds());
+        }
+
+        notifyHeightMapLoaded(geoModel, location, loadingState);
     }
 
     @UiThread
-    public void notifyHeightMapLoaded(Location location, LoadingState loadingState) {
-        EventBus.getDefault().post(new Events.HeightMapLoaded(location, loadingState));
+    public void notifyHeightMapLoaded(GeoModel geoModel, Location location, LoadingState loadingState) {
+        String geoModelName = geoModel == null ? null : geoModel.getName();
+        EventBus.getDefault().post(new Events.HeightMapLoaded(geoModelName, location, loadingState));
     }
 }

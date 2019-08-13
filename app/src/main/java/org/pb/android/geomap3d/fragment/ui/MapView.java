@@ -28,11 +28,13 @@ import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 
+import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.R;
+import org.pb.android.geomap3d.data.GeoDatabaseManager;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
@@ -65,6 +67,9 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
     @ViewById(R.id.rectangleShape)
     View rectangleShape;
 
+    @Bean
+    GeoDatabaseManager geoDatabaseManager;
+
     protected GoogleMap googleMap;
     private LatLng currentLocation;
     private LatLngBounds mapBounds;
@@ -72,7 +77,6 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
     private float currentZoom = INITIAL_ZOOM;
     private boolean initialZooming = true;
 
-    private int areaCount = 0;
     private Map<String, Polygon> areas = new HashMap<>();
 
     public MapView(Context context, AttributeSet attrs) {
@@ -190,8 +194,11 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
                     @Override
                     public void run() {
                         String areaId = polygon.getTag().toString();
+
                         areas.get(areaId).remove();
                         areas.remove(areaId);
+
+                        geoDatabaseManager.deleteGeoModel(areaId);
                     }
                 })
                 .build()
@@ -234,8 +241,8 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         }
     }
 
-    public void addStoredArea(LatLng areaLocation) {
-        LatLngBounds areaBounds = GeoUtil.getRectangleLatLngBounds(areaLocation, 8);
+    public void addStoredArea(String areaName, LatLng areaLocation) {
+        LatLngBounds areaBounds = GeoUtil.getDefaultRectangleLatLngBounds(areaLocation);
 
         LatLng northwest = new LatLng(areaBounds.northeast.latitude, areaBounds.southwest.longitude);
         LatLng southeast = new LatLng(areaBounds.southwest.latitude, areaBounds.northeast.longitude);
@@ -250,14 +257,12 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
                 .add(northwest)
         );
 
-        String areaId = "area#" + areaCount++;
-
         area.setStrokeWidth(2);
         area.setStrokeColor(getContext().getColor(R.color.warm_orange));
         area.setFillColor(getContext().getColor(R.color.warm_orange_with_alpha_35));
-        area.setTag(areaId);
+        area.setTag(areaName);
 
-        areas.put(areaId, area);
+        areas.put(areaName, area);
 
         googleMap.setOnPolygonClickListener(this);
     }
