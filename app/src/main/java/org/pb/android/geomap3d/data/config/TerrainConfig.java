@@ -5,6 +5,7 @@ import android.location.Location;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.util.GeoUtil;
 
+@Deprecated
 public enum TerrainConfig {
 
     BERLIN_STADTMITTE(R.drawable.berlin_stadtmitte_height_map, 52.529731, 13.391537),
