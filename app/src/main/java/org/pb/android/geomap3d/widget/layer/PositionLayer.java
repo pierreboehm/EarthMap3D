@@ -5,7 +5,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
-import org.pb.android.geomap3d.data.GeoModel;
+import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
@@ -97,11 +97,11 @@ public class PositionLayer extends Layer {
         return location;
     }
 
-    public void updateLocation(Location location, GeoModel geoModel) {
+    public void updateLocation(Location location, GeoLocation geoLocation) {
         this.location = location;
         Log.v(TAG, String.format(Locale.US, "new location: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
 
-        if (GeoUtil.isLocationOnMap(location, geoModel)) {
+        if (GeoUtil.isLocationOnMap(location, geoLocation)) {
 
             if (!showPointer && (layerType == LayerType.CDP)) {
                 EventBus.getDefault().post(new Events.VibrationEvent());
@@ -109,7 +109,7 @@ public class PositionLayer extends Layer {
 
             showPointer = true;
 
-            GeoUtil.PositionOffsets positionOffsets = GeoUtil.getPositionOffsets(location, geoModel);
+            GeoUtil.PositionOffsets positionOffsets = GeoUtil.getPositionOffsets(location, geoLocation);
             positionXOffset = positionOffsets.xOffset;
             positionYOffset = positionOffsets.yOffset;
             positionZOffset = positionOffsets.zOffset;

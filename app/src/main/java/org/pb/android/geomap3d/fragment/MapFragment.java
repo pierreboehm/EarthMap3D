@@ -4,6 +4,7 @@ import android.content.pm.ActivityInfo;
 import android.location.Location;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -16,9 +17,9 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.R;
-import org.pb.android.geomap3d.data.GeoDatabaseManager;
-import org.pb.android.geomap3d.data.GeoModel;
+import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
+import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.ui.MapView;
 import org.pb.android.geomap3d.location.LocationManager;
@@ -39,11 +40,14 @@ public class MapFragment extends Fragment {
     @ViewById(R.id.progressView)
     ProgressView progressView;
 
+    @ViewById(R.id.screenSwitch)
+    ImageButton screenSwitch;
+
     @Bean
     LocationManager locationManager;
 
     @Bean
-    GeoDatabaseManager geoDatabaseManager;
+    PersistManager persistManager;
 
     @FragmentArg
     Location lastKnownLocation;
@@ -114,9 +118,9 @@ public class MapFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(final Events.MapReadyEvent event) {
-        List<GeoModel> storedGeoModels = geoDatabaseManager.getAllGeoModels();
-        for (GeoModel geoModel : storedGeoModels) {
-            mapView.addStoredArea(geoModel.getName(), geoModel.getCenter());
+        List<GeoLocation> storedGeoLocations = persistManager.getAllGeoModels();
+        for (GeoLocation geoLocation : storedGeoLocations) {
+            mapView.addStoredArea(geoLocation.getName(), geoLocation.getCenter());
         }
     }
 

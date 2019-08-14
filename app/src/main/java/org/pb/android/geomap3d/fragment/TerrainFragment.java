@@ -17,7 +17,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.AppPreferences_;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.compass.Compass;
-import org.pb.android.geomap3d.data.GeoDatabaseManager;
+import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.dialog.SettingsDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
@@ -41,7 +41,7 @@ public class TerrainFragment extends Fragment {
     LocationManager locationManager;
 
     @Bean
-    GeoDatabaseManager geoDatabaseManager;
+    PersistManager persistManager;
 
     @Bean
     Compass compass;

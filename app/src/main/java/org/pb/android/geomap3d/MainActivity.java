@@ -22,13 +22,12 @@ import org.androidannotations.annotations.sharedpreferences.Pref;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
-import org.pb.android.geomap3d.data.GeoDatabaseManager;
-import org.pb.android.geomap3d.data.GeoModel;
-import org.pb.android.geomap3d.data.config.TerrainConfig;
+import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.data.map.model.GeoPlace;
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
 import org.pb.android.geomap3d.data.map.service.GeoPlaceService;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
+import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.MapFragment;
@@ -79,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
     GeoPlaceService geoPlaceService;
 
     @Bean
-    GeoDatabaseManager geoDatabaseManager;
+    PersistManager persistManager;
 
     private Toast closeAppToast;
 
@@ -279,25 +278,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupTerrainWidget(@NonNull Location location) {
-        WidgetConfiguration widgetConfiguration;
-        GeoModel geoModel = geoDatabaseManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
-
-        if (geoModel != null) {
-            widgetConfiguration = WidgetConfiguration.create()
-                    .setLocation(geoModel.getCenterPoint())
-                    .setHeightMapBitmap(geoModel.getHeightMapBitmap())
-                    .getConfiguration();
-        } else {
-            // FIXME: If no geoModel is stored: disable topology-screen-switch in MapFragment
-            // TODO: After that remove TerrainConfig
-            TerrainConfig terrainConfig = TerrainConfig.getConfigForLocation(location.getLatitude(), location.getLongitude());
-            Location terrainLocation = terrainConfig.getLocation();
-
-            widgetConfiguration = WidgetConfiguration.create()
-                    .setLocation(terrainLocation)
-                    .setHeightMapBitmapFromResource(this, terrainConfig.getHeightMapResourceId())
-                    .getConfiguration();
+        GeoLocation geoLocation = persistManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
+        if (geoLocation == null) {
+            return;
         }
+
+        WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
+                .setLocation(geoLocation.getCenterPoint())
+                .setHeightMapBitmap(geoLocation.getHeightMapBitmap())
+                .getConfiguration();
 
         Widget terrainWidget = widgetManager.getWidget();
 
@@ -327,18 +316,18 @@ public class MainActivity extends AppCompatActivity {
         // (just) signal that a new TerrainConfig is available. (Stored data will be reloaded then and map-UI will be updated)
         LoadingState loadingState = bitmap == null ? LoadingState.LOADING_FAILED : LoadingState.LOADING_SUCCESS;
 
-        GeoModel geoModel = null;
+        GeoLocation geoLocation = null;
 
         if (loadingState == LoadingState.LOADING_SUCCESS) {
-            geoModel = geoDatabaseManager.storeGeoModel(bitmap, GeoUtil.getLatLngFromLocation(location), terrainService.getLastTargetBounds());
+            geoLocation = persistManager.storeGeoModel(bitmap, GeoUtil.getLatLngFromLocation(location), terrainService.getLastTargetBounds());
         }
 
-        notifyHeightMapLoaded(geoModel, location, loadingState);
+        notifyHeightMapLoaded(geoLocation, location, loadingState);
     }
 
     @UiThread
-    public void notifyHeightMapLoaded(GeoModel geoModel, Location location, LoadingState loadingState) {
-        String geoModelName = geoModel == null ? null : geoModel.getName();
+    public void notifyHeightMapLoaded(GeoLocation geoLocation, Location location, LoadingState loadingState) {
+        String geoModelName = geoLocation == null ? null : geoLocation.getName();
         EventBus.getDefault().post(new Events.HeightMapLoaded(geoModelName, location, loadingState));
     }
 }

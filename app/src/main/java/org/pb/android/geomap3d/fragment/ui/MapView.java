@@ -34,7 +34,7 @@ import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.R;
-import org.pb.android.geomap3d.data.GeoDatabaseManager;
+import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
@@ -68,7 +68,7 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
     View rectangleShape;
 
     @Bean
-    GeoDatabaseManager geoDatabaseManager;
+    PersistManager persistManager;
 
     protected GoogleMap googleMap;
     private LatLng currentLocation;
@@ -198,7 +198,7 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
                         areas.get(areaId).remove();
                         areas.remove(areaId);
 
-                        geoDatabaseManager.deleteGeoModel(areaId);
+                        persistManager.deleteGeoModel(areaId);
                     }
                 })
                 .build()
