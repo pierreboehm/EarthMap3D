@@ -1,4 +1,4 @@
-package org.pb.android.geomap3d.data;
+package org.pb.android.geomap3d.data.persist.geolocation;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -18,8 +18,8 @@ import org.pb.android.geomap3d.util.GeoUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.Serializable;
 
-@Table(database = GeoDatabaseConfiguration.class)
-public class GeoModel extends BaseModel implements Serializable {
+@Table(database = GeoLocationConfiguration.class)
+public class GeoLocation extends BaseModel implements Serializable {
 
     @Column
     @PrimaryKey(autoincrement = true)
@@ -49,10 +49,10 @@ public class GeoModel extends BaseModel implements Serializable {
     @Column
     Blob heightMapBitmap;
 
-    public GeoModel() {
+    public GeoLocation() {
     }
 
-    public GeoModel(String name, Location centerPoint, Bitmap heightMapBitmap) {
+    public GeoLocation(String name, Location centerPoint, Bitmap heightMapBitmap) {
         this.name = name;
         this.centerPointLatitude = centerPoint.getLatitude();
         this.centerPointLongitude = centerPoint.getLongitude();
@@ -122,37 +122,37 @@ public class GeoModel extends BaseModel implements Serializable {
 
     public static class Builder {
 
-        private GeoModel geoModel;
+        private GeoLocation geoLocation;
 
         public Builder() {
-            this.geoModel = new GeoModel();
+            this.geoLocation = new GeoLocation();
         }
 
         public Builder setCenterOfMap(LatLng centerOfMap) {
-            this.geoModel.centerPointLatitude = centerOfMap.latitude;
-            this.geoModel.centerPointLongitude = centerOfMap.longitude;
+            this.geoLocation.centerPointLatitude = centerOfMap.latitude;
+            this.geoLocation.centerPointLongitude = centerOfMap.longitude;
             return this;
         }
 
         public Builder setBounds(LatLngBounds bounds) {
-            this.geoModel.northEastLatitude = bounds.northeast.latitude;
-            this.geoModel.northEastLongitude = bounds.northeast.longitude;
-            this.geoModel.southWestLatitude = bounds.southwest.latitude;
-            this.geoModel.southWestLongitude = bounds.southwest.longitude;
+            this.geoLocation.northEastLatitude = bounds.northeast.latitude;
+            this.geoLocation.northEastLongitude = bounds.northeast.longitude;
+            this.geoLocation.southWestLatitude = bounds.southwest.latitude;
+            this.geoLocation.southWestLongitude = bounds.southwest.longitude;
 
             return this;
         }
 
         public Builder setBitmap(Bitmap bitmap) {
-            this.geoModel.heightMapBitmap = this.geoModel.convertBitmapToBlob(bitmap);
+            this.geoLocation.heightMapBitmap = this.geoLocation.convertBitmapToBlob(bitmap);
             return this;
         }
 
-        public GeoModel build() {
-            if (this.geoModel.name == null) {
-                this.geoModel.name = Long.toString(System.currentTimeMillis());
+        public GeoLocation build() {
+            if (this.geoLocation.name == null) {
+                this.geoLocation.name = Long.toString(System.currentTimeMillis());
             }
-            return this.geoModel;
+            return this.geoLocation;
         }
 
     }
