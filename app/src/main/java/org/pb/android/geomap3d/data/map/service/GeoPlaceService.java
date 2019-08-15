@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.androidannotations.annotations.EBean;
-import org.pb.android.geomap3d.data.map.model.GeoPlace;
 import org.pb.android.geomap3d.data.map.model.GeoPlaceData;
+import org.pb.android.geomap3d.data.map.model.GeoPlaceItem;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,11 +26,11 @@ public class GeoPlaceService {
 
     private static final String BASEURL = "http://geodb-free-service.wirefreethought.com";
 
-    public List<GeoPlace> findGeoPlacesForLocation(LatLng location) {
+    public List<GeoPlaceItem> findGeoPlacesForLocation(LatLng location) {
         return loadGeoPlacesForLocation(location);
     }
 
-    private List<GeoPlace> loadGeoPlacesForLocation(LatLng location) {
+    private List<GeoPlaceItem> loadGeoPlacesForLocation(LatLng location) {
         OkHttpClient.Builder clientBuilder = new OkHttpClient.Builder();
 
         clientBuilder.connectTimeout(5, SECONDS);
@@ -50,7 +50,7 @@ public class GeoPlaceService {
 
                 GeoPlaceData geoPlaceData = objectMapper.readValue(jsonData, GeoPlaceData.class);
                 if (geoPlaceData != null) {
-                    return geoPlaceData.getGeoPlaces();
+                    return geoPlaceData.getGeoPlaceItems();
                 }
             }
         } catch (Exception exception) {

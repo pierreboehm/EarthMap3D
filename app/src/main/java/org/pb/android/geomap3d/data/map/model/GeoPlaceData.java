@@ -8,9 +8,9 @@ import java.util.List;
 public class GeoPlaceData {
 
     @JsonProperty("data")
-    private List<GeoPlace> geoPlaces;
+    private List<GeoPlaceItem> geoPlaceItems;
 
-    public List<GeoPlace> getGeoPlaces() {
-        return geoPlaces != null ? geoPlaces : new ArrayList<GeoPlace>();
+    public List<GeoPlaceItem> getGeoPlaceItems() {
+        return geoPlaceItems != null ? geoPlaceItems : new ArrayList<GeoPlaceItem>();
     }
 }

@@ -9,8 +9,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
-import android.util.Log;
 import android.widget.Toast;
+
+import com.google.android.gms.maps.model.LatLng;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Background;
@@ -23,11 +24,11 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.data.PersistManager;
-import org.pb.android.geomap3d.data.map.model.GeoPlace;
+import org.pb.android.geomap3d.data.map.model.GeoPlaceItem;
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
 import org.pb.android.geomap3d.data.map.service.GeoPlaceService;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
-import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
+import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.MapFragment;
@@ -187,13 +188,6 @@ public class MainActivity extends AppCompatActivity {
         setFragment(terrainFragment, TerrainFragment.TAG);
     }
 
-    @Subscribe(threadMode = ThreadMode.ASYNC)
-    public void onEvent(Events.WidgetReady event) {
-        Log.v(TAG, "Widget is ready");
-//        TerrainFragment terrainFragment = TerrainFragment_.builder().widget(widgetManager.getWidget()).build();
-//        setFragment(terrainFragment, TerrainFragment.TAG);
-    }
-
     @Deprecated
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEvent(Events.FragmentLoaded event) {
@@ -214,9 +208,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
-    public void onEvent(Events.OutsideOfMap event) {
+    public void onEvent(final Events.OutsideOfMap event) {
         EventBus.getDefault().removeStickyEvent(event);
-        setupTerrainWidget(event.getLocation());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                setupTerrainWidget(event.getLocation());
+            }
+        }).start();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -278,14 +277,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupTerrainWidget(@NonNull Location location) {
-        GeoLocation geoLocation = persistManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
-        if (geoLocation == null) {
+        GeoArea geoArea = persistManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
+        if (geoArea == null) {
             return;
         }
 
         WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
-                .setLocation(geoLocation.getCenterPoint())
-                .setHeightMapBitmap(geoLocation.getHeightMapBitmap())
+                .setLocation(geoArea.getCenterPoint())
+                .setHeightMapBitmap(geoArea.getHeightMapBitmap())
                 .getConfiguration();
 
         Widget terrainWidget = widgetManager.getWidget();
@@ -307,27 +306,25 @@ public class MainActivity extends AppCompatActivity {
 
     @Background
     public void loadMapForLocation(Location location) {
-        // store that data as part of new TerrainConfig
-        List<GeoPlace> geoPlaces = geoPlaceService.findGeoPlacesForLocation(GeoUtil.getLatLngFromLocation(location));
-
-        // store that data as part of new TerrainConfig
         Bitmap bitmap = terrainService.getMapForLocation(location);
-
-        // (just) signal that a new TerrainConfig is available. (Stored data will be reloaded then and map-UI will be updated)
         LoadingState loadingState = bitmap == null ? LoadingState.LOADING_FAILED : LoadingState.LOADING_SUCCESS;
 
-        GeoLocation geoLocation = null;
+        GeoArea geoArea = null;
 
         if (loadingState == LoadingState.LOADING_SUCCESS) {
-            geoLocation = persistManager.storeGeoModel(bitmap, GeoUtil.getLatLngFromLocation(location), terrainService.getLastTargetBounds());
+            LatLng geoLocationCenter = GeoUtil.getLatLngFromLocation(location);
+            geoArea = persistManager.storeGeoModel(bitmap, geoLocationCenter, terrainService.getLastTargetBounds());
+
+            List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(geoLocationCenter);
+            // TODO: store found places related to freshly created geoLocationModel ...
         }
 
-        notifyHeightMapLoaded(geoLocation, location, loadingState);
+        notifyHeightMapLoaded(geoArea, location, loadingState);
     }
 
     @UiThread
-    public void notifyHeightMapLoaded(GeoLocation geoLocation, Location location, LoadingState loadingState) {
-        String geoModelName = geoLocation == null ? null : geoLocation.getName();
+    public void notifyHeightMapLoaded(GeoArea geoArea, Location location, LoadingState loadingState) {
+        String geoModelName = geoArea == null ? null : geoArea.getName();
         EventBus.getDefault().post(new Events.HeightMapLoaded(geoModelName, location, loadingState));
     }
 }

@@ -7,8 +7,8 @@ import com.google.android.gms.maps.model.LatLngBounds;
 
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
-import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
-import org.pb.android.geomap3d.data.persist.geolocation.GeoLocationDao;
+import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
+import org.pb.android.geomap3d.data.persist.geoarea.GeoAreaDao;
 
 import java.util.List;
 
@@ -16,36 +16,36 @@ import java.util.List;
 public class PersistManager {
 
     @Bean
-    GeoLocationDao geoLocationDao;
+    GeoAreaDao geoAreaDao;
 
-    public List<GeoLocation> getAllGeoModels() {
-        return geoLocationDao.getAll();
+    public List<GeoArea> getAllGeoModels() {
+        return geoAreaDao.getAll();
     }
 
-    public GeoLocation findGeoModelByLocation(LatLng location) {
-        return geoLocationDao.findForLocation(location);
+    public GeoArea findGeoModelByLocation(LatLng location) {
+        return geoAreaDao.findForLocation(location);
     }
 
-    public GeoLocation findGeoModelByName(String geoModelName) {
-        return geoLocationDao.findByName(geoModelName);
+    public GeoArea findGeoModelByName(String geoModelName) {
+        return geoAreaDao.findByName(geoModelName);
     }
 
-    public GeoLocation storeGeoModel(Bitmap bitmap, LatLng centerOfMap, LatLngBounds areaBounds) {
-        GeoLocation geoLocation = new GeoLocation.Builder()
+    public GeoArea storeGeoModel(Bitmap bitmap, LatLng centerOfMap, LatLngBounds areaBounds) {
+        GeoArea geoArea = new GeoArea.Builder()
                 .setBitmap(bitmap)
                 .setBounds(areaBounds)
                 .setCenterOfMap(centerOfMap)
                 .build();
 
-        geoLocation.save();
+        geoArea.save();
 
-        return geoLocation;
+        return geoArea;
     }
 
     public void deleteGeoModel(String geoModelName) {
-        GeoLocation geoLocation = findGeoModelByName(geoModelName);
-        if (geoLocation != null) {
-            geoLocation.delete();
+        GeoArea geoArea = findGeoModelByName(geoModelName);
+        if (geoArea != null) {
+            geoArea.delete();
         }
     }
 }

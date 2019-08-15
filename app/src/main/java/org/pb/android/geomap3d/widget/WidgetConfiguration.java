@@ -5,7 +5,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.location.Location;
 
-import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
+import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 
 import androidx.annotation.Nullable;
 
@@ -14,14 +14,14 @@ import static org.pb.android.geomap3d.widget.TerrainWidget.BITMAP_DIMENSION;
 public class WidgetConfiguration {
 
     private Location location;
-    private GeoLocation geoLocation;
+    private GeoArea geoArea;
 
     private WidgetConfiguration(Builder builder) {
         location = builder.location;
-        geoLocation = builder.geoLocation == null ? new GeoLocation("", location, builder.heightMapBitmap) : builder.geoLocation;
+        geoArea = builder.geoArea == null ? new GeoArea("", location, builder.heightMapBitmap) : builder.geoArea;
 
-        if (!geoLocation.hasHeightMapBitmap()) {
-            geoLocation.setHeightMap(Bitmap.createBitmap(BITMAP_DIMENSION, BITMAP_DIMENSION, Bitmap.Config.RGB_565));
+        if (!geoArea.hasHeightMapBitmap()) {
+            geoArea.setHeightMap(Bitmap.createBitmap(BITMAP_DIMENSION, BITMAP_DIMENSION, Bitmap.Config.RGB_565));
         }
     }
 
@@ -35,15 +35,15 @@ public class WidgetConfiguration {
     }
 
     public boolean hasHeightMapBitmap() {
-        return geoLocation.getHeightMapBitmap() != null;
+        return geoArea.getHeightMapBitmap() != null;
     }
 
     public Bitmap getHeightMapBitmap() {
-        return geoLocation.getHeightMapBitmap();
+        return geoArea.getHeightMapBitmap();
     }
 
-    public GeoLocation getGeoLocation() {
-        return geoLocation;
+    public GeoArea getGeoArea() {
+        return geoArea;
     }
 
     public static Builder create() {
@@ -53,7 +53,7 @@ public class WidgetConfiguration {
     public static class Builder {
         Location location;
         Bitmap heightMapBitmap = null;
-        GeoLocation geoLocation = null;
+        GeoArea geoArea = null;
 
         public Builder setLocation(Location location) {
             this.location = location;
@@ -71,8 +71,8 @@ public class WidgetConfiguration {
             return this;
         }
 
-        public Builder setGeoLocation(GeoLocation geoLocation) {
-            this.geoLocation = geoLocation;
+        public Builder setGeoArea(GeoArea geoArea) {
+            this.geoArea = geoArea;
             return this;
         }
 

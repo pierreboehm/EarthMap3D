@@ -10,7 +10,7 @@ import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.compass.LowPassFilter;
-import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
+import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.util.GeoUtil;
@@ -52,7 +52,7 @@ public class TerrainWidget extends Widget {
     private Util.PointF3D touch;
     private int lastKnownProgressValue = 0;
 
-    private GeoLocation terrainGeoLocation;
+    private GeoArea terrainGeoArea;
     private Location lastKnownLocation;
 
     private boolean trackEnabled = true;
@@ -74,7 +74,7 @@ public class TerrainWidget extends Widget {
             for (Layer layer : layers) {
                 if (layer instanceof PositionLayer) {
                     // filter all positionLayer visible in this terrain
-                    if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoLocation) &&
+                    if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoArea) &&
                             (trackEnabled || layer.getLayerType() == Layer.LayerType.CDP)) {
                         layer.draw(gl, vertices, numberOfPoints);
                     }
@@ -170,7 +170,7 @@ public class TerrainWidget extends Widget {
             layers.add(positionLayer);
         }
 
-        positionLayer.updateLocation(location, terrainGeoLocation);
+        positionLayer.updateLocation(location, terrainGeoArea);
 
         if (location != null && trackDistanceInMeters > 0) {
 
@@ -182,7 +182,7 @@ public class TerrainWidget extends Widget {
             if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownLocation, location) > (float) trackDistanceInMeters) {
                 // add new positionLayer from type TDP
                 PositionLayer trackedDevicePositionLayer = new PositionLayer(lastKnownLocation, Layer.LayerType.TDP);
-                trackedDevicePositionLayer.updateLocation(lastKnownLocation, terrainGeoLocation);
+                trackedDevicePositionLayer.updateLocation(lastKnownLocation, terrainGeoArea);
 
                 synchronized (this) {
                     layers.add(trackedDevicePositionLayer);
@@ -196,7 +196,7 @@ public class TerrainWidget extends Widget {
     @Override
     public void updateTrackedLocation(Location location) {
         PositionLayer trackedDevicePositionLayer = new PositionLayer(location, Layer.LayerType.TDP);
-        trackedDevicePositionLayer.updateLocation(location, terrainGeoLocation);
+        trackedDevicePositionLayer.updateLocation(location, terrainGeoArea);
 
         synchronized (this) {
             layers.add(trackedDevicePositionLayer);
@@ -314,7 +314,7 @@ public class TerrainWidget extends Widget {
     private class InitiationThread implements Runnable {
 
         InitiationThread(WidgetConfiguration widgetConfiguration) {
-            terrainGeoLocation = widgetConfiguration.getGeoLocation();
+            terrainGeoArea = widgetConfiguration.getGeoArea();
 
             if (widgetConfiguration.hasLocation()) {
                 updateDeviceLocation(widgetConfiguration.getLocation());
@@ -323,14 +323,14 @@ public class TerrainWidget extends Widget {
 
         @Override
         public void run() {
-            Pair<Integer, FloatBuffer> layerInitResults = initLayer(terrainGeoLocation.getHeightMapBitmap());
+            Pair<Integer, FloatBuffer> layerInitResults = initLayer(terrainGeoArea.getHeightMapBitmap());
             numberOfPoints = layerInitResults.first;
             vertices = layerInitResults.second;
 
             yRotation = RendererOpenGL.ROTATION_INITIAL;
             xRotation = RendererOpenGL.ROTATION_INITIAL / 2f;
 
-            EventBus.getDefault().post(new Events.WidgetReady());
+            EventBus.getDefault().postSticky(new Events.WidgetReady());
         }
     }
 }

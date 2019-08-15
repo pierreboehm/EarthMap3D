@@ -6,7 +6,7 @@ import android.util.Log;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
-import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
+import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.fragment.ui.MapView;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 
@@ -29,11 +29,11 @@ public class GeoUtil {
     private static final int RADIUS_OF_EARTH_IN_KILOMETER = 6371;
     private static final double DEFAULT_SIDE_LENGTH = MapView.MINIMUM_GEO_FENCE_SIZE_IN_METER / 1000;
 
-    public static boolean isLocationOnMap(Location location, GeoLocation geoLocation) {
-        return location.getLatitude() <= geoLocation.getBoxStartPoint().getLatitude()
-                && location.getLatitude() >= geoLocation.getBoxEndPoint().getLatitude()
-                && location.getLongitude() >= geoLocation.getBoxStartPoint().getLongitude()
-                && location.getLongitude() <= geoLocation.getBoxEndPoint().getLongitude();
+    public static boolean isLocationOnMap(Location location, GeoArea geoArea) {
+        return location.getLatitude() <= geoArea.getBoxStartPoint().getLatitude()
+                && location.getLatitude() >= geoArea.getBoxEndPoint().getLatitude()
+                && location.getLongitude() >= geoArea.getBoxStartPoint().getLongitude()
+                && location.getLongitude() <= geoArea.getBoxEndPoint().getLongitude();
     }
 
     public static boolean isLocationInsideBounds(Location location, Location boundStartLocation, Location boundEndLocation) {
@@ -43,8 +43,8 @@ public class GeoUtil {
                 && location.getLongitude() <= boundEndLocation.getLongitude();
     }
 
-    public static PositionOffsets getPositionOffsets(Location location, GeoLocation geoLocation) {
-        return new PositionOffsets(location, geoLocation);
+    public static PositionOffsets getPositionOffsets(Location location, GeoArea geoArea) {
+        return new PositionOffsets(location, geoArea);
     }
 
     // TODO: compare correctness of results of both methods
@@ -163,10 +163,10 @@ public class GeoUtil {
 
         public float xOffset, yOffset, zOffset;
 
-        PositionOffsets(Location location, GeoLocation geoLocation) {
-            xOffset = (float) ((TerrainWidget.XZ_DIMENSION * (location.getLongitude() - geoLocation.getCenterPoint().getLongitude())) / (geoLocation.getBoxEndPoint().getLongitude() - geoLocation.getCenterPoint().getLongitude()));
-            zOffset = -(float) ((TerrainWidget.XZ_DIMENSION * (location.getLatitude() - geoLocation.getCenterPoint().getLatitude())) / (geoLocation.getBoxStartPoint().getLatitude() - geoLocation.getCenterPoint().getLatitude()));
-            yOffset = TerrainWidget.getElevationValueFromLocation(geoLocation.getHeightMapBitmap(), (double) xOffset, (double) zOffset);
+        PositionOffsets(Location location, GeoArea geoArea) {
+            xOffset = (float) ((TerrainWidget.XZ_DIMENSION * (location.getLongitude() - geoArea.getCenterPoint().getLongitude())) / (geoArea.getBoxEndPoint().getLongitude() - geoArea.getCenterPoint().getLongitude()));
+            zOffset = -(float) ((TerrainWidget.XZ_DIMENSION * (location.getLatitude() - geoArea.getCenterPoint().getLatitude())) / (geoArea.getBoxStartPoint().getLatitude() - geoArea.getCenterPoint().getLatitude()));
+            yOffset = TerrainWidget.getElevationValueFromLocation(geoArea.getHeightMapBitmap(), (double) xOffset, (double) zOffset);
         }
 
     }

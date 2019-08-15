@@ -19,11 +19,12 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
-import org.pb.android.geomap3d.data.persist.geolocation.GeoLocation;
+import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.ui.MapView;
 import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.view.ProgressView;
+import org.pb.android.geomap3d.widget.WidgetManager;
 
 import java.util.List;
 
@@ -47,6 +48,9 @@ public class MapFragment extends Fragment {
     LocationManager locationManager;
 
     @Bean
+    WidgetManager widgetManager;
+
+    @Bean
     PersistManager persistManager;
 
     @FragmentArg
@@ -56,7 +60,6 @@ public class MapFragment extends Fragment {
     void initViews() {
         progressView.setStrokeWidth(10f);
         progressView.setColor(getContext().getColor(R.color.warm_blue));
-        progressView.fireWidgetReadyEvent(false);
 
         if (lastKnownLocation != null) {
             Log.v(TAG, "Set last known location: " + lastKnownLocation);
@@ -79,6 +82,8 @@ public class MapFragment extends Fragment {
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         EventBus.getDefault().register(this);
         locationManager.setLocationUpdateListener(getLocationUpdateListener());
+
+        updateUi();
     }
 
     @Override
@@ -92,6 +97,12 @@ public class MapFragment extends Fragment {
     @Click(R.id.screenSwitch)
     void onScreenSwitchClick() {
         EventBus.getDefault().post(new Events.ShowTerrainFragment());
+    }
+
+    @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
+    public void onEvent(Events.WidgetReady event) {
+        EventBus.getDefault().removeStickyEvent(event);
+        updateUi();
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -118,10 +129,15 @@ public class MapFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(final Events.MapReadyEvent event) {
-        List<GeoLocation> storedGeoLocations = persistManager.getAllGeoModels();
-        for (GeoLocation geoLocation : storedGeoLocations) {
-            mapView.addStoredArea(geoLocation.getName(), geoLocation.getCenter());
+        List<GeoArea> storedGeoAreas = persistManager.getAllGeoModels();
+        for (GeoArea geoArea : storedGeoAreas) {
+            mapView.addStoredArea(geoArea.getName(), geoArea.getCenter());
         }
+    }
+
+    @UiThread
+    public void updateUi() {
+        screenSwitch.setVisibility(widgetManager.hasWidget() ? View.VISIBLE : View.GONE);
     }
 
     @UiThread

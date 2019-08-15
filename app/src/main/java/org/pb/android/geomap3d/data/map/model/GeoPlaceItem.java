@@ -2,7 +2,7 @@ package org.pb.android.geomap3d.data.map.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class GeoPlace {
+public class GeoPlaceItem {
 
     @JsonProperty("city")
     private String city;
