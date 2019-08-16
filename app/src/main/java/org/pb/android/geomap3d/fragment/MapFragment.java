@@ -23,6 +23,7 @@ import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.ui.MapView;
 import org.pb.android.geomap3d.location.LocationManager;
+import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.view.ProgressView;
 import org.pb.android.geomap3d.widget.WidgetManager;
 
@@ -146,11 +147,22 @@ public class MapFragment extends Fragment {
         progressView.update(progressValue);
     }
 
+    @UiThread
+    public void checkIfLocationOutsideOfMap(Location location) {
+        GeoArea geoArea = persistManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
+        boolean isLocationOutsideOfMap = geoArea != null && !GeoUtil.isLocationOnMap(location, geoArea);
+
+        if (!widgetManager.hasWidget() || isLocationOutsideOfMap) {
+            EventBus.getDefault().post(new Events.OutsideOfMap(location));
+        }
+    }
+
     private LocationManager.LocationUpdateListener getLocationUpdateListener() {
         return new LocationManager.LocationUpdateListener() {
             @Override
             public void onLocationUpdate(Location location) {
                 mapView.updateLocation(location);
+                checkIfLocationOutsideOfMap(location);
             }
         };
     }
