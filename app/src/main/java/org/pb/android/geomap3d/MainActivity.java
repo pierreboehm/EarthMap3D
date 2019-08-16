@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -210,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
     @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
     public void onEvent(final Events.OutsideOfMap event) {
         EventBus.getDefault().removeStickyEvent(event);
+        Log.d(TAG, ">> outside of map");
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -259,8 +261,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initWidgetAfterPermissionCheck() {
-        MapFragment mapFragment = MapFragment_.builder().build();
-        setFragment(mapFragment, MapFragment.TAG);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+        if (fragmentManager.findFragmentByTag(MapFragment.TAG) == null) {
+            MapFragment mapFragment = MapFragment_.builder().build();
+            setFragment(mapFragment, MapFragment.TAG);
+        }
     }
 
     private void preloadMapForLocation(@NonNull Location location) {
@@ -279,6 +284,7 @@ public class MainActivity extends AppCompatActivity {
     private void setupTerrainWidget(@NonNull Location location) {
         GeoArea geoArea = persistManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
         if (geoArea == null) {
+            Log.d(TAG, ">> no matching geo-area found");
             return;
         }
 
@@ -293,7 +299,7 @@ public class MainActivity extends AppCompatActivity {
             terrainWidget = new TerrainWidget();
         }
 
-        widgetManager.setWidgetForInitiation(terrainWidget, widgetConfiguration);
+        widgetManager.setWidgetForInitiationOrUpdate(terrainWidget, widgetConfiguration);
     }
 
     private void setFragment(Fragment fragment, String fragmentTag) {

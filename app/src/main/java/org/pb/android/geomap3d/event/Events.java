@@ -169,7 +169,4 @@ public class Events {
             return currentLocation;
         }
     }
-
-    public static class SettingsUpdate {
-    }
 }

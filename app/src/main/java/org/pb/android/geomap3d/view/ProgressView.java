@@ -11,8 +11,6 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import org.androidannotations.annotations.EView;
-import org.greenrobot.eventbus.EventBus;
-import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.Util;
 
 import androidx.annotation.Nullable;
@@ -27,20 +25,11 @@ public class ProgressView extends View {
     private RectF clipBounds = null;
     private float progressValue = 0f;
     private float strokeWidth = STROKE_WIDTH;
-    private boolean fireWidgetReadyEvent = true;
     private int color = Color.argb(255, 0, 204, 255);
     private Handler handler;
 
-    public ProgressView(Context context) {
-        this(context, null, 0);
-    }
-
     public ProgressView(Context context, @Nullable AttributeSet attrs) {
-        this(context, attrs, 0);
-    }
-
-    public ProgressView(Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
-        super(context, attrs, defStyleAttr);
+        super(context, attrs);
         initView();
     }
 
@@ -107,17 +96,9 @@ public class ProgressView extends View {
         }
     }
 
-    public void fireWidgetReadyEvent(boolean fireWidgetReadyEvent) {
-        this.fireWidgetReadyEvent = fireWidgetReadyEvent;
-    }
-
     public synchronized void update(float percentValue) {
         progressValue = calculateProgressValue(percentValue);
         invalidate();
-
-        if (percentValue >= 100f && fireWidgetReadyEvent) {
-            EventBus.getDefault().post(new Events.WidgetReady());
-        }
     }
 
     private void initView() {
