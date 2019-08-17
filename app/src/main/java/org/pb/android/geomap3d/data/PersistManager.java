@@ -9,6 +9,8 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoAreaDao;
+import org.pb.android.geomap3d.data.persist.geotrack.GeoTrack;
+import org.pb.android.geomap3d.data.persist.geotrack.GeoTrackDao;
 
 import java.util.List;
 
@@ -18,19 +20,22 @@ public class PersistManager {
     @Bean
     GeoAreaDao geoAreaDao;
 
-    public List<GeoArea> getAllGeoModels() {
+    @Bean
+    GeoTrackDao geoTrackDao;
+
+    public List<GeoArea> getAllGeoAreas() {
         return geoAreaDao.getAll();
     }
 
-    public GeoArea findGeoModelByLocation(LatLng location) {
+    public GeoArea findGeoAreaByLocation(LatLng location) {
         return geoAreaDao.findForLocation(location);
     }
 
-    public GeoArea findGeoModelByName(String geoModelName) {
-        return geoAreaDao.findByName(geoModelName);
+    public GeoArea findGeoAreaByName(String geoAreaName) {
+        return geoAreaDao.findByName(geoAreaName);
     }
 
-    public GeoArea storeGeoModel(Bitmap bitmap, LatLng centerOfMap, LatLngBounds areaBounds) {
+    public GeoArea storeGeoArea(Bitmap bitmap, LatLng centerOfMap, LatLngBounds areaBounds) {
         GeoArea geoArea = new GeoArea.Builder()
                 .setBitmap(bitmap)
                 .setBounds(areaBounds)
@@ -42,10 +47,16 @@ public class PersistManager {
         return geoArea;
     }
 
-    public void deleteGeoModel(String geoModelName) {
-        GeoArea geoArea = findGeoModelByName(geoModelName);
+    public void deleteGeoArea(String geoAreaName) {
+        GeoArea geoArea = findGeoAreaByName(geoAreaName);
         if (geoArea != null) {
             geoArea.delete();
         }
+
+        // TODO: also delete related tracks!
+    }
+
+    public List<GeoTrack> findGeoTracksForArea(String areaName) {
+        return geoTrackDao.getTracksForArea(areaName);
     }
 }
