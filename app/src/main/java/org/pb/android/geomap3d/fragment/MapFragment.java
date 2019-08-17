@@ -130,7 +130,7 @@ public class MapFragment extends Fragment {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(final Events.MapReadyEvent event) {
-        List<GeoArea> storedGeoAreas = persistManager.getAllGeoModels();
+        List<GeoArea> storedGeoAreas = persistManager.getAllGeoAreas();
         for (GeoArea geoArea : storedGeoAreas) {
             mapView.addStoredArea(geoArea.getName(), geoArea.getCenter());
         }
@@ -149,7 +149,7 @@ public class MapFragment extends Fragment {
 
     @UiThread
     public void checkIfLocationOutsideOfMap(Location location) {
-        GeoArea geoArea = persistManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
+        GeoArea geoArea = persistManager.findGeoAreaByLocation(GeoUtil.getLatLngFromLocation(location));
         boolean isLocationOutsideOfMap = geoArea != null && !GeoUtil.isLocationOnMap(location, geoArea);
 
         if (!widgetManager.hasWidget() || isLocationOutsideOfMap) {

@@ -198,7 +198,7 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
                         areas.get(areaId).remove();
                         areas.remove(areaId);
 
-                        persistManager.deleteGeoModel(areaId);
+                        persistManager.deleteGeoArea(areaId);
                     }
                 })
                 .build()
