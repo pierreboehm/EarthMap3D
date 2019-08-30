@@ -5,6 +5,8 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
+    <!-- add scrollview, so more options can be added -->
+
     <LinearLayout
         android:id="@+id/shiftMenu"
         android:layout_width="match_parent"
@@ -130,6 +132,8 @@
                 android:text="Cancel"/>
 
         </LinearLayout>
+
+        <!-- add switch: "show tracks as path" -->
 
     </LinearLayout>
 

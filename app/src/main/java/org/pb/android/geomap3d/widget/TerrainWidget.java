@@ -162,7 +162,7 @@ public class TerrainWidget extends Widget {
     }
 
     @Override
-    public void updateDeviceLocation(Location location) {
+    public void updateDeviceLocation(@Nullable Location location) {
         PositionLayer positionLayer = getDevicePositionLayer();
 
         if (positionLayer == null) {
@@ -242,9 +242,6 @@ public class TerrainWidget extends Widget {
     private List<Util.PointF3D> initPoints(Bitmap bitmap) {
         List<Util.PointF3D> points = new ArrayList<>();
 
-        // FIXME: be sure assumed bitmap-dimension is correct
-        // TODO: !!! would be better to resize bitmap even while import !!!
-
         int currentCount = 0;
         int maximalCount = BITMAP_DIMENSION * BITMAP_DIMENSION;
 
@@ -295,8 +292,7 @@ public class TerrainWidget extends Widget {
 
     private PositionLayer getDevicePositionLayer() {
         for (Layer layer : layers) {
-            if (layer instanceof PositionLayer
-                    && layer.getLayerType() == Layer.LayerType.CDP) {
+            if (layer instanceof PositionLayer && layer.getLayerType() == Layer.LayerType.CDP) {
                 return (PositionLayer) layer;
             }
         }
@@ -324,6 +320,7 @@ public class TerrainWidget extends Widget {
         @Override
         public void run() {
             Pair<Integer, FloatBuffer> layerInitResults = initLayer(terrainGeoArea.getHeightMapBitmap());
+            //noinspection ConstantConditions
             numberOfPoints = layerInitResults.first;
             vertices = layerInitResults.second;
 

@@ -19,6 +19,8 @@ import java.util.Locale;
 
 import javax.microedition.khronos.opengles.GL10;
 
+import androidx.annotation.Nullable;
+
 public class PositionLayer extends Layer {
 
     private static final String TAG = PositionLayer.class.getSimpleName();
@@ -97,7 +99,12 @@ public class PositionLayer extends Layer {
         return location;
     }
 
-    public void updateLocation(Location location, GeoArea geoArea) {
+    public void updateLocation(@Nullable Location location, GeoArea geoArea) {
+        if (location == null) {
+            Log.i(TAG, "received location is null");
+            return;
+        }
+
         this.location = location;
         Log.v(TAG, String.format(Locale.US, "new location: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
 

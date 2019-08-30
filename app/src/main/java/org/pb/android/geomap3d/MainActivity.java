@@ -97,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
         } else {
             // TODO: handle negative result. --> grantPermissions()? (e.g. user does not grant permissions)
             // FIXME: activity needs to be restarted. show confirm-dialog, so user knows what happens.
+            // --> openPermissionsSettings ?
         }
     }
 
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupTerrainWidget(@NonNull Location location) {
-        GeoArea geoArea = persistManager.findGeoModelByLocation(GeoUtil.getLatLngFromLocation(location));
+        GeoArea geoArea = persistManager.findGeoAreaByLocation(GeoUtil.getLatLngFromLocation(location));
         if (geoArea == null) {
             Log.d(TAG, ">> no matching geo-area found");
             return;
@@ -319,7 +320,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (loadingState == LoadingState.LOADING_SUCCESS) {
             LatLng geoLocationCenter = GeoUtil.getLatLngFromLocation(location);
-            geoArea = persistManager.storeGeoModel(bitmap, geoLocationCenter, terrainService.getLastTargetBounds());
+            geoArea = persistManager.storeGeoArea(bitmap, geoLocationCenter, terrainService.getLastTargetBounds());
 
             List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(geoLocationCenter);
             // TODO: store found places related to freshly created geoLocationModel ...
