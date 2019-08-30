@@ -52,13 +52,6 @@ public class GeoArea extends BaseModel implements Serializable {
     public GeoArea() {
     }
 
-    public GeoArea(String name, Location centerPoint, Bitmap heightMapBitmap) {
-        this.name = name;
-        this.centerPointLatitude = centerPoint.getLatitude();
-        this.centerPointLongitude = centerPoint.getLongitude();
-        this.heightMapBitmap = convertBitmapToBlob(heightMapBitmap);
-    }
-
     public String getName() {
         return name;
     }
@@ -143,7 +136,7 @@ public class GeoArea extends BaseModel implements Serializable {
             return this;
         }
 
-        public Builder setBitmap(Bitmap bitmap) {
+        public Builder setHeightMap(Bitmap bitmap) {
             this.geoArea.heightMapBitmap = this.geoArea.convertBitmapToBlob(bitmap);
             return this;
         }

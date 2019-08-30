@@ -44,4 +44,8 @@ public class GeoAreaDao {
     public GeoArea findByName(String geoModelName) {
         return SQLite.select().from(GeoArea.class).where(GeoArea_Table.name.eq(geoModelName)).querySingle();
     }
+
+    public void deleteArea(String areaName) {
+        SQLite.delete().from(GeoArea.class).where(GeoArea_Table.name.eq(areaName));
+    }
 }

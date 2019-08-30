@@ -26,4 +26,8 @@ public class GeoTrackDao {
     public List<GeoTrack> getTracksForArea(String areaName) {
          return SQLite.select().from(GeoTrack.class).where(GeoTrack_Table.areaName.eq(areaName)).queryList();
     }
+
+    public void deleteTracksOfArea(String areaName) {
+        SQLite.delete().from(GeoTrack.class).where(GeoTrack_Table.areaName.eq(areaName));
+    }
 }

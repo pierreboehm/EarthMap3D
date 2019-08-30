@@ -37,7 +37,7 @@ public class PersistManager {
 
     public GeoArea storeGeoArea(Bitmap bitmap, LatLng centerOfMap, LatLngBounds areaBounds) {
         GeoArea geoArea = new GeoArea.Builder()
-                .setBitmap(bitmap)
+                .setHeightMap(bitmap)
                 .setBounds(areaBounds)
                 .setCenterOfMap(centerOfMap)
                 .build();
@@ -48,15 +48,21 @@ public class PersistManager {
     }
 
     public void deleteGeoArea(String geoAreaName) {
-        GeoArea geoArea = findGeoAreaByName(geoAreaName);
-        if (geoArea != null) {
-            geoArea.delete();
-        }
+        geoAreaDao.deleteArea(geoAreaName);
+        geoTrackDao.deleteTracksOfArea(geoAreaName);
 
-        // TODO: also delete related tracks!
+//        GeoArea geoArea = findGeoAreaByName(geoAreaName);
+//        if (geoArea != null) {
+//            geoArea.delete();
+//        }
     }
 
     public List<GeoTrack> findGeoTracksForArea(String areaName) {
         return geoTrackDao.getTracksForArea(areaName);
+    }
+
+    public void storeGeoTrack(String areaName, LatLng location) {
+        GeoTrack geoTrack = new GeoTrack(areaName, location);
+        geoTrack.save();
     }
 }
