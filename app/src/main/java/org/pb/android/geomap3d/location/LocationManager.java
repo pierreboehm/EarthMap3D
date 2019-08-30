@@ -157,24 +157,31 @@ public class LocationManager {
             );
 
             if (locationUpdateListener != null) {
-
-                if (!trackedLocations.isEmpty()) {
-                    EventBus.getDefault().postSticky(new Events.LocationUpdate(trackedLocations));
-                    trackedLocations.clear();
-                }
-
-                lastKnownLocation = location;
-                locationUpdateListener.onLocationUpdate(location);
+                handleForegroundLocationResult(location);
             } else {
+                handleBackgroundLocationResult(location);
+            }
+        }
+    }
 
-                if (preferences.trackPosition().getOr(true) && lastKnownLocation != null) {
-                    Location lastKnownTrackedLocation = trackedLocations.isEmpty() ? lastKnownLocation : trackedLocations.get(trackedLocations.size() - 1);
-                    if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(250)) {
-                        Log.v(TAG, String.format(Locale.US, "new location tracked: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
-                        trackedLocations.add(location);
-                        vibrateTrackedPositionFound();
-                    }
-                }
+    private void handleForegroundLocationResult(Location location) {
+        if (!trackedLocations.isEmpty()) {
+            EventBus.getDefault().postSticky(new Events.LocationUpdate(trackedLocations));
+            trackedLocations.clear();
+        }
+
+        lastKnownLocation = location;
+        locationUpdateListener.onLocationUpdate(location);
+    }
+
+    private void handleBackgroundLocationResult(Location location) {
+        if (preferences.trackPosition().getOr(true) && lastKnownLocation != null) {
+            Location lastKnownTrackedLocation = trackedLocations.isEmpty() ? lastKnownLocation : trackedLocations.get(trackedLocations.size() - 1);
+
+            if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(250)) {
+                Log.v(TAG, String.format(Locale.US, "new location tracked: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
+                trackedLocations.add(location);
+                vibrateTrackedPositionFound();
             }
         }
     }
@@ -188,6 +195,7 @@ public class LocationManager {
 
             @Override
             public void onLocationAvailability(LocationAvailability var1) {
+                // not implemented
             }
         };
     }
