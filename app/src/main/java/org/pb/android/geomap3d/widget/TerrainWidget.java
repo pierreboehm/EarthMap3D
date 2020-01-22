@@ -180,14 +180,7 @@ public class TerrainWidget extends Widget {
 
             // FIXME: make distance-value modifiable
             if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownLocation, location) > (float) trackDistanceInMeters) {
-                // add new positionLayer from type TDP
-                PositionLayer trackedDevicePositionLayer = new PositionLayer(lastKnownLocation, Layer.LayerType.TDP);
-                trackedDevicePositionLayer.updateLocation(lastKnownLocation, terrainGeoArea);
-
-                synchronized (this) {
-                    layers.add(trackedDevicePositionLayer);
-                }
-
+                updateTrackedLocation(lastKnownLocation);
                 lastKnownLocation = location;
             }
         }
@@ -201,6 +194,8 @@ public class TerrainWidget extends Widget {
         synchronized (this) {
             layers.add(trackedDevicePositionLayer);
         }
+
+        // TODO: persists tracked location (event?)
     }
 
     @Override

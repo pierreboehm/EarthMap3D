@@ -16,21 +16,28 @@ public class GeoTrack extends BaseModel implements Serializable {
     int id;
 
     @Column
-    String areaName;
-
-    @Column
     double latitude;
 
     @Column
     double longitude;
 
+    @Column
+    long timestamp;
+
+    @Column
+    int sessionId;
+
+    @Column
+    String areaName;
+
     public GeoTrack() {
     }
 
-    public GeoTrack(String areaName, LatLng location) {
-        this.areaName = areaName;
+    public GeoTrack(int sessionId, LatLng location) {
+        this.sessionId = sessionId;
         latitude = location.latitude;
         longitude = location.longitude;
+        timestamp = System.currentTimeMillis();
     }
 
     public LatLng getLocation() {

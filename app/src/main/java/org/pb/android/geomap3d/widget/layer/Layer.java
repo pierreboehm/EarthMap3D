@@ -18,9 +18,10 @@ public abstract class Layer {
         CDP(GLColor.WHITE),    // C(urrent) D(evice) P(osition)
         TDP(GLColor.GRAY),    // T(racked) D(evice) P(osition)
         CMP(GLColor.YELLOW),    // camp
-        POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
+//        POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
 
-        POL(GLColor.BLUE);    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
+        POL(GLColor.BLUE),    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
+        ROB(GLColor.GREEN);
 
         private final GLColor glColor;
 

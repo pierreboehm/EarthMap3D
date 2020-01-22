@@ -5,8 +5,12 @@ import android.graphics.Bitmap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 
+import org.androidannotations.annotations.AfterInject;
 import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
+import org.androidannotations.annotations.sharedpreferences.Pref;
+import org.androidannotations.annotations.sharedpreferences.SharedPref;
+import org.pb.android.geomap3d.AppPreferences_;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoAreaDao;
 import org.pb.android.geomap3d.data.persist.geotrack.GeoTrack;
@@ -22,6 +26,9 @@ public class PersistManager {
 
     @Bean
     GeoTrackDao geoTrackDao;
+
+    @Pref
+    AppPreferences_ preferences;
 
     public List<GeoArea> getAllGeoAreas() {
         return geoAreaDao.getAll();
@@ -61,8 +68,9 @@ public class PersistManager {
         return geoTrackDao.getTracksForArea(areaName);
     }
 
-    public void storeGeoTrack(String areaName, LatLng location) {
-        GeoTrack geoTrack = new GeoTrack(areaName, location);
+    public void storeGeoTrack(LatLng location) {
+        int sessionId = preferences.lastSession().getOr(0);
+        GeoTrack geoTrack = new GeoTrack(sessionId, location);
         geoTrack.save();
     }
 }

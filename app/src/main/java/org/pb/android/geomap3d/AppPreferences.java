@@ -15,4 +15,7 @@ public interface AppPreferences {
 
     @DefaultInt(250)
     int defaultTrackDistanceInMeters();
+
+    @DefaultInt(0)
+    int lastSession();
 }
