@@ -30,9 +30,4 @@ public class GeoTrackDao {
     public void deleteTracksOfArea(String areaName) {
         SQLite.delete().from(GeoTrack.class).where(GeoTrack_Table.areaName.eq(areaName));
     }
-
-    private void doMagic() {
-        // just a svn commit test
-    }
-
 }
