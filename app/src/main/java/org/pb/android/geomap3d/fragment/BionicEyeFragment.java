@@ -26,12 +26,13 @@ public class BionicEyeFragment extends Fragment {
 
     @AfterViews
     public void initViews() {
-
     }
 
     @Override
     public void onResume() {
         super.onResume();
+
+        setRetainInstance(true);
         cameraPreviewManager.resume(previewSurfaceView);
     }
 

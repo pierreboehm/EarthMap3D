@@ -69,6 +69,8 @@ public class TerrainFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        setRetainInstance(true);
+
         EventBus.getDefault().register(this);
         locationManager.setLocationUpdateListener(getLocationUpdateListener());
 

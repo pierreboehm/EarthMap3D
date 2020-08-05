@@ -122,15 +122,15 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         uiSettings.setMyLocationButtonEnabled(true);
         uiSettings.setCompassEnabled(true);
 
-        googleMap.setIndoorEnabled(false);
+        this.googleMap.setIndoorEnabled(false);
 //        googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
 
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            googleMap.setMyLocationEnabled(true);
-            googleMap.setOnMyLocationButtonClickListener(this);
+            this.googleMap.setMyLocationEnabled(true);
+            this.googleMap.setOnMyLocationButtonClickListener(this);
         }
 
-        googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
+        this.googleMap.setOnCameraMoveListener(new GoogleMap.OnCameraMoveListener() {
             @Override
             public void onCameraMove() {
                 //check zoom level and show text label
@@ -153,7 +153,7 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
             }
         });
 
-        googleMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
+        this.googleMap.setOnCameraIdleListener(new GoogleMap.OnCameraIdleListener() {
             @Override
             public void onCameraIdle() {
                 CameraPosition cameraPosition = googleMap.getCameraPosition();

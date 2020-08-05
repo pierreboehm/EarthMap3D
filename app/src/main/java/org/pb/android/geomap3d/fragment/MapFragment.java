@@ -80,6 +80,8 @@ public class MapFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
+        setRetainInstance(true);
+
         getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         EventBus.getDefault().register(this);
         locationManager.setLocationUpdateListener(getLocationUpdateListener());
