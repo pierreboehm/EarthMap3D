@@ -10,7 +10,7 @@ import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.R;
-import org.pb.android.geomap3d.camera.CameraManager;
+import org.pb.android.geomap3d.camera.CameraPreviewManager;
 import org.pb.android.geomap3d.event.Events;
 
 @EFragment(R.layout.fragment_bionic_eye)
@@ -18,11 +18,11 @@ public class BionicEyeFragment extends Fragment {
 
     public static final String TAG = BionicEyeFragment.class.getSimpleName();
 
-    @ViewById(R.id.bionicEye)
-    SurfaceView bionicEyeView;
+    @ViewById(R.id.previewSurfaceView)
+    SurfaceView previewSurfaceView;
 
     @Bean
-    CameraManager cameraManager;
+    CameraPreviewManager cameraPreviewManager;
 
     @AfterViews
     public void initViews() {
@@ -32,18 +32,17 @@ public class BionicEyeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        //EventBus.getDefault().register(this);
+        cameraPreviewManager.resume(previewSurfaceView);
     }
 
     @Override
     public void onPause() {
-
-        //EventBus.getDefault().unregister(this);
+        cameraPreviewManager.pause();
         super.onPause();
     }
 
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
-        EventBus.getDefault().post(new Events.ShowMapFragment(null));
+        EventBus.getDefault().post(new Events.ShowTerrainFragment());
     }
 }

@@ -31,7 +31,10 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="org.pb.android.geomap3d.MainActivity_" />
+        <activity
+            android:name="org.pb.android.geomap3d.MainActivity_"
+            android:screenOrientation="portrait"
+            />
 
         <service
             android:name="org.pb.android.geomap3d.location.LocationService_"
