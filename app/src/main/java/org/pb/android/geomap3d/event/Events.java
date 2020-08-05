@@ -158,6 +158,9 @@ public class Events {
     public static class ShowTerrainFragment {
     }
 
+    public static class ShowBionicEyeFragment {
+    }
+
     public static class MapReadyEvent {
         private final Location currentLocation;
 

@@ -32,6 +32,8 @@ import org.pb.android.geomap3d.data.map.service.TerrainService;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
+import org.pb.android.geomap3d.fragment.BionicEyeFragment;
+import org.pb.android.geomap3d.fragment.BionicEyeFragment_;
 import org.pb.android.geomap3d.fragment.MapFragment;
 import org.pb.android.geomap3d.fragment.MapFragment_;
 import org.pb.android.geomap3d.fragment.TerrainFragment;
@@ -190,6 +192,12 @@ public class MainActivity extends AppCompatActivity {
         setFragment(terrainFragment, TerrainFragment.TAG);
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.ShowBionicEyeFragment event) {
+        BionicEyeFragment bionicEyeFragment = BionicEyeFragment_.builder().build();
+        setFragment(bionicEyeFragment, BionicEyeFragment.TAG);
+    }
+
     @Deprecated
     @Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEvent(Events.FragmentLoaded event) {
@@ -238,7 +246,8 @@ public class MainActivity extends AppCompatActivity {
 
     private boolean checkPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                &&  ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                &&  ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             return true;
         } else {
             requestPermissions();
@@ -248,7 +257,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION},
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA},
                 PERMISSION_REQUEST_CODE);
     }
 

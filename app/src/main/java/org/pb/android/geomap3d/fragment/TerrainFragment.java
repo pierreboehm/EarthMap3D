@@ -104,8 +104,7 @@ public class TerrainFragment extends Fragment {
 
     @Click(R.id.bionicEye)
     public void onBionicEyeClick() {
-        // TODO: implement!
-        // show object identification fragment and view
+        EventBus.getDefault().post(new Events.ShowBionicEyeFragment());
     }
 
     @Click(R.id.trackSettings)

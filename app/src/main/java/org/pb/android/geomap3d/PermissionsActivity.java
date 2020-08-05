@@ -37,6 +37,7 @@ public class PermissionsActivity extends AppCompatActivity {
 
         permissions.add(Manifest.permission.ACCESS_FINE_LOCATION);
         permissions.add(Manifest.permission.ACCESS_COARSE_LOCATION);
+        permissions.add(Manifest.permission.CAMERA);
 
         permissionsToRequest = permissionsToRequest(permissions);
 
