@@ -102,6 +102,12 @@ public class TerrainFragment extends Fragment {
         EventBus.getDefault().post(new Events.ShowMapFragment(lastKnownLocation));
     }
 
+    @Click(R.id.bionicEye)
+    public void onBionicEyeClick() {
+        // TODO: implement!
+        // show object identification fragment and view
+    }
+
     @Click(R.id.trackSettings)
     public void onTrackSettingsClick() {
         new SettingsDialog.Builder(getContext())

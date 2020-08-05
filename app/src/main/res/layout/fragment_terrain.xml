@@ -10,18 +10,38 @@
         android:layout_height="match_parent"
         />
 
-    <ImageButton
-        android:id="@+id/screenSwitch"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:tint="@color/warm_blue"
-        android:src="@drawable/icn_reload_c00"
-        android:scaleType="centerInside"
-        android:background="@drawable/rectangle_shape_rounded"
-        android:padding="10dp"
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
         android:layout_alignParentStart="true"
-        android:layout_alignParentBottom="true"
-        android:layout_margin="20dp"/>
+        android:layout_alignParentBottom="true">
+
+        <ImageButton
+            android:id="@+id/screenSwitch"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:tint="@color/warm_blue"
+            android:src="@drawable/icn_reload_c00"
+            android:scaleType="centerInside"
+            android:background="@drawable/rectangle_shape_rounded"
+            android:padding="10dp"
+            android:layout_margin="20dp"/>
+
+        <ImageButton
+            android:id="@+id/bionicEye"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:tint="@color/warm_blue"
+            android:src="@drawable/icn_eye_c00"
+            android:scaleType="centerInside"
+            android:background="@drawable/rectangle_shape_rounded"
+            android:padding="10dp"
+            android:layout_marginBottom="20dp"
+            android:layout_marginTop="20dp"
+            />
+
+    </LinearLayout>
 
     <ImageButton
         android:id="@+id/trackSettings"
