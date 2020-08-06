@@ -4,6 +4,12 @@
     android:layout_height="match_parent"
     android:background="@drawable/icn_hud_frame_25">
 
-
+    <ImageView
+        android:id="@+id/ivHorizont"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:background="@drawable/icn_hud_horizont_25"
+        />
 
 </RelativeLayout>
