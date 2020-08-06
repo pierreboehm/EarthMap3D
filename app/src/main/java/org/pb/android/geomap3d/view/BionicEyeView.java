@@ -18,6 +18,9 @@ public class BionicEyeView extends RelativeLayout {
     @ViewById(R.id.ivHorizont)
     ImageView ivHorizont;
 
+    @ViewById(R.id.ivRect)
+    ImageView ivRect;
+
     public BionicEyeView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }

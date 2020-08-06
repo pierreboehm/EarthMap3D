@@ -7,9 +7,17 @@
     <ImageView
         android:id="@+id/ivHorizont"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="2dp"
         android:layout_centerInParent="true"
         android:background="@drawable/icn_hud_horizont_25"
+        />
+
+    <ImageView
+        android:id="@+id/ivRect"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/icn_hud_rect_25"
         />
 
 </RelativeLayout>
