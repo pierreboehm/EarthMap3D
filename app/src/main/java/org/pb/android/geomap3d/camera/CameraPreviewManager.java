@@ -98,9 +98,9 @@ public class CameraPreviewManager {
         }
 
         @Override
-        public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
+        public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int height, int width) {
             if (cameraId == null) { // 1st time
-                cameraId = setSurfaceViewSize(height, width);
+                cameraId = setSurfaceViewSize(width, height);
 
             } else if (!gotSecondCallback) { // 2nd time
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
