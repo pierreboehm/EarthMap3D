@@ -14,6 +14,8 @@ import org.pb.android.geomap3d.location.LocationManager;
 @EBean(scope = EBean.Scope.Singleton)
 public class Compass implements SensorEventListener {
 
+    public static final String TAG = Compass.class.getSimpleName();
+
     @Bean
     LocationManager locationManager;
 
@@ -21,7 +23,18 @@ public class Compass implements SensorEventListener {
         void onNewAzimuth(float azimuth);
     }
 
+    public interface GravityListener {
+        void onNewGravityData(float[] gravity);
+    }
+
+    public interface PitchAndRollListener {
+        void onNewPitchAndRoll(float pitch, float roll);
+    }
+
     private CompassListener compassListener;
+    private GravityListener gravityListener;
+    private PitchAndRollListener pitchAndRollListener;
+
     private SensorManager sensorManager;
     private Sensor gravitySensor;
     private Sensor magneticFieldSensor;
@@ -55,12 +68,24 @@ public class Compass implements SensorEventListener {
         this.compassListener = compassListener;
     }
 
+    public void setListener(GravityListener gravityListener) {
+        this.gravityListener = gravityListener;
+    }
+
+    public void setListener(PitchAndRollListener pitchAndRollListener) {
+        this.pitchAndRollListener = pitchAndRollListener;
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
         synchronized (this) {
             if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
                 smoothedData = LowPassFilter.filter(event.values, gravityData);
                 System.arraycopy(smoothedData, 0, gravityData, 0, 3);
+
+                if (gravityListener != null) {
+                    gravityListener.onNewGravityData(smoothedData);
+                }
             }
 
             if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
@@ -71,21 +96,33 @@ public class Compass implements SensorEventListener {
             boolean success = SensorManager.getRotationMatrix(rotationMatrix, null, gravityData, geomagneticData);
 
             if (success) {
-                float orientation[] = new float[3];
-                SensorManager.getOrientation(rotationMatrix, orientation);
 
-                float azimuth = (float) Math.toDegrees(orientation[0]);
-                GeomagneticField geomagneticField = locationManager.getGeomagneticField();
+                if (pitchAndRollListener != null) {
+                    float[] outR = new float[9];
+                    SensorManager.remapCoordinateSystem(rotationMatrix, SensorManager.AXIS_X, SensorManager.AXIS_Z, outR);
+                    SensorManager.getOrientation(outR, smoothedData);
 
-                if (geomagneticField != null) {
-                    azimuth += geomagneticField.getDeclination();
-                }
+                    float pitch = smoothedData[1] * 57.2957795f;
+                    float roll = smoothedData[2] * 57.2957795f;
 
-                if (azimuth < 0) {
-                    azimuth += 360;
+                    pitchAndRollListener.onNewPitchAndRoll(-pitch, -roll);
                 }
 
                 if (compassListener != null) {
+                    float orientation[] = new float[3];
+                    SensorManager.getOrientation(rotationMatrix, orientation);
+
+                    float azimuth = (float) Math.toDegrees(orientation[0]);
+                    GeomagneticField geomagneticField = locationManager.getGeomagneticField();
+
+                    if (geomagneticField != null) {
+                        azimuth += geomagneticField.getDeclination();
+                    }
+
+                    if (azimuth < 0) {
+                        azimuth += 360;
+                    }
+
                     compassListener.onNewAzimuth(azimuth);
                 }
             }

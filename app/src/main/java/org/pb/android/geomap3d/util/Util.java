@@ -11,6 +11,9 @@ import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Size;
 import android.util.TypedValue;
+import android.view.Display;
+import android.view.Surface;
+import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
@@ -19,7 +22,13 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import static android.content.Context.WINDOW_SERVICE;
+
 public class Util {
+
+    public enum Orientation {
+        PORTRAIT, LANDSCAPE
+    }
 
     public static class OpenGL {
 
@@ -83,6 +92,17 @@ public class Util {
     public static int getDisplayWidth(Context context) {
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         return metrics.widthPixels;
+    }
+
+    public static Orientation getOrientation(Context context) {
+        Display display = ((WindowManager) context.getSystemService(WINDOW_SERVICE)).getDefaultDisplay();
+        int displayOrientation = display.getRotation();
+
+        if (displayOrientation == Surface.ROTATION_0 || displayOrientation == Surface.ROTATION_180) {
+            return Orientation.PORTRAIT;
+        } else {
+            return Orientation.LANDSCAPE;
+        }
     }
 
     public static void openLocationSourceSettings(Context context) {
