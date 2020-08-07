@@ -19,8 +19,8 @@ public class BionicEyeView extends RelativeLayout {
 
     public static final String TAG = BionicEyeView.class.getSimpleName();
 
-    @ViewById(R.id.ivHorizont)
-    ImageView ivHorizont;
+    @ViewById(R.id.ivHorizon)
+    ImageView ivHorizon;
 
     @ViewById(R.id.ivRect)
     ImageView ivRect;
@@ -47,6 +47,6 @@ public class BionicEyeView extends RelativeLayout {
         // FIXME: how to calculate the correct degree values? (360 is too much)
         //  Current formula only works (approximately) in LANDSCAPE_MODE!
         zRotation = smoothedZRotation;
-        ivHorizont.setRotation(-zRotation * 100.f / 15.f);
+        ivHorizon.setRotation(-zRotation * 100.f / 15.f);
     }
 }
