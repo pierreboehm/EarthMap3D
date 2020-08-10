@@ -1,7 +1,10 @@
 package org.pb.android.geomap3d.camera;
 
 import android.Manifest;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
 import android.hardware.camera2.CameraAccessException;
@@ -16,6 +19,7 @@ import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.os.IBinder;
 import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
@@ -44,6 +48,8 @@ public class CameraPreviewManager {
     @SystemService
     CameraManager cameraManager;
 
+    private ImageProcessingService imageProcessingService;
+
     private CameraDevice camera;
     private SurfaceView surfaceView;
 
@@ -55,7 +61,6 @@ public class CameraPreviewManager {
 
     private Util.Orientation orientation;
     private static boolean imageBusy = false;
-
 
     public void resume(SurfaceView previewSurfaceView) {
         if (previewSurfaceView == null) {
@@ -70,11 +75,18 @@ public class CameraPreviewManager {
         surfaceView = previewSurfaceView;
         surfaceView.getHolder().addCallback(surfaceHolderCallback);
 
+        // Start image processing service
+        Intent serviceStartIntent = new Intent(context, ImageProcessingService_.class);
+        context.bindService(serviceStartIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+
         Log.d(TAG, "resumed");
     }
 
 
     public void pause() {
+        // Stop image processing service
+        context.unbindService(serviceConnection);
+
         try {
             // Ensure SurfaceHolderCallback#surfaceChanged() will run again if the user returns
             surfaceView.getHolder().setFixedSize(0, 0);
@@ -233,6 +245,7 @@ public class CameraPreviewManager {
                     CaptureRequest.Builder requestBuilder = camera.createCaptureRequest(camera.TEMPLATE_PREVIEW);
                     requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                     requestBuilder.addTarget(holder.getSurface());
+                    requestBuilder.addTarget(captureBuffer.getSurface());
                     CaptureRequest previewRequest = requestBuilder.build();
 
                     // Start displaying preview images
@@ -282,23 +295,23 @@ public class CameraPreviewManager {
     };
 
 
-    /*@Background
-    public void handleCapturedImage(final Image image) {
-        imageBusy = true;
-        Log.v(TAG, "got image. size: " + image.getWidth() + "x" + image.getHeight());
-
-        try {
-            Thread.sleep(1000);
-        } catch (Exception exception) {
-            // not implemented
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            ImageProcessingService.LocalBinder binder = (ImageProcessingService.LocalBinder) iBinder;
+            imageProcessingService = binder.getService();
+            Log.d(TAG, "bind image processing service");
         }
 
-        image.close();
-        imageBusy = false;
-    }*/
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            imageProcessingService = null;
+            Log.d(TAG, "unbind image processing service");
+        }
+    };
 
 
-    private static class CapturedImageSaver implements Runnable {
+    private class CapturedImageSaver implements Runnable {
         private Image image;
 
         public CapturedImageSaver(Image image) {
@@ -308,16 +321,15 @@ public class CameraPreviewManager {
 
         @Override
         public void run() {
-            Log.v(TAG, "got image. size: " + image.getWidth() + "x" + image.getHeight());
+            //Log.v(TAG, "got image. size: " + image.getWidth() + "x" + image.getHeight());
 
-            try {
-                Thread.sleep(1000);
-            } catch (Exception exception) {
-                // not implemented
+            if (imageProcessingService != null) {
+                if (!imageProcessingService.isImageProcessing()) {
+                    imageProcessingService.processImage(image);
+                }
             }
 
             image.close();
-
             imageBusy = false;
         }
     }

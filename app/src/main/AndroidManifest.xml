@@ -42,6 +42,11 @@
             android:exported="true"
             />
 
+        <service
+            android:name=".camera.ImageProcessingService_"
+            android:exported="true"
+            />
+
     </application>
 
 </manifest>
