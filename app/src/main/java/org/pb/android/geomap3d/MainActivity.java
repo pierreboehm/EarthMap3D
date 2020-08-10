@@ -110,6 +110,8 @@ public class MainActivity extends AppCompatActivity {
         if (preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).start();
         }
+
+        Log.d(TAG, "activity creation");
     }
 
     @Override
@@ -121,6 +123,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         EventBus.getDefault().register(this);
+
+        Log.d(TAG, "activity resumed");
     }
 
     @Override
@@ -130,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         EventBus.getDefault().unregister(this);
+
+        Log.d(TAG, "activity paused");
         super.onPause();
     }
 
@@ -139,6 +145,7 @@ public class MainActivity extends AppCompatActivity {
             LocationService_.intent(getApplicationContext()).stop();
         }
 
+        Log.d(TAG, "activity termination");
         super.onDestroy();
     }
 
@@ -167,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (closeAppToast != null) {
             closeAppToast.cancel();
+            Log.d(TAG, "activity termination requested");
             finish();
         } else {
             closeAppToast = Toast.makeText(this, R.string.backPressedHintText, Toast.LENGTH_SHORT);

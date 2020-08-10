@@ -33,11 +33,6 @@ public class BionicEyeView extends RelativeLayout {
 
     @AfterViews
     public void initViews() {
-        ivRect.setVisibility(INVISIBLE);
-    }
-
-    public void updateDeviceRotation(float azimuth) {
-        // TODO: implement
     }
 
     public void updateDeviceOrientation(Util.Orientation orientation, float[] gravity) {
@@ -47,6 +42,10 @@ public class BionicEyeView extends RelativeLayout {
         // FIXME: how to calculate the correct degree values? (360 is too much)
         //  Current formula only works (approximately) in LANDSCAPE_MODE!
         zRotation = smoothedZRotation;
-        ivHorizon.setRotation(-zRotation * 100.f / 15.f);
+        float degrees = -zRotation * 100.f / 15.f;
+
+        ivHorizon.setRotation(degrees);
+        ivRect.setRotation(degrees);
+
     }
 }

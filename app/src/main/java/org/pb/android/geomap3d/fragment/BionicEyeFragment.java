@@ -1,6 +1,7 @@
 package org.pb.android.geomap3d.fragment;
 
 import android.content.res.Configuration;
+import android.util.Log;
 import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
@@ -54,6 +55,8 @@ public class BionicEyeFragment extends Fragment {
         orientation = Util.getOrientation(Objects.requireNonNull(getContext()));
 
         cameraPreviewManager.resume(previewSurfaceView);
+        cameraPreviewManager.orientationChanged(orientation);
+
         compass.start();
     }
 
@@ -81,6 +84,9 @@ public class BionicEyeFragment extends Fragment {
         } else {
             orientation = Util.Orientation.LANDSCAPE;
         }
+
+        cameraPreviewManager.orientationChanged(orientation);
+        Log.d(TAG, "new orientation: " + orientation);
     }
 
     private Compass.GravityListener getGravityListener() {

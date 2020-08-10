@@ -55,6 +55,7 @@ dependencies {
 
 //    implementation(name: 'google-maps-sdk-m4b', ext: 'aar')
     implementation 'com.google.android.gms:play-services-maps:17.0.0'
+    implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
 
 //    implementation('org.simpleframework:simple-xml:2.7.1') {
 //        exclude module: 'stax'
