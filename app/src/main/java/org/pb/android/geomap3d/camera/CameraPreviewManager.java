@@ -113,7 +113,16 @@ public class CameraPreviewManager {
         this.orientation = orientation;
     }
 
-    private String setSurfaceViewSize(int width, int height) {
+    private String setSurfaceViewSize(int requestedWidth, int requestedHeight) {
+
+        int width = requestedWidth;
+        int height = requestedHeight;
+
+        if (orientation == Util.Orientation.PORTRAIT) {
+            width = requestedHeight;
+            height = requestedWidth;
+        }
+
         try {
             for (String cameraListId : cameraManager.getCameraIdList()) {
                 CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraListId);
@@ -153,7 +162,7 @@ public class CameraPreviewManager {
         }
 
         @Override
-        public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int height, int width) {
+        public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
             if (cameraId == null) { // 1st time
                 cameraId = setSurfaceViewSize(width, height);
 
