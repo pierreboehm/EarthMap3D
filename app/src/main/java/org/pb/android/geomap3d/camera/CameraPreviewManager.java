@@ -10,6 +10,7 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.Image;
 import android.media.ImageReader;
@@ -227,7 +228,7 @@ public class CameraPreviewManager {
 
                     // Start displaying preview images
                     try {
-                        captureSession.setRepeatingRequest(previewRequest, /*listener*/null, /*handler*/null);
+                        captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
                     } catch (CameraAccessException ex) {
                         // implement
                     }
