@@ -172,4 +172,16 @@ public class Events {
             return currentLocation;
         }
     }
+
+    public static class CameraStateEvent {
+        private final Integer afState;
+
+        public CameraStateEvent(Integer afState) {
+            this.afState = afState;
+        }
+
+        public Integer getAfState() {
+            return afState;
+        }
+    }
 }

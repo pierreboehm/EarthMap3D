@@ -3,7 +3,6 @@ package org.pb.android.geomap3d.camera;
 import android.Manifest;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
@@ -13,9 +12,9 @@ import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
 import android.hardware.camera2.CaptureRequest;
+import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
-import android.media.Image;
 import android.media.ImageReader;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -32,6 +31,8 @@ import androidx.core.app.ActivityCompat;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
 import org.androidannotations.annotations.SystemService;
+import org.greenrobot.eventbus.EventBus;
+import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.Util;
 
 import java.util.Arrays;
@@ -62,10 +63,15 @@ public class CameraPreviewManager {
     private Util.Orientation orientation;
     private static boolean imageBusy = false;
 
+    // TODO: use Semaphore for lock / unlock camera
+
     public void resume(SurfaceView previewSurfaceView) {
         if (previewSurfaceView == null) {
             return;
         }
+
+        // Start and Bind image processing service
+        context.bindService(ImageProcessingService_.intent(context).get(), serviceConnection, Context.BIND_AUTO_CREATE);
 
         // Start a background thread to manage camera requests
         backgroundHandlerThread = new HandlerThread("background");
@@ -75,17 +81,14 @@ public class CameraPreviewManager {
         surfaceView = previewSurfaceView;
         surfaceView.getHolder().addCallback(surfaceHolderCallback);
 
-        // Start image processing service
-        Intent serviceStartIntent = new Intent(context, ImageProcessingService_.class);
-        context.bindService(serviceStartIntent, serviceConnection, Context.BIND_AUTO_CREATE);
-
         Log.d(TAG, "resumed");
     }
 
 
     public void pause() {
-        // Stop image processing service
+        // Unbind and Stop image processing service
         context.unbindService(serviceConnection);
+        context.stopService(ImageProcessingService_.intent(context).get());
 
         try {
             // Ensure SurfaceHolderCallback#surfaceChanged() will run again if the user returns
@@ -125,6 +128,10 @@ public class CameraPreviewManager {
         this.orientation = orientation;
     }
 
+    public void captureImage() {
+
+    }
+
     private String setSurfaceViewSize(int requestedWidth, int requestedHeight) {
 
         int width = requestedWidth;
@@ -145,10 +152,16 @@ public class CameraPreviewManager {
                     Size optimalSize = Util.chooseBigEnoughSize(info.getOutputSizes(SurfaceHolder.class), width, height);
                     surfaceView.getHolder().setFixedSize(optimalSize.getWidth(), optimalSize.getHeight());
 
+                    /*if (imageProcessingService != null) {
+                        imageProcessingService.setPreviewSize(optimalSize);
+                    }*/
+
                     Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
 
-                    captureBuffer = ImageReader.newInstance(300, 300, ImageFormat.JPEG, 2);
-                    captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
+                    if (captureBuffer == null) {
+                        captureBuffer = ImageReader.newInstance(300, 300, ImageFormat.JPEG, 2);
+                        captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
+                    }
 
                     return cameraListId;
                 }
@@ -245,7 +258,7 @@ public class CameraPreviewManager {
                     CaptureRequest.Builder requestBuilder = camera.createCaptureRequest(camera.TEMPLATE_PREVIEW);
                     requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                     requestBuilder.addTarget(holder.getSurface());
-                    requestBuilder.addTarget(captureBuffer.getSurface());
+                    //requestBuilder.addTarget(captureBuffer.getSurface());
                     CaptureRequest previewRequest = requestBuilder.build();
 
                     // Start displaying preview images
@@ -276,20 +289,26 @@ public class CameraPreviewManager {
         }
     };
 
-
     private final CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
+        private Integer lastState = null;
+
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            super.onCaptureCompleted(session, request, result);
+            Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
+            if (!afState.equals(lastState)) {
+                EventBus.getDefault().post(new Events.CameraStateEvent(afState));
+                Log.i(TAG, "new CaptureResult.CONTROL_AF_STATE: " + afState);
+            }
+            lastState = afState;
         }
     };
 
 
     private final ImageReader.OnImageAvailableListener imageCaptureListener = new ImageReader.OnImageAvailableListener() {
         @Override
-        public void onImageAvailable(ImageReader reader) {
+        public void onImageAvailable(final ImageReader reader) {
             if (!imageBusy) {
-                new Thread(new CapturedImageSaver(reader.acquireNextImage())).start();
+                new Thread(new CapturedImageSaver(reader)).start();
             }
         }
     };
@@ -312,10 +331,10 @@ public class CameraPreviewManager {
 
 
     private class CapturedImageSaver implements Runnable {
-        private Image image;
+        private ImageReader imageReader;
 
-        public CapturedImageSaver(Image image) {
-            this.image = image;
+        public CapturedImageSaver(ImageReader reader) {
+            this.imageReader = reader;
             imageBusy = true;
         }
 
@@ -325,11 +344,10 @@ public class CameraPreviewManager {
 
             if (imageProcessingService != null) {
                 if (!imageProcessingService.isImageProcessing()) {
-                    imageProcessingService.processImage(image);
+                    imageProcessingService.processImage(imageReader);
                 }
             }
 
-            image.close();
             imageBusy = false;
         }
     }

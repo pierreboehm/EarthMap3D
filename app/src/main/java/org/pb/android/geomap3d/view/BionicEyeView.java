@@ -35,6 +35,11 @@ public class BionicEyeView extends RelativeLayout {
     public void initViews() {
     }
 
+    public void setAutoFocusState(Integer afState) {
+        boolean focused = afState == 2;
+        ivRect.setSelected(focused);
+    }
+
     public void updateDeviceOrientation(Util.Orientation orientation, float[] gravity) {
         int orientationBasedIndex = orientation == Util.Orientation.PORTRAIT ? 0 : 1;
         float smoothedZRotation = LowPassFilter.filter(gravity[orientationBasedIndex], zRotation, .05f);
@@ -46,6 +51,18 @@ public class BionicEyeView extends RelativeLayout {
 
         ivHorizon.setRotation(degrees);
         ivRect.setRotation(degrees);
-
     }
+
+    /*public void updateDeviceRotation(float azimut) {
+
+        float smoothedAzimut = LowPassFilter.filter(azimut, lastAzimut, .05f);
+        smoothedAzimut = (float) Util.roundScale(smoothedAzimut);
+
+        Log.v(TAG, "azimuth diff: " + Math.abs(smoothedAzimut - lastAzimut));
+
+        selection = Math.abs(smoothedAzimut - lastAzimut) < .05f;
+        ivRect.setSelected(selection);
+
+        lastAzimut = smoothedAzimut;
+    }*/
 }

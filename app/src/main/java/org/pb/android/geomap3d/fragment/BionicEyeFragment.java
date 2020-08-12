@@ -13,6 +13,8 @@ import org.androidannotations.annotations.Click;
 import org.androidannotations.annotations.EFragment;
 import org.androidannotations.annotations.ViewById;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.camera.CameraPreviewManager;
 import org.pb.android.geomap3d.compass.Compass;
@@ -44,6 +46,7 @@ public class BionicEyeFragment extends Fragment {
     @AfterViews
     public void initViews() {
         compass.setListener(getGravityListener());
+        //compass.setListener(getCompassListener());
     }
 
     @Override
@@ -51,6 +54,7 @@ public class BionicEyeFragment extends Fragment {
         super.onResume();
 
         setRetainInstance(true);
+        EventBus.getDefault().register(this);
 
         orientation = Util.getOrientation(Objects.requireNonNull(getContext()));
 
@@ -62,6 +66,7 @@ public class BionicEyeFragment extends Fragment {
 
     @Override
     public void onPause() {
+        EventBus.getDefault().unregister(this);
         compass.stop();
         cameraPreviewManager.pause();
         super.onPause();
@@ -71,6 +76,11 @@ public class BionicEyeFragment extends Fragment {
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         setOrientation(newConfig);
         super.onConfigurationChanged(newConfig);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.CameraStateEvent event) {
+        bionicEyeView.setAutoFocusState(event.getAfState());
     }
 
     @Click(R.id.screenSwitch)
@@ -88,6 +98,15 @@ public class BionicEyeFragment extends Fragment {
         cameraPreviewManager.orientationChanged(orientation);
         Log.d(TAG, "new orientation: " + orientation);
     }
+
+    /*private Compass.CompassListener getCompassListener() {
+        return new Compass.CompassListener() {
+            @Override
+            public void onNewAzimuth(float azimuth) {
+                bionicEyeView.updateDeviceRotation(azimuth);
+            }
+        };
+    }*/
 
     private Compass.GravityListener getGravityListener() {
         return new Compass.GravityListener() {
