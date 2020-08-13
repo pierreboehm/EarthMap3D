@@ -184,4 +184,7 @@ public class Events {
             return afState;
         }
     }
+
+    public static class BionicEyeReady {
+    }
 }

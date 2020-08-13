@@ -1,8 +1,12 @@
 package org.pb.android.geomap3d.fragment;
 
+import android.animation.ValueAnimator;
 import android.content.res.Configuration;
 import android.util.Log;
 import android.view.SurfaceView;
+
+import android.widget.ImageView;
+import android.widget.RelativeLayout;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -34,6 +38,12 @@ public class BionicEyeFragment extends Fragment {
 
     @ViewById(R.id.bionicEyeView)
     BionicEyeView bionicEyeView;
+
+    @ViewById(R.id.ivHudLeft)
+    ImageView ivHudLeft;
+
+    @ViewById(R.id.ivHudRight)
+    ImageView ivHudRight;
 
     @Bean
     CameraPreviewManager cameraPreviewManager;
@@ -74,18 +84,44 @@ public class BionicEyeFragment extends Fragment {
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        setOrientation(newConfig);
         super.onConfigurationChanged(newConfig);
+        setOrientation(newConfig);
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    /*@Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(Events.CameraStateEvent event) {
         bionicEyeView.setAutoFocusState(event.getAfState());
+    }*/
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.BionicEyeReady event) {
+        animateBionicEyeReady();
     }
 
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
         EventBus.getDefault().post(new Events.ShowTerrainFragment());
+    }
+
+    private void animateBionicEyeReady() {
+        ValueAnimator animator = ValueAnimator.ofFloat(200f, 50f);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                int animatedValue = (int) Util.convertDPToPixel(getContext(), (float) valueAnimator.getAnimatedValue());
+
+                RelativeLayout.LayoutParams layoutParamsHudLeft = (RelativeLayout.LayoutParams) ivHudLeft.getLayoutParams();
+                layoutParamsHudLeft.setMarginStart(animatedValue);
+
+                RelativeLayout.LayoutParams layoutParamsHudRight = (RelativeLayout.LayoutParams) ivHudRight.getLayoutParams();
+                layoutParamsHudRight.setMarginEnd(animatedValue);
+
+                ivHudLeft.requestLayout();
+                ivHudRight.requestLayout();
+            }
+        });
+        animator.setDuration(500);
+        animator.start();
     }
 
     private void setOrientation(Configuration newConfig) {

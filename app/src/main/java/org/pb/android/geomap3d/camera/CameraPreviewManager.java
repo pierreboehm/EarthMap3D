@@ -51,6 +51,7 @@ public class CameraPreviewManager {
 
     private ImageProcessingService imageProcessingService;
 
+    private String cameraId;
     private CameraDevice camera;
     private SurfaceView surfaceView;
 
@@ -61,7 +62,12 @@ public class CameraPreviewManager {
     private ImageReader captureBuffer;
 
     private Util.Orientation orientation;
+    private State captureState = State.STATE_PREVIEW;
     private static boolean imageBusy = false;
+
+    private enum State {
+        STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN
+    }
 
     // TODO: use Semaphore for lock / unlock camera
 
@@ -71,7 +77,7 @@ public class CameraPreviewManager {
         }
 
         // Start and Bind image processing service
-        context.bindService(ImageProcessingService_.intent(context).get(), serviceConnection, Context.BIND_AUTO_CREATE);
+        startAndBindImageProcessService();
 
         // Start a background thread to manage camera requests
         backgroundHandlerThread = new HandlerThread("background");
@@ -87,8 +93,7 @@ public class CameraPreviewManager {
 
     public void pause() {
         // Unbind and Stop image processing service
-        context.unbindService(serviceConnection);
-        context.stopService(ImageProcessingService_.intent(context).get());
+        stopAndUnbindImageProcessService();
 
         try {
             // Ensure SurfaceHolderCallback#surfaceChanged() will run again if the user returns
@@ -123,7 +128,6 @@ public class CameraPreviewManager {
         Log.d(TAG, "paused");
     }
 
-
     public void orientationChanged(Util.Orientation orientation) {
         this.orientation = orientation;
     }
@@ -132,8 +136,28 @@ public class CameraPreviewManager {
 
     }
 
-    private String setSurfaceViewSize(int requestedWidth, int requestedHeight) {
+    private void startAndBindImageProcessService() {
+        context.bindService(ImageProcessingService_.intent(context).get(), serviceConnection, Context.BIND_AUTO_CREATE);
+    }
 
+    private void stopAndUnbindImageProcessService() {
+        context.unbindService(serviceConnection);
+        context.stopService(ImageProcessingService_.intent(context).get());
+    }
+
+    private void setSurfaceViewSize(int requestedWidth, int requestedHeight) {
+        Size optimalSize = getOptimalPreviewSize(requestedWidth, requestedHeight);
+        surfaceView.getHolder().setFixedSize(optimalSize.getWidth(), optimalSize.getHeight());
+
+        Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
+
+        if (captureBuffer == null) {
+            captureBuffer = ImageReader.newInstance(300, 300, ImageFormat.JPEG, 2);
+            captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
+        }
+    }
+
+    private Size getOptimalPreviewSize(int requestedWidth, int requestedHeight) {
         int width = requestedWidth;
         int height = requestedHeight;
 
@@ -147,49 +171,79 @@ public class CameraPreviewManager {
                 CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraListId);
 
                 if (cameraCharacteristics.get(cameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
-
                     StreamConfigurationMap info = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
                     Size optimalSize = Util.chooseBigEnoughSize(info.getOutputSizes(SurfaceHolder.class), width, height);
-                    surfaceView.getHolder().setFixedSize(optimalSize.getWidth(), optimalSize.getHeight());
 
-                    /*if (imageProcessingService != null) {
-                        imageProcessingService.setPreviewSize(optimalSize);
-                    }*/
-
-                    Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
-
-                    if (captureBuffer == null) {
-                        captureBuffer = ImageReader.newInstance(300, 300, ImageFormat.JPEG, 2);
-                        captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
-                    }
-
-                    return cameraListId;
+                    cameraId = cameraListId;
+                    return optimalSize;
                 }
             }
         } catch (Exception exception) {
-            // implement
+            // not implemented
         }
 
-        return null;
+        return new Size(width, height);
     }
 
+    private void processCaptureResult(CaptureResult captureResult) {
+        switch (captureState) {
+            case STATE_PREVIEW:
+            case STATE_PICTURE_TAKEN: {
+                // do nothing
+                break;
+            }
+            case STATE_WAITING_LOCK: {
+                final Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
+
+                if (afState == null) {
+                    //captureStillPicture();
+                } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState
+                        || CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState
+                        || CaptureResult.CONTROL_AF_STATE_INACTIVE == afState
+                        || CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN == afState) {
+                    Integer aeState = captureResult.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == null
+                        || CaptureResult.CONTROL_AE_STATE_CONVERGED == aeState) {
+                        captureState = State.STATE_PICTURE_TAKEN;
+                        //captureStillPicture();
+                    } else {
+                        //runPreCaptureSequence();
+                    }
+                }
+                break;
+            }
+            case STATE_WAITING_PRE_CAPTURE: {
+                final Integer aeState = captureResult.get(CaptureResult.CONTROL_AE_STATE);
+                if (aeState == null
+                        || CaptureResult.CONTROL_AE_STATE_PRECAPTURE == aeState
+                        || CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED == aeState) {
+                    captureState = State.STATE_WAITING_NON_PRE_CAPTURE;
+                }
+            }
+            case STATE_WAITING_NON_PRE_CAPTURE: {
+                final Integer aeState = captureResult.get(CaptureResult.CONTROL_AE_STATE);
+                if (aeState == null
+                        || CaptureResult.CONTROL_AE_STATE_PRECAPTURE != aeState) {
+                    captureState = State.STATE_PICTURE_TAKEN;
+                    //captureStillPicture();
+                }
+            }
+        }
+    }
 
     private final SurfaceHolder.Callback surfaceHolderCallback = new SurfaceHolder.Callback() {
 
-        private String cameraId;
-        /** Whether we received a change callback after setting our fixed surface size. */
         private boolean gotSecondCallback;
 
         @Override
         public void surfaceCreated(SurfaceHolder surfaceHolder) {
-            cameraId = null;
             gotSecondCallback = false;
         }
 
         @Override
         public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
             if (cameraId == null) { // 1st time
-                cameraId = setSurfaceViewSize(width, height);
+                setSurfaceViewSize(width, height);
 
             } else if (!gotSecondCallback) { // 2nd time
                 if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
@@ -204,7 +258,7 @@ public class CameraPreviewManager {
                     gotSecondCallback = true;
                 }
 
-            } else {    // any other times
+            } else {    // any other times (also called on device rotation?)
                 setSurfaceViewSize(width, height);
             }
         }
@@ -224,7 +278,7 @@ public class CameraPreviewManager {
 
             try {
                 List<Surface> outputs = Arrays.asList(surfaceView.getHolder().getSurface(), captureBuffer.getSurface());
-                camera.createCaptureSession(outputs, captureSessionListener, backgroundHandler);
+                camera.createCaptureSession(outputs, captureSessionCallback, backgroundHandler);
             } catch (CameraAccessException ex) {
                 Log.e(TAG, ex.getLocalizedMessage());
             }
@@ -245,7 +299,7 @@ public class CameraPreviewManager {
     };
 
 
-    private final CameraCaptureSession.StateCallback captureSessionListener = new CameraCaptureSession.StateCallback() {
+    private final CameraCaptureSession.StateCallback captureSessionCallback = new CameraCaptureSession.StateCallback() {
 
         @Override
         public void onConfigured(@NonNull CameraCaptureSession cameraCaptureSession) {
@@ -258,23 +312,19 @@ public class CameraPreviewManager {
                     CaptureRequest.Builder requestBuilder = camera.createCaptureRequest(camera.TEMPLATE_PREVIEW);
                     requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                     requestBuilder.addTarget(holder.getSurface());
-                    //requestBuilder.addTarget(captureBuffer.getSurface());
                     CaptureRequest previewRequest = requestBuilder.build();
 
                     // Start displaying preview images
-                    try {
-                        captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
-                    } catch (CameraAccessException ex) {
-                        // implement
-                    }
-                } catch (CameraAccessException ex) {
+                    captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                } catch (Exception ex) {
                     // implement
-                }
+                } finally {
+                    // send event (to parent fragment)
+                    // let animate preview frame to signal user bionic eye is ready ...
+                    EventBus.getDefault().post(new Events.BionicEyeReady());
 
+                }
                 Log.d(TAG, "captured session started (repeating request)");
-            }
-            else {
-                // implement
             }
         }
 
@@ -290,16 +340,14 @@ public class CameraPreviewManager {
     };
 
     private final CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
-        private Integer lastState = null;
+        @Override
+        public void onCaptureProgressed(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull CaptureResult partialResult) {
+            processCaptureResult(partialResult);
+        }
 
         @Override
         public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
-            Integer afState = result.get(CaptureResult.CONTROL_AF_STATE);
-            if (!afState.equals(lastState)) {
-                EventBus.getDefault().post(new Events.CameraStateEvent(afState));
-                Log.i(TAG, "new CaptureResult.CONTROL_AF_STATE: " + afState);
-            }
-            lastState = afState;
+            processCaptureResult(result);
         }
     };
 

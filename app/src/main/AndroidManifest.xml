@@ -33,8 +33,7 @@
 
         <activity
             android:name="org.pb.android.geomap3d.MainActivity_"
-            android:screenOrientation="portrait"
-            android:configChanges="keyboard|keyboardHidden|screenSize|orientation"
+            android:configChanges="keyboard|keyboardHidden|screenSize|screenLayout|orientation"
             />
 
         <service

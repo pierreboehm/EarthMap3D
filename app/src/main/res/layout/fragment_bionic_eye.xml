@@ -16,6 +16,28 @@
         android:layout_centerInParent="true"
         />
 
+    <ImageView
+        android:id="@+id/ivHudLeft"
+        android:layout_width="150dp"
+        android:layout_height="290dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="200dp"
+        android:src="@drawable/icn_hud_left"
+        android:scaleType="fitXY"
+        />
+
+    <ImageView
+        android:id="@+id/ivHudRight"
+        android:layout_width="150dp"
+        android:layout_height="290dp"
+        android:layout_centerVertical="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="200dp"
+        android:src="@drawable/icn_hud_right"
+        android:scaleType="fitXY"
+        />
+
     <ImageButton
         android:id="@+id/screenSwitch"
         android:layout_width="60dp"
