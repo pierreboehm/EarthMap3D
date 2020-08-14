@@ -1,6 +1,7 @@
 package org.pb.android.geomap3d.camera;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
@@ -59,7 +60,7 @@ public class CameraPreviewManager {
     private Handler backgroundHandler;
 
     private CameraCaptureSession captureSession;
-    private ImageReader captureBuffer;
+    //private ImageReader captureBuffer;
 
     private Util.Orientation orientation;
     private State captureState = State.STATE_PREVIEW;
@@ -72,7 +73,19 @@ public class CameraPreviewManager {
     // TODO: use Semaphore for lock / unlock camera
 
     public void resume(SurfaceView previewSurfaceView) {
+        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            Log.w(TAG, "No camera permissions set!");
+            return;
+        }
+
         if (previewSurfaceView == null) {
+            Log.w(TAG, "No surfaceView available!");
+            return;
+        }
+
+        cameraId = getBackFacingCameraId();
+        if (cameraId == null) {
+            Log.w(TAG, "No back-facing camera found!");
             return;
         }
 
@@ -103,6 +116,7 @@ public class CameraPreviewManager {
                 captureSession.abortCaptures();
                 captureSession.close();
                 captureSession = null;
+                Log.d(TAG, "capture session closed");
             }
         } catch (Exception ex) {
             // not implemented
@@ -119,13 +133,15 @@ public class CameraPreviewManager {
         backgroundHandlerThread.quitSafely();
         try {
             backgroundHandlerThread.join();
+            Log.d(TAG, "background handler thread closed");
         } catch (InterruptedException ex) {
             // implement
         }
 
-        if (captureBuffer != null) {
+        /*if (captureBuffer != null) {
             captureBuffer.close();
-        }
+            Log.d(TAG, "image reader closed");
+        }*/
 
         Log.d(TAG, "paused");
     }
@@ -153,10 +169,37 @@ public class CameraPreviewManager {
 
         Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
 
-        if (captureBuffer == null) {
+        /*if (captureBuffer == null) {
             captureBuffer = ImageReader.newInstance(300, 300, ImageFormat.JPEG, 2);
             captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
+        }*/
+
+        if (captureSession == null) {
+            try {
+                List<Surface> outputs = Arrays.asList(surfaceView.getHolder().getSurface()/*, captureBuffer.getSurface()*/);
+                camera.createCaptureSession(outputs, captureSessionCallback, backgroundHandler);
+            } catch (CameraAccessException ex) {
+                Log.e(TAG, ex.getLocalizedMessage());
+            } finally {
+                Log.d(TAG, "camera session created");
+            }
         }
+    }
+
+    private String getBackFacingCameraId() {
+        try {
+            for (String cameraListId : cameraManager.getCameraIdList()) {
+                CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraListId);
+
+                if (cameraCharacteristics.get(cameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
+                    return cameraListId;
+                }
+            }
+        } catch (Exception ex) {
+            // not implemented
+        }
+
+        return null;
     }
 
     private Size getOptimalPreviewSize(int requestedWidth, int requestedHeight) {
@@ -169,17 +212,10 @@ public class CameraPreviewManager {
         }
 
         try {
-            for (String cameraListId : cameraManager.getCameraIdList()) {
-                CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraListId);
-
-                if (cameraCharacteristics.get(cameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
-                    StreamConfigurationMap info = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-                    Size optimalSize = Util.chooseBigEnoughSize(info.getOutputSizes(SurfaceHolder.class), width, height);
-
-                    cameraId = cameraListId;
-                    return optimalSize;
-                }
-            }
+            CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
+            StreamConfigurationMap info = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
+            Size optimalSize = Util.chooseBigEnoughSize(info.getOutputSizes(SurfaceHolder.class), width, height);
+            return optimalSize;
         } catch (Exception exception) {
             // not implemented
         }
@@ -235,34 +271,19 @@ public class CameraPreviewManager {
 
     private final SurfaceHolder.Callback surfaceHolderCallback = new SurfaceHolder.Callback() {
 
-        private boolean gotSecondCallback;
-
+        @SuppressLint("MissingPermission")
         @Override
         public void surfaceCreated(SurfaceHolder surfaceHolder) {
-            gotSecondCallback = false;
+            try {
+                cameraManager.openCamera(cameraId, cameraStateCallback, backgroundHandler);
+            } catch (Exception exception) {
+                // implement
+            }
         }
 
         @Override
         public void surfaceChanged(SurfaceHolder surfaceHolder, int format, int width, int height) {
-            if (cameraId == null) { // 1st time
-                setSurfaceViewSize(width, height);
-
-            } else if (!gotSecondCallback) { // 2nd time
-                if (ActivityCompat.checkSelfPermission(context, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-                    return;
-                }
-
-                try {
-                    cameraManager.openCamera(cameraId, cameraStateCallback, backgroundHandler);
-                } catch (Exception exception) {
-                    // implement
-                } finally {
-                    gotSecondCallback = true;
-                }
-
-            } else {    // any other times (also called on device rotation?)
-                setSurfaceViewSize(width, height);
-            }
+            setSurfaceViewSize(width, height);
         }
 
         @Override
@@ -277,20 +298,11 @@ public class CameraPreviewManager {
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
             camera = cameraDevice;
-
-            try {
-                List<Surface> outputs = Arrays.asList(surfaceView.getHolder().getSurface(), captureBuffer.getSurface());
-                camera.createCaptureSession(outputs, captureSessionCallback, backgroundHandler);
-            } catch (CameraAccessException ex) {
-                Log.e(TAG, ex.getLocalizedMessage());
-            }
-
-            Log.d(TAG, "camera opened and capture session started on surfaceView");
+            Log.d(TAG, "camera opened");
         }
 
         @Override
         public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-            // implement
             Log.d(TAG, "camera has been disconnected");
         }
 

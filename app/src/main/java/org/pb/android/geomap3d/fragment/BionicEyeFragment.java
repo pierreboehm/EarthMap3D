@@ -66,7 +66,7 @@ public class BionicEyeFragment extends Fragment {
     public void onResume() {
         super.onResume();
 
-        setRetainInstance(true);
+        //setRetainInstance(true);
         EventBus.getDefault().register(this);
 
         orientation = Util.getOrientation(Objects.requireNonNull(getContext()));
@@ -107,11 +107,11 @@ public class BionicEyeFragment extends Fragment {
     }
 
     private void animateBionicEyeReady() {
-        animateBionicEye(200f, 50f, null);
+        animateBionicEye(170f, 50f, null);
     }
 
     private void animateBionicEyeClose(Object event) {
-        animateBionicEye(50f, 200f, event);
+        animateBionicEye(50f, 170f, event);
     }
 
     private void animateBionicEye(float startValue, float stopValue, final Object event) {
@@ -149,7 +149,7 @@ public class BionicEyeFragment extends Fragment {
 
                 int resourceId = event == null ? R.raw.bionic_eye_opens : R.raw.bionic_eye_closes;
                 MediaPlayer mediaPlayer = MediaPlayer.create(getContext(), resourceId);
-                mediaPlayer.setVolume(1f, 1f);
+                mediaPlayer.setVolume(1f, 1f);  // has no effect
                 mediaPlayer.start();
             }
         });

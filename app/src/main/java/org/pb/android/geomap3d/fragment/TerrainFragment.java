@@ -1,7 +1,9 @@
 package org.pb.android.geomap3d.fragment;
 
+import android.content.res.Configuration;
 import android.location.Location;
 import android.util.Log;
+import android.widget.ImageView;
 
 import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.Bean;
@@ -21,10 +23,12 @@ import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.dialog.SettingsDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
+import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import static org.androidannotations.annotations.UiThread.Propagation.REUSE;
@@ -51,6 +55,9 @@ public class TerrainFragment extends Fragment {
 
     @ViewById(R.id.glSurfaceView)
     OpenGLSurfaceView openGLSurfaceView;
+
+    @ViewById(R.id.bionicEye)
+    ImageView bionicEye;
 
     private boolean isInitiated = false;
 
@@ -96,6 +103,12 @@ public class TerrainFragment extends Fragment {
         }
 
         super.onPause();
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        handleOrientation(newConfig);
     }
 
     @Click(R.id.screenSwitch)
@@ -150,6 +163,14 @@ public class TerrainFragment extends Fragment {
     void updateTrackedLocation(Location location) {
         if (openGLSurfaceView != null) {
             openGLSurfaceView.updateTrackedLocation(location);
+        }
+    }
+
+    private void handleOrientation(Configuration configuration) {
+        if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
+            bionicEye.setEnabled(false);
+        } else {
+            bionicEye.setEnabled(true);
         }
     }
 

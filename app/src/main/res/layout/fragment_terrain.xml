@@ -32,7 +32,7 @@
             android:id="@+id/bionicEye"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:tint="@color/warm_blue"
+            android:tint="@color/bionic_eye_button"
             android:src="@drawable/icn_eye_c00"
             android:scaleType="centerInside"
             android:background="@drawable/rectangle_shape_rounded"
