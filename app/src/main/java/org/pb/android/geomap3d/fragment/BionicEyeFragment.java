@@ -1,7 +1,10 @@
 package org.pb.android.geomap3d.fragment;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.res.Configuration;
+import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.SurfaceView;
 
@@ -100,15 +103,23 @@ public class BionicEyeFragment extends Fragment {
 
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
-        EventBus.getDefault().post(new Events.ShowTerrainFragment());
+        animateBionicEyeClose(new Events.ShowTerrainFragment());
     }
 
     private void animateBionicEyeReady() {
-        ValueAnimator animator = ValueAnimator.ofFloat(200f, 50f);
+        animateBionicEye(200f, 50f, null);
+    }
+
+    private void animateBionicEyeClose(Object event) {
+        animateBionicEye(50f, 200f, event);
+    }
+
+    private void animateBionicEye(float startValue, float stopValue, final Object event) {
+        ValueAnimator animator = ValueAnimator.ofFloat(startValue, stopValue);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                int animatedValue = (int) Util.convertDPToPixel(getContext(), (float) valueAnimator.getAnimatedValue());
+                int animatedValue = (int) Util.convertDPToPixel(Objects.requireNonNull(getContext()), (float) valueAnimator.getAnimatedValue());
 
                 RelativeLayout.LayoutParams layoutParamsHudLeft = (RelativeLayout.LayoutParams) ivHudLeft.getLayoutParams();
                 layoutParamsHudLeft.setMarginStart(animatedValue);
@@ -120,6 +131,29 @@ public class BionicEyeFragment extends Fragment {
                 ivHudRight.requestLayout();
             }
         });
+
+        if (event != null) {
+            animator.addListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    super.onAnimationEnd(animation);
+                    EventBus.getDefault().post(event);
+                }
+            });
+        }
+
+        animator.addListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationStart(Animator animation) {
+                super.onAnimationStart(animation);
+
+                int resourceId = event == null ? R.raw.bionic_eye_opens : R.raw.bionic_eye_closes;
+                MediaPlayer mediaPlayer = MediaPlayer.create(getContext(), resourceId);
+                mediaPlayer.setVolume(1f, 1f);
+                mediaPlayer.start();
+            }
+        });
+
         animator.setDuration(500);
         animator.start();
     }

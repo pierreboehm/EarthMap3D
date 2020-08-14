@@ -100,10 +100,12 @@ public class CameraPreviewManager {
             surfaceView.getHolder().setFixedSize(0, 0);
 
             if (captureSession != null) {
+                captureSession.abortCaptures();
                 captureSession.close();
                 captureSession = null;
             }
-
+        } catch (Exception ex) {
+            // not implemented
         } finally {
             if (camera != null) {
                 camera.close();
