@@ -54,6 +54,7 @@ public class BionicEyeFragment extends Fragment {
     @Bean
     Compass compass;
 
+    private MediaPlayer mediaPlayer;
     private Util.Orientation orientation;
 
     @AfterViews
@@ -80,6 +81,7 @@ public class BionicEyeFragment extends Fragment {
     @Override
     public void onPause() {
         EventBus.getDefault().unregister(this);
+        cleanupMediaPlayer();
         compass.stop();
         cameraPreviewManager.pause();
         super.onPause();
@@ -104,6 +106,17 @@ public class BionicEyeFragment extends Fragment {
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
         animateBionicEyeClose(new Events.ShowTerrainFragment());
+    }
+
+    private void cleanupMediaPlayer() {
+        if (mediaPlayer != null) {
+            if (mediaPlayer.isPlaying()) {
+                mediaPlayer.stop();
+            }
+            mediaPlayer.release();
+            mediaPlayer = null;
+            Log.d(TAG, "media player released");
+        }
     }
 
     private void animateBionicEyeReady() {
@@ -148,8 +161,14 @@ public class BionicEyeFragment extends Fragment {
                 super.onAnimationStart(animation);
 
                 int resourceId = event == null ? R.raw.bionic_eye_opens : R.raw.bionic_eye_closes;
-                MediaPlayer mediaPlayer = MediaPlayer.create(getContext(), resourceId);
+                mediaPlayer = MediaPlayer.create(getContext(), resourceId);
                 mediaPlayer.setVolume(1f, 1f);  // has no effect
+                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                    @Override
+                    public void onCompletion(MediaPlayer mediaPlayer) {
+                        mediaPlayer.reset();
+                    }
+                });
                 mediaPlayer.start();
             }
         });
