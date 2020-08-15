@@ -3,6 +3,7 @@ package org.pb.android.geomap3d.fragment;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.util.Log;
+import android.view.View;
 import android.widget.ImageView;
 
 import org.androidannotations.annotations.AfterViews;
@@ -23,7 +24,6 @@ import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.dialog.SettingsDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
-import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
@@ -68,6 +68,7 @@ public class TerrainFragment extends Fragment {
             openGLSurfaceView.setWidget(widget);
 
             compass.setListener(getCompassListener());
+            bionicEye.setVisibility(View.INVISIBLE);
             isInitiated = true;
         }
     }
@@ -167,10 +168,15 @@ public class TerrainFragment extends Fragment {
     }
 
     private void handleOrientation(Configuration configuration) {
+        // TODO: why not simply make invisible?
         if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            bionicEye.setEnabled(false);
+//            bionicEye.setEnabled(false);
+//            bionicEye.setBackgroundResource(R.drawable.rectangle_shape_rounded_disabled);
+            bionicEye.setVisibility(View.INVISIBLE);
         } else {
-            bionicEye.setEnabled(true);
+//            bionicEye.setEnabled(true);
+//            bionicEye.setBackgroundResource(R.drawable.rectangle_shape_rounded);
+            bionicEye.setVisibility(View.VISIBLE);
         }
     }
 
