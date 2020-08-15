@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
+import android.media.AudioManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.VibrationEffect;
@@ -67,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
     ActivityManager activityManager;
 
     @SystemService
+    AudioManager audioManager;
+
+    @SystemService
     Vibrator vibrator;
 
     @Pref
@@ -118,6 +122,11 @@ public class MainActivity extends AppCompatActivity {
     public void onResume() {
         super.onResume();
 
+        // store current stream music volume. set stream music volume to maximum
+        preferences.lastStreamVolume().put(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
+
+        // setup location service
         if (!preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).start();
         }
@@ -129,6 +138,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onPause() {
+
+        // restore stream music volume
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, preferences.lastStreamVolume().get(), 0);
+
+        // cleanup location service
         if (!preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).stop();
         }

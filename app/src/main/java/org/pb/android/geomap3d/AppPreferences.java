@@ -18,4 +18,7 @@ public interface AppPreferences {
 
     @DefaultInt(0)
     int lastSession();
+
+    @DefaultInt(0)
+    int lastStreamVolume();
 }
