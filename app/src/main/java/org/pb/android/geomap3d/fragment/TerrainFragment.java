@@ -24,12 +24,15 @@ import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.dialog.SettingsDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
+import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import java.util.Objects;
 
 import static org.androidannotations.annotations.UiThread.Propagation.REUSE;
 
@@ -63,12 +66,15 @@ public class TerrainFragment extends Fragment {
 
     @AfterViews
     public void initViews() {
+
+        if (Util.getOrientation(Objects.requireNonNull(getContext())) == Util.Orientation.PORTRAIT) {
+            bionicEye.setVisibility(View.INVISIBLE);
+        }
+
         if (!isInitiated) {
             openGLSurfaceView.initRenderer(getActivity());
             openGLSurfaceView.setWidget(widget);
-
             compass.setListener(getCompassListener());
-            bionicEye.setVisibility(View.INVISIBLE);
             isInitiated = true;
         }
     }
