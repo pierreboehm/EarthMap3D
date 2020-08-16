@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.res.Configuration;
-import android.media.MediaPlayer;
 import android.util.Log;
 import android.view.SurfaceView;
 
@@ -23,6 +22,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.pb.android.geomap3d.R;
+import org.pb.android.geomap3d.audio.AudioPlayer;
 import org.pb.android.geomap3d.camera.CameraPreviewManager;
 import org.pb.android.geomap3d.compass.Compass;
 import org.pb.android.geomap3d.event.Events;
@@ -54,7 +54,9 @@ public class BionicEyeFragment extends Fragment {
     @Bean
     Compass compass;
 
-    private MediaPlayer mediaPlayer;
+    @Bean
+    AudioPlayer audioPlayer;
+
     private Util.Orientation orientation;
 
     @AfterViews
@@ -81,7 +83,7 @@ public class BionicEyeFragment extends Fragment {
     @Override
     public void onPause() {
         EventBus.getDefault().unregister(this);
-        cleanupMediaPlayer();
+        audioPlayer.release();
         compass.stop();
         cameraPreviewManager.pause();
         super.onPause();
@@ -106,17 +108,6 @@ public class BionicEyeFragment extends Fragment {
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
         animateBionicEyeClose(new Events.ShowTerrainFragment());
-    }
-
-    private void cleanupMediaPlayer() {
-        if (mediaPlayer != null) {
-            if (mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();
-            }
-            mediaPlayer.release();
-            mediaPlayer = null;
-            Log.d(TAG, "media player released");
-        }
     }
 
     private void animateBionicEyeReady() {
@@ -160,16 +151,8 @@ public class BionicEyeFragment extends Fragment {
             public void onAnimationStart(Animator animation) {
                 super.onAnimationStart(animation);
 
-                int resourceId = event == null ? R.raw.bionic_eye_opens : R.raw.bionic_eye_closes;
-                mediaPlayer = MediaPlayer.create(getContext(), resourceId);
-                mediaPlayer.setVolume(1f, 1f);  // has no effect
-                mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mediaPlayer) {
-                        mediaPlayer.reset();
-                    }
-                });
-                mediaPlayer.start();
+                AudioPlayer.Track track = event == null ? AudioPlayer.Track.OPEN : AudioPlayer.Track.CLOSE;
+                audioPlayer.play(track);
             }
         });
 
