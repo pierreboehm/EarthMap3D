@@ -257,6 +257,7 @@ public class CameraPreviewManager {
                         || CaptureRequest.CONTROL_AE_STATE_FLASH_REQUIRED == aeState) {
                     captureState = State.STATE_WAITING_NON_PRE_CAPTURE;
                 }
+                break;
             }
             case STATE_WAITING_NON_PRE_CAPTURE: {
                 final Integer aeState = captureResult.get(CaptureResult.CONTROL_AE_STATE);
@@ -265,6 +266,7 @@ public class CameraPreviewManager {
                     captureState = State.STATE_PICTURE_TAKEN;
                     //captureStillPicture();
                 }
+                break;
             }
         }
     }
