@@ -2,6 +2,7 @@ package org.pb.android.geomap3d.camera;
 
 import android.app.Service;
 import android.content.Intent;
+import android.media.Image;
 import android.media.ImageReader;
 import android.os.Binder;
 import android.os.IBinder;
@@ -54,9 +55,17 @@ public class ImageProcessingService extends Service {
         Log.d(TAG,"received image for processing");
         imageBusy = true;
 
+        Image image = imageReader.acquireNextImage();
+        if (image != null) {
+            Log.d(TAG, "image dimension: " + image.getWidth() + "x" + image.getHeight());
+            image.close();
+        } else {
+            Log.w(TAG, "processImage() image is NULL");
+        }
+
         // simulate processing
         try {
-            Thread.sleep(10000);
+            Thread.sleep(200);
         } catch (Exception ex) {
 
         }

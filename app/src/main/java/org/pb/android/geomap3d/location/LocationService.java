@@ -41,7 +41,11 @@ public class LocationService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         super.onStartCommand(intent, flags, startId);
-        Log.v(TAG, intent.toString() + ", flags = " + flags + ", id = " + startId);
+        if (intent != null) {
+            Log.v(TAG, intent.toString() + ", flags = " + flags + ", id = " + startId);
+        } else {
+            Log.w(TAG, "onStartCommand() intent is NULL");
+        }
         return START_STICKY;
     }
 }

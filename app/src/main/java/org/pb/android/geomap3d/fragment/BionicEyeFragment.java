@@ -105,6 +105,11 @@ public class BionicEyeFragment extends Fragment {
         animateBionicEyeReady();
     }
 
+    @Click(R.id.bionicEyeView)
+    public void onBionicEyeViewClick() {
+        cameraPreviewManager.captureImage();
+    }
+
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
         animateBionicEyeClose(new Events.ShowTerrainFragment());

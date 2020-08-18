@@ -12,6 +12,7 @@ import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
 import android.hardware.camera2.CameraManager;
+import android.hardware.camera2.CameraMetadata;
 import android.hardware.camera2.CaptureRequest;
 import android.hardware.camera2.CaptureResult;
 import android.hardware.camera2.TotalCaptureResult;
@@ -39,6 +40,14 @@ import org.pb.android.geomap3d.util.Util;
 import java.util.Arrays;
 import java.util.List;
 
+/*
+    TODO:
+    This singleton class is designated for being replaced by a TextureView.
+    Benefits:
+        * size parameters can be taken directly then from itself
+        * ...
+ */
+
 @EBean(scope = EBean.Scope.Singleton)
 public class CameraPreviewManager {
 
@@ -59,8 +68,9 @@ public class CameraPreviewManager {
     private HandlerThread backgroundHandlerThread;
     private Handler backgroundHandler;
 
+    private CaptureRequest.Builder captureRequestBuilder;
     private CameraCaptureSession captureSession;
-    //private ImageReader captureBuffer;
+    private ImageReader captureBuffer;
 
     private Util.Orientation orientation;
     private State captureState = State.STATE_PREVIEW;
@@ -138,10 +148,11 @@ public class CameraPreviewManager {
             // implement
         }
 
-        /*if (captureBuffer != null) {
+        if (captureBuffer != null) {
             captureBuffer.close();
+            captureBuffer = null;
             Log.d(TAG, "image reader closed");
-        }*/
+        }
 
         Log.d(TAG, "paused");
     }
@@ -151,8 +162,97 @@ public class CameraPreviewManager {
     }
 
     public void captureImage() {
+        if (backgroundHandler == null) {
+            return;
+        }
 
+        Log.d(TAG, "start capturing image");
+        backgroundHandler.post(captureState == State.STATE_PREVIEW ? lockFocus : unlockFocus);
     }
+
+    private Runnable lockFocus = new Runnable() {
+        @Override
+        public void run() {
+            // TODO: lock focus
+            if (captureSession == null) {
+                return;
+            }
+
+            Log.d(TAG, "lock focus called");
+
+            try {
+                captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
+                captureState = State.STATE_WAITING_LOCK;
+                captureSession.capture(captureRequestBuilder.build(), captureCallback, null);
+            } catch (Exception exception) {
+                Log.e(TAG, exception.getMessage());
+            }
+        }
+    };
+
+    private Runnable unlockFocus = new Runnable() {
+        @Override
+        public void run() {
+            // TODO: unlock focus
+
+            Log.d(TAG, "unlock focus called");
+
+            try {
+                captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
+                captureSession.capture(captureRequestBuilder.build(), null, null);
+                captureState = State.STATE_PREVIEW;
+                captureSession.setRepeatingRequest(captureRequestBuilder.build(), captureCallback, null);
+            } catch (Exception exception) {
+                Log.e(TAG, exception.getMessage());
+            }
+        }
+    };
+
+    private Runnable runPrecaptureSequence = new Runnable() {
+        @Override
+        public void run() {
+
+            Log.d(TAG, "run precapture sequence");
+
+            try {
+                captureRequestBuilder.set(CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER, CaptureRequest.CONTROL_AE_PRECAPTURE_TRIGGER_START);
+                captureState = State.STATE_WAITING_PRE_CAPTURE;
+                captureSession.capture(captureRequestBuilder.build(), captureCallback, null);
+            } catch (Exception exception) {
+                Log.e(TAG, exception.getMessage());
+            }
+        }
+    };
+
+    private Runnable captureStillImage = new Runnable() {
+        @Override
+        public void run() {
+
+            Log.d(TAG, "run capture still image");
+
+            try {
+                CaptureRequest.Builder captureRequest = camera.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
+                captureRequest.addTarget(captureBuffer.getSurface());
+
+                captureRequest.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
+                captureRequest.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+                CameraCaptureSession.CaptureCallback inlineCaptureCallback = new CameraCaptureSession.CaptureCallback() {
+                    @Override
+                    public void onCaptureCompleted(@NonNull CameraCaptureSession session, @NonNull CaptureRequest request, @NonNull TotalCaptureResult result) {
+                        Log.d(TAG, "capturing completed");
+                        backgroundHandler.post(unlockFocus);
+                    }
+                };
+
+                captureSession.stopRepeating();
+                captureSession.capture(captureRequest.build(), inlineCaptureCallback, null);
+
+            } catch (Exception exception) {
+                Log.e(TAG, exception.getMessage());
+            }
+        }
+    };
 
     private void startAndBindImageProcessService() {
         context.bindService(ImageProcessingService_.intent(context).get(), serviceConnection, Context.BIND_AUTO_CREATE);
@@ -169,15 +269,23 @@ public class CameraPreviewManager {
 
         Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
 
-        /*if (captureBuffer == null) {
-            captureBuffer = ImageReader.newInstance(300, 300, ImageFormat.JPEG, 2);
+        if (captureBuffer == null) {
+            captureBuffer = ImageReader.newInstance(optimalSize.getWidth(), optimalSize.getHeight(), ImageFormat.JPEG, 2);
             captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
-        }*/
+        }
 
         if (captureSession == null) {
+            Surface surfaceViewSurface = surfaceView.getHolder().getSurface();
+            Surface captureBufferSurface = captureBuffer.getSurface();
+
+            if (surfaceViewSurface == null || captureBufferSurface == null) {
+                Log.w(TAG, "one surfaceview is NULL. (" + surfaceViewSurface + ", " + captureBufferSurface + ")");
+                return;
+            }
+
             try {
-                List<Surface> outputs = Arrays.asList(surfaceView.getHolder().getSurface()/*, captureBuffer.getSurface()*/);
-                camera.createCaptureSession(outputs, captureSessionCallback, backgroundHandler);
+                List<Surface> outputs = Arrays.asList(surfaceViewSurface, captureBufferSurface);
+                camera.createCaptureSession(outputs, captureSessionCallback, null);
             } catch (CameraAccessException ex) {
                 Log.e(TAG, ex.getLocalizedMessage());
             } finally {
@@ -233,19 +341,17 @@ public class CameraPreviewManager {
             case STATE_WAITING_LOCK: {
                 final Integer afState = captureResult.get(CaptureResult.CONTROL_AF_STATE);
 
-                if (afState == null) {
-                    //captureStillPicture();
-                } else if (CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED == afState
-                        || CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED == afState
-                        || CaptureResult.CONTROL_AF_STATE_INACTIVE == afState
-                        || CaptureResult.CONTROL_AF_STATE_PASSIVE_SCAN == afState) {
-                    Integer aeState = captureResult.get(CaptureResult.CONTROL_AE_STATE);
-                    if (aeState == null
-                        || CaptureResult.CONTROL_AE_STATE_CONVERGED == aeState) {
+                if (afState == null ||
+                        afState == CaptureResult.CONTROL_AF_STATE_FOCUSED_LOCKED ||
+                        afState == CaptureResult.CONTROL_AF_STATE_NOT_FOCUSED_LOCKED ||
+                        afState == CaptureResult.CONTROL_AF_STATE_INACTIVE) {
+
+                    int aeState = captureResult.get(CaptureResult.CONTROL_AE_STATE);
+                    if (aeState == CaptureResult.CONTROL_AE_STATE_CONVERGED) {
                         captureState = State.STATE_PICTURE_TAKEN;
-                        //captureStillPicture();
+                        backgroundHandler.post(captureStillImage);
                     } else {
-                        //runPreCaptureSequence();
+                        backgroundHandler.post(runPrecaptureSequence);
                     }
                 }
                 break;
@@ -261,10 +367,9 @@ public class CameraPreviewManager {
             }
             case STATE_WAITING_NON_PRE_CAPTURE: {
                 final Integer aeState = captureResult.get(CaptureResult.CONTROL_AE_STATE);
-                if (aeState == null
-                        || CaptureResult.CONTROL_AE_STATE_PRECAPTURE != aeState) {
+                if (aeState != CaptureResult.CONTROL_AE_STATE_PRECAPTURE) {
                     captureState = State.STATE_PICTURE_TAKEN;
-                    //captureStillPicture();
+                    backgroundHandler.post(captureStillImage);
                 }
                 break;
             }
@@ -325,13 +430,12 @@ public class CameraPreviewManager {
             if (holder != null) {
                 try {
                     // Build a request for preview footage
-                    CaptureRequest.Builder requestBuilder = camera.createCaptureRequest(camera.TEMPLATE_PREVIEW);
-                    requestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
-                    requestBuilder.addTarget(holder.getSurface());
-                    CaptureRequest previewRequest = requestBuilder.build();
+                    captureRequestBuilder = camera.createCaptureRequest(camera.TEMPLATE_PREVIEW);
+                    captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+                    captureRequestBuilder.addTarget(holder.getSurface());
 
                     // Start displaying preview images
-                    captureSession.setRepeatingRequest(previewRequest, captureCallback, backgroundHandler);
+                    captureSession.setRepeatingRequest(captureRequestBuilder.build(), captureCallback, null);
                 } catch (Exception ex) {
                     // implement
                 } finally {
