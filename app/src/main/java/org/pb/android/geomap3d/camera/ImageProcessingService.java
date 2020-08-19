@@ -2,17 +2,19 @@ package org.pb.android.geomap3d.camera;
 
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.media.Image;
 import android.media.ImageReader;
+import android.media.ThumbnailUtils;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import android.util.Size;
 
 import androidx.annotation.Nullable;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EService;
+import org.pb.android.geomap3d.tensorflow.ImageUtils;
 
 @EService
 public class ImageProcessingService extends Service {
@@ -44,11 +46,6 @@ public class ImageProcessingService extends Service {
         return imageBusy;
     }
 
-    /*public void setPreviewSize(Size previewSize) {
-        this.previewSize = previewSize;
-        Log.i(TAG, "preview size set: " + previewSize);
-    }*/
-
     @Background
     public void processImage(ImageReader imageReader) {
 
@@ -57,26 +54,52 @@ public class ImageProcessingService extends Service {
 
         Image image = imageReader.acquireNextImage();
         if (image != null) {
-            Log.d(TAG, "image dimension: " + image.getWidth() + "x" + image.getHeight());
+            int width = image.getWidth();
+            int height = image.getHeight();
+
+            Log.d(TAG, "image dimension: " + width + "x" + height);
+            Bitmap rgbFrameBitmap = extractBitmapFromImage(image);
             image.close();
+            rgbFrameBitmap.recycle();
+
         } else {
             Log.w(TAG, "processImage() image is NULL");
         }
 
-        // simulate processing
-        try {
-            Thread.sleep(200);
-        } catch (Exception ex) {
-
-        }
-
         imageBusy = false;
-        return;
     }
 
     public class LocalBinder extends Binder {
         public ImageProcessingService getService() {
             return ImageProcessingService.this;
         }
+    }
+
+    private Bitmap extractBitmapFromImage(Image image) {
+        byte[][] yuvBytes = new byte[3][];
+        Image.Plane[] planes = image.getPlanes();
+
+        ImageUtils.fillBytes(planes, yuvBytes);
+
+        int yRowStride = planes[0].getRowStride();
+        int uvRowStride = planes[1].getRowStride();
+        int uvPixelStride = planes[1].getPixelStride();
+
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        int[] rgbBytes = new int[width * height];
+
+        ImageUtils.convertYUV420ToARGB8888(yuvBytes[0], yuvBytes[1], yuvBytes[2], width, height, yRowStride, uvRowStride, uvPixelStride, rgbBytes);
+
+        Bitmap rgbFrameBitmap =  Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        rgbFrameBitmap.setPixels(rgbBytes, 0, width, 0, 0, width, height);
+
+        return cropCenter(rgbFrameBitmap);
+    }
+
+    private Bitmap cropCenter(Bitmap bitmap) {
+        int dimension = 384;    // FIXME: set expected tensorflow detector size
+        return ThumbnailUtils.extractThumbnail(bitmap, dimension, dimension);
     }
 }

@@ -9,6 +9,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.view.Display;
@@ -146,6 +147,7 @@ public class Util {
         for (Size option : choices) {
             if (option.getWidth() >= width && option.getHeight() >= height) {
                 bigEnough.add(option);
+                Log.d("Util", "  option size: " + option.getWidth() + "x" + option.getHeight());
             }
         }
 

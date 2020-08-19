@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.graphics.ImageFormat;
+import android.graphics.Rect;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
@@ -52,6 +53,7 @@ import java.util.List;
 public class CameraPreviewManager {
 
     public static final String TAG = CameraPreviewManager.class.getSimpleName();
+    public static final int CROP_REGION_XY = 512;
 
     @RootContext
     Context context;
@@ -157,9 +159,11 @@ public class CameraPreviewManager {
         Log.d(TAG, "paused");
     }
 
+
     public void orientationChanged(Util.Orientation orientation) {
         this.orientation = orientation;
     }
+
 
     public void captureImage() {
         if (backgroundHandler == null) {
@@ -169,6 +173,7 @@ public class CameraPreviewManager {
         Log.d(TAG, "start capturing image");
         backgroundHandler.post(captureState == State.STATE_PREVIEW ? lockFocus : unlockFocus);
     }
+
 
     private Runnable lockFocus = new Runnable() {
         @Override
@@ -190,6 +195,7 @@ public class CameraPreviewManager {
         }
     };
 
+
     private Runnable unlockFocus = new Runnable() {
         @Override
         public void run() {
@@ -208,6 +214,7 @@ public class CameraPreviewManager {
         }
     };
 
+
     private Runnable runPrecaptureSequence = new Runnable() {
         @Override
         public void run() {
@@ -224,6 +231,7 @@ public class CameraPreviewManager {
         }
     };
 
+
     private Runnable captureStillImage = new Runnable() {
         @Override
         public void run() {
@@ -236,6 +244,10 @@ public class CameraPreviewManager {
 
                 captureRequest.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
                 captureRequest.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
+
+                // TODO: set exact crop region here
+                Rect cropRect = getCropRegion();
+                captureRequest.set(CaptureRequest.SCALER_CROP_REGION, cropRect);
 
                 CameraCaptureSession.CaptureCallback inlineCaptureCallback = new CameraCaptureSession.CaptureCallback() {
                     @Override
@@ -254,14 +266,41 @@ public class CameraPreviewManager {
         }
     };
 
+
+    private Rect getCropRegion() {
+        Rect screenSize;
+        try {
+            CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
+            screenSize = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+        } catch (Exception exception) {
+            Log.w(TAG, "unable to determine sensor active array size. use preview size instead");
+            // TODO:
+            screenSize = new Rect(0, 0, 2688, 1512);
+        }
+
+        int halfCropRegion = CROP_REGION_XY / 2;
+        int halfScreenWidth = screenSize.right / 2;
+        int halfScreenHeight = screenSize.bottom / 2;
+
+        int left = halfScreenWidth - halfCropRegion;
+        int top = halfScreenHeight - halfCropRegion;
+        int right = halfScreenWidth + halfCropRegion;
+        int bottom = halfScreenHeight + halfCropRegion;
+
+        return new Rect(left, top, right, bottom);
+    }
+
+
     private void startAndBindImageProcessService() {
         context.bindService(ImageProcessingService_.intent(context).get(), serviceConnection, Context.BIND_AUTO_CREATE);
     }
+
 
     private void stopAndUnbindImageProcessService() {
         context.unbindService(serviceConnection);
         context.stopService(ImageProcessingService_.intent(context).get());
     }
+
 
     private void setSurfaceViewSize(int requestedWidth, int requestedHeight) {
         Size optimalSize = getOptimalPreviewSize(requestedWidth, requestedHeight);
@@ -270,7 +309,7 @@ public class CameraPreviewManager {
         Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
 
         if (captureBuffer == null) {
-            captureBuffer = ImageReader.newInstance(optimalSize.getWidth(), optimalSize.getHeight(), ImageFormat.JPEG, 2);
+            captureBuffer = ImageReader.newInstance(CROP_REGION_XY, CROP_REGION_XY, ImageFormat.YUV_420_888, 2);
             captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
         }
 
@@ -294,6 +333,7 @@ public class CameraPreviewManager {
         }
     }
 
+
     private String getBackFacingCameraId() {
         try {
             for (String cameraListId : cameraManager.getCameraIdList()) {
@@ -310,6 +350,7 @@ public class CameraPreviewManager {
         return null;
     }
 
+
     private Size getOptimalPreviewSize(int requestedWidth, int requestedHeight) {
         int width = requestedWidth;
         int height = requestedHeight;
@@ -318,6 +359,8 @@ public class CameraPreviewManager {
             width = requestedHeight;
             height = requestedWidth;
         }
+
+        Log.d(TAG, "surface old size: " + requestedWidth + "x" + requestedHeight);
 
         try {
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
@@ -330,6 +373,7 @@ public class CameraPreviewManager {
 
         return new Size(width, height);
     }
+
 
     private void processCaptureResult(CaptureResult captureResult) {
         switch (captureState) {
@@ -375,6 +419,7 @@ public class CameraPreviewManager {
             }
         }
     }
+
 
     private final SurfaceHolder.Callback surfaceHolderCallback = new SurfaceHolder.Callback() {
 
@@ -430,7 +475,7 @@ public class CameraPreviewManager {
             if (holder != null) {
                 try {
                     // Build a request for preview footage
-                    captureRequestBuilder = camera.createCaptureRequest(camera.TEMPLATE_PREVIEW);
+                    captureRequestBuilder = camera.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW);
                     captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                     captureRequestBuilder.addTarget(holder.getSurface());
 

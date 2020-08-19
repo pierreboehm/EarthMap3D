@@ -27,6 +27,8 @@ import java.nio.ByteBuffer;
 
 /** Utility class for manipulating images. */
 public class ImageUtils {
+    public static final String TAG = ImageUtils.class.getSimpleName();
+
     // This value is 2 ^ 18 - 1, and is used to clamp the RGB values before their ranges
     // are normalized to eight bits.
     static final int kMaxChannelValue = 262143;
@@ -62,13 +64,12 @@ public class ImageUtils {
      * @param filename The location to save the bitmap to.
      */
     public static void saveBitmap(final Bitmap bitmap, final String filename) {
-        final String root =
-                Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow";
-        //LOGGER.i("Saving %dx%d bitmap to %s.", bitmap.getWidth(), bitmap.getHeight(), root);
+        final String root = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "tensorflow";
+        Log.i(TAG,"saving bitmap to " + root);
         final File myDir = new File(root);
 
         if (!myDir.mkdirs()) {
-            //LOGGER.i("Make dir failed");
+            Log.i(TAG, "directory creation failed");
         }
 
         final String fname = filename;
@@ -82,7 +83,7 @@ public class ImageUtils {
             out.flush();
             out.close();
         } catch (final Exception e) {
-            //LOGGER.e(e, "Exception!");
+            Log.e(TAG, e.getMessage());
         }
     }
 
