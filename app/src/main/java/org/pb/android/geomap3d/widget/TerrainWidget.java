@@ -11,12 +11,15 @@ import android.view.MotionEvent;
 import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.compass.LowPassFilter;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
+import org.pb.android.geomap3d.data.route.model.Route;
+import org.pb.android.geomap3d.data.route.model.RoutePoint;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.layer.Layer;
 import org.pb.android.geomap3d.widget.layer.PositionLayer;
+import org.pb.android.geomap3d.widget.layer.RouteLayer;
 import org.pb.android.geomap3d.widget.layer.TerrainLayer;
 
 import java.nio.ByteBuffer;
@@ -309,6 +312,19 @@ public class TerrainWidget extends Widget {
 
             if (widgetConfiguration.hasLocation()) {
                 updateDeviceLocation(widgetConfiguration.getLocation());
+            }
+
+            if (widgetConfiguration.hasRoute()) {
+                Route route = widgetConfiguration.getRoute();
+
+                for (RoutePoint routePoint : route.getRoutePointList()) {
+                    Location location = GeoUtil.getLocation(routePoint.getLatitude(), routePoint.getLongitude());
+                    RouteLayer routeLayer = new RouteLayer(location, terrainGeoArea);
+
+                    if (routeLayer.isVisible()) {
+                        layers.add(routeLayer);
+                    }
+                }
             }
         }
 

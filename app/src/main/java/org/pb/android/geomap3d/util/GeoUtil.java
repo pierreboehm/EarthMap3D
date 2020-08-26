@@ -58,6 +58,13 @@ public class GeoUtil {
         return results[0];
     }
 
+    public static Location getLocation(double latitude, double longitude) {
+        Location location = new Location("");
+        location.setLatitude(latitude);
+        location.setLongitude(longitude);
+        return location;
+    }
+
     public static Location getLocationFromLatLng(LatLng pointLatLng) {
         if (pointLatLng == null) {
             Log.e(TAG, "Try to parse LatLng which is null");

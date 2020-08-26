@@ -21,8 +21,6 @@ import org.pb.android.geomap3d.AppPreferences_;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.compass.Compass;
 import org.pb.android.geomap3d.data.PersistManager;
-import org.pb.android.geomap3d.data.route.model.Route;
-import org.pb.android.geomap3d.data.route.model.Routes;
 import org.pb.android.geomap3d.dialog.SettingsDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
@@ -30,15 +28,10 @@ import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
 import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.core.Persister;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import static org.androidannotations.annotations.UiThread.Propagation.REUSE;
@@ -103,9 +96,6 @@ public class TerrainFragment extends Fragment {
         if (openGLSurfaceView != null) {
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
         }
-
-        List<Route> availableRoutes = loadAvailableRoutes();
-
     }
 
     @Override
@@ -207,28 +197,6 @@ public class TerrainFragment extends Fragment {
         if (openGLSurfaceView != null) {
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
         }
-    }
-
-    private List<Route> loadAvailableRoutes() {
-        Serializer serializer = new Persister();
-        InputStream xmlRoutes = getResources().openRawResource(R.raw.routes);
-
-        try {
-            Routes routes = serializer.read(Routes.class, xmlRoutes);
-            if (routes != null) {
-                return routes.getRouteList();
-            }
-        } catch (Exception exception) {
-            Log.e(TAG, exception.getMessage());
-        } finally {
-            try {
-                xmlRoutes.close();
-            } catch (Exception exception) {
-                // not implemented
-            }
-        }
-
-        return new ArrayList<>();
     }
 
     private Compass.CompassListener getCompassListener() {

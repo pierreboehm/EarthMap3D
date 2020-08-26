@@ -35,7 +35,7 @@ public class PositionLayer extends Layer {
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
     private float scale = 0.5f;
-    private boolean showPointer = false;     // FIXME: should be false, until first location update
+    private boolean showPointer = true;     // FIXME: should be false, until first location update
 
     public PositionLayer(Location location, LayerType layerType) {
         this.location = location;
@@ -102,6 +102,10 @@ public class PositionLayer extends Layer {
     public void updateLocation(@Nullable Location location, GeoArea geoArea) {
         if (location == null) {
             Log.i(TAG, "received location is null");
+            return;
+        }
+
+        if (GeoUtil.getDistanceBetweenTwoPointsInMeter(this.location, location) == 0f) {
             return;
         }
 

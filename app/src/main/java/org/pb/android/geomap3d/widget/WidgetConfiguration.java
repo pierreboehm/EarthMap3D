@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
+import org.pb.android.geomap3d.data.route.model.Route;
 import org.pb.android.geomap3d.util.GeoUtil;
 
 import androidx.annotation.Nullable;
@@ -16,10 +17,12 @@ public class WidgetConfiguration {
 
     private Location location;
     private GeoArea geoArea;
+    private Route route;
 
     private WidgetConfiguration(Builder builder) {
         location = builder.location;
         geoArea = builder.geoArea;
+        route = builder.route;
 
         if (geoArea == null) {
             geoArea = new GeoArea.Builder()
@@ -54,6 +57,14 @@ public class WidgetConfiguration {
         return geoArea;
     }
 
+    public boolean hasRoute() {
+        return route != null;
+    }
+
+    public Route getRoute() {
+        return route;
+    }
+
     public static Builder create() {
         return new Builder();
     }
@@ -62,6 +73,7 @@ public class WidgetConfiguration {
         Location location;
         Bitmap heightMapBitmap = null;
         GeoArea geoArea = null;
+        Route route = null;
 
         public Builder setLocation(Location location) {
             this.location = location;
@@ -81,6 +93,11 @@ public class WidgetConfiguration {
 
         public Builder setGeoArea(GeoArea geoArea) {
             this.geoArea = geoArea;
+            return this;
+        }
+
+        public Builder setRoute(@Nullable Route route) {
+            this.route = route;
             return this;
         }
 
