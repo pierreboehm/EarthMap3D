@@ -78,6 +78,9 @@ public class CameraPreviewManager {
     private State captureState = State.STATE_PREVIEW;
     private static boolean imageBusy = false;
 
+    private boolean isZoomActive = false;
+    private boolean isDetectorActive = false;
+
     private enum State {
         STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN
     }
@@ -148,6 +151,9 @@ public class CameraPreviewManager {
             Log.d(TAG, "background handler thread closed");
         } catch (InterruptedException ex) {
             // implement
+        } finally {
+            backgroundHandlerThread = null;
+            backgroundHandler = null;
         }
 
         if (captureBuffer != null) {
@@ -157,6 +163,17 @@ public class CameraPreviewManager {
         }
 
         Log.d(TAG, "paused");
+    }
+
+
+    public synchronized void setZoomActive(boolean zoomState) {
+        isZoomActive = zoomState;
+        backgroundHandler.post(unlockFocus);
+    }
+
+
+    public void setDetectorActive(boolean detectorState) {
+        isDetectorActive = detectorState;
     }
 
 
@@ -201,12 +218,18 @@ public class CameraPreviewManager {
         public void run() {
             // TODO: unlock focus
 
-            Log.d(TAG, "unlock focus called");
+            Log.d(TAG, "unlock focus called. (zoom active: " + isZoomActive + ")");
 
             try {
                 captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
                 captureSession.capture(captureRequestBuilder.build(), null, null);
                 captureState = State.STATE_PREVIEW;
+
+                if (isZoomActive) {
+                    Rect cropRect = getCropRegion();
+                    captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRect);
+                }
+
                 captureSession.setRepeatingRequest(captureRequestBuilder.build(), captureCallback, null);
             } catch (Exception exception) {
                 Log.e(TAG, exception.getMessage());
@@ -246,8 +269,10 @@ public class CameraPreviewManager {
                 captureRequest.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
                 // TODO: set exact crop region here
-                Rect cropRect = getCropRegion();
-                captureRequest.set(CaptureRequest.SCALER_CROP_REGION, cropRect);
+                if (isZoomActive) {
+                    Rect cropRect = getCropRegion();
+                    captureRequest.set(CaptureRequest.SCALER_CROP_REGION, cropRect);
+                }
 
                 CameraCaptureSession.CaptureCallback inlineCaptureCallback = new CameraCaptureSession.CaptureCallback() {
                     @Override
@@ -304,9 +329,12 @@ public class CameraPreviewManager {
 
     private void setSurfaceViewSize(int requestedWidth, int requestedHeight) {
         Size optimalSize = getOptimalPreviewSize(requestedWidth, requestedHeight);
-        surfaceView.getHolder().setFixedSize(optimalSize.getWidth(), optimalSize.getHeight());
 
-        Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
+        if (optimalSize.getWidth() != requestedWidth || optimalSize.getHeight() != requestedHeight) {
+            surfaceView.getHolder().setFixedSize(optimalSize.getWidth(), optimalSize.getHeight());
+            Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
+            return;
+        }
 
         if (captureBuffer == null) {
             captureBuffer = ImageReader.newInstance(CROP_REGION_XY, CROP_REGION_XY, ImageFormat.YUV_420_888, 2);
@@ -360,7 +388,7 @@ public class CameraPreviewManager {
             height = requestedWidth;
         }
 
-        Log.d(TAG, "surface old size: " + requestedWidth + "x" + requestedHeight);
+        //Log.d(TAG, "surface old size: " + requestedWidth + "x" + requestedHeight);
 
         try {
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
@@ -479,6 +507,11 @@ public class CameraPreviewManager {
                     captureRequestBuilder.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
                     captureRequestBuilder.addTarget(holder.getSurface());
 
+                    if (isZoomActive) {
+                        Rect cropRect = getCropRegion();
+                        captureRequestBuilder.set(CaptureRequest.SCALER_CROP_REGION, cropRect);
+                    }
+
                     // Start displaying preview images
                     captureSession.setRepeatingRequest(captureRequestBuilder.build(), captureCallback, null);
                 } catch (Exception ex) {
@@ -503,6 +536,7 @@ public class CameraPreviewManager {
             // implement
         }
     };
+
 
     private final CameraCaptureSession.CaptureCallback captureCallback = new CameraCaptureSession.CaptureCallback() {
         @Override
@@ -553,11 +587,9 @@ public class CameraPreviewManager {
 
         @Override
         public void run() {
-            //Log.v(TAG, "got image. size: " + image.getWidth() + "x" + image.getHeight());
-
             if (imageProcessingService != null) {
                 if (!imageProcessingService.isImageProcessing()) {
-                    imageProcessingService.processImage(imageReader);
+                    imageProcessingService.processImage(imageReader, isDetectorActive);
                 }
             }
 

@@ -1,5 +1,6 @@
 package org.pb.android.geomap3d.event;
 
+import android.graphics.Bitmap;
 import android.location.Location;
 
 import com.google.android.gms.maps.model.LatLng;
@@ -186,5 +187,17 @@ public class Events {
     }
 
     public static class BionicEyeReady {
+    }
+
+    public static class ShowZoomedRegion {
+        private final Bitmap bitmap;
+
+        public ShowZoomedRegion(Bitmap bitmap) {
+            this.bitmap = bitmap;
+        }
+
+        public Bitmap getBitmap() {
+            return bitmap;
+        }
     }
 }

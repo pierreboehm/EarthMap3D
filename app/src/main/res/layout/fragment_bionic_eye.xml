@@ -9,6 +9,13 @@
         android:layout_width="match_parent"
         />
 
+    <!-- org.pb.android.geomap3d.view.OverlayView_
+        android:id="@+id/overlayView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="invisible"
+        / -->
+
     <org.pb.android.geomap3d.view.BionicEyeView_
         android:id="@+id/bionicEyeView"
         android:layout_width="250dp"
@@ -49,6 +56,20 @@
         android:padding="10dp"
         android:layout_alignParentStart="true"
         android:layout_alignParentBottom="true"
+        android:layout_margin="20dp"
+        />
+
+    <ImageButton
+        android:id="@+id/switchZoom"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:tint="@color/warm_blue"
+        android:src="@drawable/icn_zoom_in_c00"
+        android:scaleType="centerInside"
+        android:background="@drawable/rectangle_shape_rounded"
+        android:padding="10dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
         android:layout_margin="20dp"
         />
 

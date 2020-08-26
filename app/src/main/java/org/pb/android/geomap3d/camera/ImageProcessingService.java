@@ -47,7 +47,7 @@ public class ImageProcessingService extends Service {
     }
 
     @Background
-    public void processImage(ImageReader imageReader) {
+    public void processImage(ImageReader imageReader, boolean isDetectorActive) {
 
         Log.d(TAG,"received image for processing");
         imageBusy = true;
@@ -60,7 +60,10 @@ public class ImageProcessingService extends Service {
             Log.d(TAG, "image dimension: " + width + "x" + height);
             Bitmap rgbFrameBitmap = extractBitmapFromImage(image);
             image.close();
-            rgbFrameBitmap.recycle();
+
+            if (isDetectorActive) {
+                // TODO: handle bitmap for detector logic
+            }
 
         } else {
             Log.w(TAG, "processImage() image is NULL");
@@ -95,7 +98,8 @@ public class ImageProcessingService extends Service {
         Bitmap rgbFrameBitmap =  Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         rgbFrameBitmap.setPixels(rgbBytes, 0, width, 0, 0, width, height);
 
-        return cropCenter(rgbFrameBitmap);
+        //return cropCenter(rgbFrameBitmap);
+        return rgbFrameBitmap;
     }
 
     private Bitmap cropCenter(Bitmap bitmap) {

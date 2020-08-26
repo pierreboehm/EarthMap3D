@@ -48,6 +48,9 @@ public class BionicEyeFragment extends Fragment {
     @ViewById(R.id.ivHudRight)
     ImageView ivHudRight;
 
+    @ViewById(R.id.switchZoom)
+    ImageButton ibSwitchZoom;
+
     @Bean
     CameraPreviewManager cameraPreviewManager;
 
@@ -58,6 +61,7 @@ public class BionicEyeFragment extends Fragment {
     AudioPlayer audioPlayer;
 
     private Util.Orientation orientation;
+    private boolean zoomActive = false;
 
     @AfterViews
     public void initViews() {
@@ -105,6 +109,11 @@ public class BionicEyeFragment extends Fragment {
         animateBionicEyeReady();
     }
 
+    /*@Subscribe(threadMode = ThreadMode.ASYNC)
+    public void onEvent(Events.ShowZoomedRegion event) {
+        showZoomedRegion(event.getBitmap());
+    }*/
+
     @Click(R.id.bionicEyeView)
     public void onBionicEyeViewClick() {
         cameraPreviewManager.captureImage();
@@ -114,6 +123,27 @@ public class BionicEyeFragment extends Fragment {
     public void onScreenSwitchClick() {
         animateBionicEyeClose(new Events.ShowTerrainFragment());
     }
+
+    @Click(R.id.switchZoom)
+    public void onSwitchZoomClick() {
+        zoomActive = !zoomActive;
+
+        ibSwitchZoom.setImageResource(zoomActive ? R.drawable.icn_zoom_out_c00 : R.drawable.icn_zoom_in_c00);
+        //overlayView.setVisibility(zoomActive ? View.VISIBLE : View.INVISIBLE);
+        cameraPreviewManager.setZoomActive(zoomActive);
+
+        //if (zoomActive) {
+        //    cameraPreviewManager.captureImage();
+        //}
+    }
+
+    /*@UiThread
+    public void showZoomedRegion(Bitmap bitmap) {
+        if (zoomActive) {
+            //overlayView.bind(bitmap);
+            cameraPreviewManager.captureImage();
+        }
+    }*/
 
     private void animateBionicEyeReady() {
         animateBionicEye(170f, 50f, null);

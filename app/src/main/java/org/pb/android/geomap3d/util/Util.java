@@ -147,7 +147,7 @@ public class Util {
         for (Size option : choices) {
             if (option.getWidth() >= width && option.getHeight() >= height) {
                 bigEnough.add(option);
-                Log.d("Util", "  option size: " + option.getWidth() + "x" + option.getHeight());
+                //Log.d("Util", "  option size: " + option.getWidth() + "x" + option.getHeight());
             }
         }
 
