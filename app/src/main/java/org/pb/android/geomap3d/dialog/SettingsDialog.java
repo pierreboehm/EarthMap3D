@@ -17,8 +17,10 @@ import org.androidannotations.annotations.SeekBarProgressChange;
 import org.androidannotations.annotations.SeekBarTouchStop;
 import org.androidannotations.annotations.ViewById;
 import org.androidannotations.annotations.sharedpreferences.Pref;
+import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.AppPreferences_;
 import org.pb.android.geomap3d.R;
+import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.Util;
 
 import java.util.Locale;
@@ -74,6 +76,8 @@ public class SettingsDialog extends LinearLayout {
 
         seekBarTrackDistance.setEnabled(isTrackOn);
         switchAutomaticTrack.setText(isTrackOn ? R.string.trackOnText : R.string.trackOffText);
+        // don't send extra event. enabled-state and distance-value are updated at the same time
+        EventBus.getDefault().post(new Events.TrackDistanceChanged(preferences.defaultTrackDistanceInMeters().getOr(250)));
     }
 
     @SeekBarProgressChange(R.id.sbTrackDistance)
@@ -86,6 +90,8 @@ public class SettingsDialog extends LinearLayout {
     public void onTrackDistanceChanged(SeekBar seekBar) {
         int progressValue = Util.roundUp(seekBar.getProgress(), 50);
         preferences.defaultTrackDistanceInMeters().put(progressValue);
+
+        EventBus.getDefault().post(new Events.TrackDistanceChanged(progressValue));
     }
 
     public void show() {

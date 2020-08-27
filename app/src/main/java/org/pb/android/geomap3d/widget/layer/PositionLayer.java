@@ -35,11 +35,14 @@ public class PositionLayer extends Layer {
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
     private float scale = 0.5f;
+    private float pointSize;
     private boolean showPointer = true;     // FIXME: should be false, until first location update
 
     public PositionLayer(Location location, LayerType layerType) {
         this.location = location;
         this.layerType = layerType;
+
+        pointSize = layerType == LayerType.CDP ? 12f : 6f;
 
         initLayer();
     }
@@ -65,15 +68,15 @@ public class PositionLayer extends Layer {
         gl.glColor4f(layerType.getGlColor().red, layerType.getGlColor().green, layerType.getGlColor().blue, 1f);
 
         // draw center point w/o scale
-        gl.glPointSize(12f);
+        gl.glPointSize(pointSize);
         gl.glDrawArrays(GL10.GL_POINTS, 0, 1);
 
-        // draw line
-        gl.glLineWidth(1f); // or 1f
-        gl.glDrawArrays(GL10.GL_LINES, 1, 2);
-
-        // draw animated ring just for CDP
+        // draw line and animated ring just for CDP
         if (layerType == LayerType.CDP) {
+            // draw line
+            gl.glLineWidth(1f); // or 1f
+            gl.glDrawArrays(GL10.GL_LINES, 1, 2);
+
             gl.glScalef(scale, 1f, scale);
 
             // draw ring
@@ -105,12 +108,13 @@ public class PositionLayer extends Layer {
             return;
         }
 
-        if (GeoUtil.getDistanceBetweenTwoPointsInMeter(this.location, location) == 0f) {
+        // ignore location updates that equal current position
+        if (layerType == LayerType.CDP && GeoUtil.getDistanceBetweenTwoPointsInMeter(this.location, location) == 0f) {
             return;
         }
 
         this.location = location;
-        Log.v(TAG, String.format(Locale.US, "new location: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
+        Log.v(TAG, String.format(Locale.US, "new location: lat=%.06f, lng=%.06f, layerType=%s", location.getLatitude(), location.getLongitude(), layerType.name()));
 
         if (GeoUtil.isLocationOnMap(location, geoArea)) {
 
@@ -143,15 +147,16 @@ public class PositionLayer extends Layer {
     private void initLayer() {
         points = new ArrayList<>();
 
-        // point
-        points.add(new Util.PointF3D(0f, 0.1f, 0f));
-
-        // line
-        points.add(new Util.PointF3D(0f, 0.1f, 0f));
-        points.add(new Util.PointF3D(0f, 0f, 0f));
-
-        // ring
         if (layerType == LayerType.CDP) {
+
+            // point
+            points.add(new Util.PointF3D(0f, 0.1f, 0f));
+
+            // line
+            points.add(new Util.PointF3D(0f, 0.1f, 0f));
+            points.add(new Util.PointF3D(0f, 0f, 0f));
+
+            // ring
             for (int i = 9; i < 368; i++) {
                 points.add(new Util.PointF3D(
                         (float) (Math.cos((double) (i - 9) * Math.PI / 180.0) * 0.01f),
@@ -159,6 +164,8 @@ public class PositionLayer extends Layer {
                         (float) (Math.sin((double) (i - 9) * Math.PI / 180.0) * 0.01f)
                 ));
             }
+        } else if (layerType == LayerType.TDP) {
+            points.add(new Util.PointF3D(0f, 0f, 0f));
         }
 
         vertices = initVertices(points);

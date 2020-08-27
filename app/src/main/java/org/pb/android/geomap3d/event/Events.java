@@ -200,4 +200,16 @@ public class Events {
             return bitmap;
         }
     }
+
+    public static class TrackDistanceChanged {
+        private final int trackDistance;
+
+        public TrackDistanceChanged(int trackDistance) {
+            this.trackDistance = trackDistance;
+        }
+
+        public int getTrackDistance() {
+            return trackDistance;
+        }
+    }
 }

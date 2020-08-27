@@ -94,6 +94,7 @@ public class TerrainFragment extends Fragment {
         }
 
         if (openGLSurfaceView != null) {
+            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(false));
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
         }
     }
@@ -152,6 +153,14 @@ public class TerrainFragment extends Fragment {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.TrackDistanceChanged event) {
+        if (openGLSurfaceView != null) {
+            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(false));
+            openGLSurfaceView.setTrackDistance(event.getTrackDistance());
+        }
+    }
+
     @UiThread(propagation = REUSE)
     void updateDeviceRotation(float azimuth) {
         if (openGLSurfaceView != null) {
@@ -195,6 +204,7 @@ public class TerrainFragment extends Fragment {
         }
 
         if (openGLSurfaceView != null) {
+            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(false));
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
         }
     }

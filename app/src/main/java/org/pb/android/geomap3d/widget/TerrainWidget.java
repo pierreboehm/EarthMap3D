@@ -130,6 +130,7 @@ public class TerrainWidget extends Widget {
                 } else if (Math.abs(diffY) > Math.abs(diffX)) {
                     float rotationX = (xRotation + diffY / 10f) % 360f;
 
+                    // ignore: "Warning Can be replaced with 'Math.min' call"
                     if (rotationX < 0f) {
                         xRotation = 0f;
                     } else if (rotationX > 30f) {
@@ -196,6 +197,7 @@ public class TerrainWidget extends Widget {
 
         synchronized (this) {
             layers.add(trackedDevicePositionLayer);
+            Log.d(TAG, "tracked location added");
         }
 
         // TODO: persists tracked location (event?)
@@ -207,6 +209,7 @@ public class TerrainWidget extends Widget {
         if (trackDistanceInMeters == 0) {
             trackEnabled = false;
         }
+        Log.d(TAG, "track distance changed --> " + trackDistanceInMeters + "m");
     }
 
     @Override
