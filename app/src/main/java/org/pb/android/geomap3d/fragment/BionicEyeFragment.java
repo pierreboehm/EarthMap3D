@@ -4,12 +4,14 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.ValueAnimator;
 import android.content.res.Configuration;
+import android.location.Location;
 import android.util.Log;
 import android.view.SurfaceView;
 
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
@@ -26,10 +28,13 @@ import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.audio.AudioPlayer;
 import org.pb.android.geomap3d.camera.CameraPreviewManager;
 import org.pb.android.geomap3d.compass.Compass;
+import org.pb.android.geomap3d.data.PersistManager;
 import org.pb.android.geomap3d.event.Events;
+import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.BionicEyeView;
 
+import java.util.Locale;
 import java.util.Objects;
 
 @EFragment(R.layout.fragment_bionic_eye)
@@ -42,6 +47,9 @@ public class BionicEyeFragment extends Fragment {
 
     @ViewById(R.id.bionicEyeView)
     BionicEyeView bionicEyeView;
+
+    @ViewById(R.id.tvAzimuth)
+    TextView tvAzimuth;
 
     @ViewById(R.id.ivHudLeft)
     ImageView ivHudLeft;
@@ -56,6 +64,12 @@ public class BionicEyeFragment extends Fragment {
     CameraPreviewManager cameraPreviewManager;
 
     @Bean
+    LocationManager locationManager;    // for getting current location
+
+    @Bean
+    PersistManager persistManager;      // for getting current GeoArea
+
+    @Bean
     Compass compass;
 
     @Bean
@@ -66,8 +80,7 @@ public class BionicEyeFragment extends Fragment {
 
     @AfterViews
     public void initViews() {
-        compass.setListener(getGravityListener());
-        //compass.setListener(getCompassListener());
+        compass.setListener(getCompassListener());
     }
 
     @Override
@@ -82,15 +95,19 @@ public class BionicEyeFragment extends Fragment {
         cameraPreviewManager.resume(previewSurfaceView);
         cameraPreviewManager.orientationChanged(orientation);
 
+        locationManager.setLocationUpdateListener(getLocationUpdateListener());
         compass.start();
     }
 
     @Override
     public void onPause() {
         EventBus.getDefault().unregister(this);
-        audioPlayer.release();
+
+        locationManager.removeLocationUpdateListener();
         compass.stop();
+        audioPlayer.release();
         cameraPreviewManager.pause();
+
         super.onPause();
     }
 
@@ -207,20 +224,64 @@ public class BionicEyeFragment extends Fragment {
         Log.d(TAG, "new orientation: " + orientation);
     }
 
-    /*private Compass.CompassListener getCompassListener() {
+    /*
+    private float getGradientToNextRoutePointInDegrees() {
+        if (lastKnownLocation == null) {
+            return 0f;
+        }
+
+        Location routePointLocation = findNearestRoutePointLocation();
+        if (routePointLocation == null) {
+            return 0f;
+        }
+
+        GeoUtil.PositionOffsets currentLocationOffsets = GeoUtil.getPositionOffsets(lastKnownLocation, terrainGeoArea);
+        GeoUtil.PositionOffsets routePointLocationOffsets = GeoUtil.getPositionOffsets(routePointLocation, terrainGeoArea);
+
+        float gradient = (routePointLocationOffsets.zOffset - currentLocationOffsets.zOffset) / (routePointLocationOffsets.xOffset - currentLocationOffsets.xOffset);
+        double degree = Math.toDegrees(Math.atan(gradient));
+
+        return (float) Util.roundScale(degree);
+    }
+
+    private Location findNearestRoutePointLocation() {
+        if (lastKnownLocation == null) {
+            return null;
+        }
+
+        RouteLayer routePoint = null;
+        float lastDistance = GeoUtil.RADIUS_OF_EARTH_IN_KILOMETER * 1000f;
+
+        for (Layer layer : layers) {
+            if (layer instanceof RouteLayer) {
+                float distance = GeoUtil.getDistanceBetweenTwoPointsInMeter(((RouteLayer) layer).getLocation(), lastKnownLocation);
+                if (distance < lastDistance) {
+                    lastDistance = distance;
+                    routePoint = (RouteLayer) layer;
+                }
+            }
+        }
+
+        return routePoint == null ? null : routePoint.getLocation();
+    }
+    */
+
+    private Compass.CompassListener getCompassListener() {
         return new Compass.CompassListener() {
             @Override
-            public void onNewAzimuth(float azimuth) {
-                bionicEyeView.updateDeviceRotation(azimuth);
+            public void onRotationChanged(float azimuth, float pitch, float roll) {
+                bionicEyeView.updateDeviceRotation(azimuth, pitch, roll);
+                String azimuthText = String.format(Locale.getDefault(),"%d° %d° %d°", (int) azimuth, (int) pitch, (int) roll);
+                tvAzimuth.setText(azimuthText);
             }
         };
-    }*/
+    }
 
-    private Compass.GravityListener getGravityListener() {
-        return new Compass.GravityListener() {
+    private LocationManager.LocationUpdateListener getLocationUpdateListener() {
+        return new LocationManager.LocationUpdateListener() {
             @Override
-            public void onNewGravityData(final float[] gravity) {
-                bionicEyeView.updateDeviceOrientation(orientation, gravity);
+            public void onLocationUpdate(Location location) {
+                bionicEyeView.updateDeviceLocation(location);
             }
         };
     }

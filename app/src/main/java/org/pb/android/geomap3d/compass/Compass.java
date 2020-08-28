@@ -25,39 +25,24 @@ public class Compass implements SensorEventListener {
     LocationManager locationManager;
 
     public interface CompassListener {
-        void onNewAzimuth(float azimuth);
-    }
-
-    public interface GravityListener {
-        void onNewGravityData(float[] gravity);
+        void onRotationChanged(float azimuth, float pitch, float roll);
     }
 
     private CompassListener compassListener;
-    private GravityListener gravityListener;
 
     private SensorManager sensorManager;
-    private Sensor gravitySensor;
     private Sensor compassSensor;
 
-    private float[] gravityData = new float[3];
     private float[] rotationMatrix = new float[9];
-
-    @SuppressWarnings("FieldCanBeLocal")
-    private float[] smoothedData = new float[3];
 
     @SuppressWarnings("WeakerAccess")
     public Compass(Context context) {
         sensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-
         compassSensor = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR);
-        // FIXME: Remove! Only use ROTATION_VECTOR!
-        gravitySensor = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
     }
 
     public void start() {
         sensorManager.registerListener(this, compassSensor, SensorManager.SENSOR_DELAY_UI);
-        // FIXME: Remove! Only use compassSensor!
-        sensorManager.registerListener(this, gravitySensor, SensorManager.SENSOR_DELAY_UI);
     }
 
     public void stop() {
@@ -66,11 +51,6 @@ public class Compass implements SensorEventListener {
 
     public void setListener(CompassListener compassListener) {
         this.compassListener = compassListener;
-    }
-
-    // FIXME: Remove! Use CompassListener (pitch) instead!
-    public void setListener(GravityListener gravityListener) {
-        this.gravityListener = gravityListener;
     }
 
     @Override
@@ -109,20 +89,11 @@ public class Compass implements SensorEventListener {
                 float[] orientation = new float[3];
                 SensorManager.getOrientation(adjustedRotationMatrix, orientation);
 
-                // TODO: check if correct: azimuth: 0, pitch: 1, roll: 2
-
                 float azimuth = (float) (Math.toDegrees(orientation[0]) + 360f) % 360f;
-                compassListener.onNewAzimuth(azimuth);
-            }
+                float pitch = (float) (Math.toDegrees(orientation[1]) + 360f) % 360f;
+                float roll = (float) (Math.toDegrees(orientation[2]) + 360f) % 360f;
 
-            // FIXME: Remove! Use ROTATION_VECTOR instead!
-            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                smoothedData = LowPassFilter.filter(event.values, gravityData);
-                System.arraycopy(smoothedData, 0, gravityData, 0, 3);
-
-                if (gravityListener != null) {
-                    gravityListener.onNewGravityData(smoothedData);
-                }
+                compassListener.onRotationChanged(azimuth, pitch, roll);
             }
         }
     }

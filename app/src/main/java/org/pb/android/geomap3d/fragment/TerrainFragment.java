@@ -212,7 +212,7 @@ public class TerrainFragment extends Fragment {
     private Compass.CompassListener getCompassListener() {
         return new Compass.CompassListener() {
             @Override
-            public void onNewAzimuth(final float azimuth) {
+            public void onRotationChanged(float azimuth, float pitch, float roll) {
                 updateDeviceRotation(azimuth);
             }
         };

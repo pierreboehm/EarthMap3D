@@ -23,6 +23,19 @@
         android:layout_centerInParent="true"
         />
 
+    <TextView
+        android:id="@+id/tvAzimuth"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
+        android:textColor="@android:color/white"
+        android:textStyle="bold"
+        android:textSize="20dp"
+        android:text="135°"
+        />
+
     <ImageView
         android:id="@+id/ivHudLeft"
         android:layout_width="150dp"

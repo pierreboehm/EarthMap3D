@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
-import org.pb.android.geomap3d.compass.LowPassFilter;
+
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.data.route.model.Route;
 import org.pb.android.geomap3d.data.route.model.RoutePoint;
@@ -152,14 +152,7 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void updateDeviceRotation(float azimuth) {
-        // FIXME: value sequence 359° --> 0° --> 359° produces a calculation error while smoothing. (modulo doesn't help)
-        float smoothedAzimuth = LowPassFilter.filter(azimuth, yRotation, .005f);
-        float roundScaledAzimuth = (float) roundScale(smoothedAzimuth);
-//        Log.v(TAG, "roundScaledAzimuth = " + roundScaledAzimuth + "°");
-        if (Math.abs(yRotation - roundScaledAzimuth) > .04f) {
-            yRotation = roundScaledAzimuth;
-            Log.v(TAG, "yRotation = " + yRotation + "°");
-        }
+        yRotation = azimuth;
     }
 
     @Override
