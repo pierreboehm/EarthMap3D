@@ -22,7 +22,6 @@ public class RouteLayer extends Layer {
     private List<Util.PointF3D> points = new ArrayList<>();
     private FloatBuffer vertices;
 
-    private Location location;
     private float positionYOffset = 0f;
     private float positionXOffset = 0f;
     private float positionZOffset = 0f;
@@ -30,7 +29,6 @@ public class RouteLayer extends Layer {
     private boolean isVisible = false;
 
     public RouteLayer(Location location, GeoArea geoArea) {
-        this.location = location;
         setupPositionOffsets(location, geoArea);
         initLayer();
     }
@@ -68,10 +66,6 @@ public class RouteLayer extends Layer {
     @Override
     public void updateTouch(MotionEvent motionEvent, float xRotation, float yRotation) {
         // not implemented
-    }
-
-    public Location getLocation() {
-        return location;
     }
 
     public boolean isVisible() {

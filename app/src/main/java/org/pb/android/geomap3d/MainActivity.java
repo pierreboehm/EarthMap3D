@@ -32,7 +32,6 @@ import org.pb.android.geomap3d.data.map.service.GeoPlaceService;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.data.route.model.Route;
-import org.pb.android.geomap3d.data.route.model.Routes;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.BionicEyeFragment;
@@ -49,11 +48,7 @@ import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
 import org.pb.android.geomap3d.widget.WidgetConfiguration;
 import org.pb.android.geomap3d.widget.WidgetManager;
-import org.simpleframework.xml.Serializer;
-import org.simpleframework.xml.core.Persister;
 
-import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import androidx.annotation.NonNull;
@@ -331,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        List<Route> routeList = loadAvailableRoutes();
+        List<Route> routeList = Util.loadAvailableRoutes(this);
         Route route = routeList.isEmpty() ? null : routeList.get(0);
 
         WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
@@ -347,28 +342,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         widgetManager.setWidgetForInitiationOrUpdate(terrainWidget, widgetConfiguration);
-    }
-
-    private List<Route> loadAvailableRoutes() {
-        Serializer serializer = new Persister();
-        InputStream xmlRoutes = getResources().openRawResource(R.raw.routes);
-
-        try {
-            Routes routes = serializer.read(Routes.class, xmlRoutes);
-            if (routes != null) {
-                return routes.getRouteList();
-            }
-        } catch (Exception exception) {
-            Log.e(TAG, exception.getMessage());
-        } finally {
-            try {
-                xmlRoutes.close();
-            } catch (Exception exception) {
-                // not implemented
-            }
-        }
-
-        return new ArrayList<>();
     }
 
     private void setFragment(Fragment fragment, String fragmentTag) {

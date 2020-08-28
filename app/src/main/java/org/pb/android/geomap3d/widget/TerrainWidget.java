@@ -130,13 +130,10 @@ public class TerrainWidget extends Widget {
                 } else if (Math.abs(diffY) > Math.abs(diffX)) {
                     float rotationX = (xRotation + diffY / 10f) % 360f;
 
-                    // ignore: "Warning Can be replaced with 'Math.min' call"
                     if (rotationX < 0f) {
                         xRotation = 0f;
-                    } else if (rotationX > 30f) {
-                        xRotation = 30f;
                     } else {
-                        xRotation = rotationX;
+                        xRotation = Math.min(rotationX, 30f);
                     }
                 }
 
@@ -232,6 +229,19 @@ public class TerrainWidget extends Widget {
         return lastKnownLocation;
     }
 
+    // NOTE: vertical scale is 0 (black) to 1,024 (white) meters
+    // TODO: See comment in README of map-archive. Elevation calculation was adapted. May be, calculation must be adapted here.
+    public static float getElevationValueFromLocation(Bitmap bitmap, double xCoordinate, double zCoordinate) {
+        int xPosition = (int) roundScale((xCoordinate + XZ_DIMENSION) * 100);
+        int zPosition = (int) roundScale((zCoordinate + XZ_DIMENSION) * 100);
+
+        int color = bitmap.getPixel(xPosition, zPosition);      // 0 .. 255
+        int rgbValue = Color.red(color);
+
+        double yCoordinate = rgbValue * 4 * XZ_DIMENSION / 1024;
+        return (float) yCoordinate / 4f;
+    }
+
     private void sendProgressUpdate(int currentCount, int maximalCount) {
         float progressValue = (float) currentCount * 100f / (float) maximalCount;
         if ((int) progressValue > lastKnownProgressValue) {
@@ -278,17 +288,12 @@ public class TerrainWidget extends Widget {
         return new Pair<>(points.size(), initVertices(points));
     }
 
-    // NOTE: vertical scale is 0 (black) to 1,024 (white) meters
-    // TODO: See comment in README of map-archive. Elevation calculation was adapted. May be, calculation must be adapted here.
-    public static float getElevationValueFromLocation(Bitmap bitmap, double xCoordinate, double zCoordinate) {
-        int xPosition = (int) roundScale((xCoordinate + XZ_DIMENSION) * 100);
-        int zPosition = (int) roundScale((zCoordinate + XZ_DIMENSION) * 100);
-
-        int color = bitmap.getPixel(xPosition, zPosition);      // 0 .. 255
-        int rgbValue = Color.red(color);
-
-        double yCoordinate = rgbValue * 4 * XZ_DIMENSION / 1024;
-        return (float) yCoordinate / 4f;
+    private void initLayers() {
+        lastKnownLocation = null;
+        if (layers == null || layers.size() > 1) {
+            layers = new ArrayList<>();
+            layers.add(new TerrainLayer());
+        }
     }
 
     private PositionLayer getDevicePositionLayer() {
@@ -298,14 +303,6 @@ public class TerrainWidget extends Widget {
             }
         }
         return null;
-    }
-
-    private void initLayers() {
-        lastKnownLocation = null;
-        if (layers == null || layers.size() > 1) {
-            layers = new ArrayList<>();
-            layers.add(new TerrainLayer());
-        }
     }
 
     private class InitiationThread implements Runnable {

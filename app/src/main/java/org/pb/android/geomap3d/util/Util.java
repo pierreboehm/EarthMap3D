@@ -18,6 +18,13 @@ import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
+import org.pb.android.geomap3d.R;
+import org.pb.android.geomap3d.data.route.model.Route;
+import org.pb.android.geomap3d.data.route.model.Routes;
+import org.simpleframework.xml.Serializer;
+import org.simpleframework.xml.core.Persister;
+
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -26,6 +33,8 @@ import java.util.List;
 import static android.content.Context.WINDOW_SERVICE;
 
 public class Util {
+
+    private static final String TAG = Util.class.getSimpleName();
 
     public enum Orientation {
         PORTRAIT, LANDSCAPE
@@ -111,6 +120,28 @@ public class Util {
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         intent.setAction(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
         context.startActivity(intent);
+    }
+
+    public static List<Route> loadAvailableRoutes(Context context) {
+        Serializer serializer = new Persister();
+        InputStream xmlRoutes = context.getResources().openRawResource(R.raw.routes);
+
+        try {
+            Routes routes = serializer.read(Routes.class, xmlRoutes);
+            if (routes != null) {
+                return routes.getRouteList();
+            }
+        } catch (Exception exception) {
+            Log.e(TAG, exception.getMessage());
+        } finally {
+            try {
+                xmlRoutes.close();
+            } catch (Exception exception) {
+                // not implemented
+            }
+        }
+
+        return new ArrayList<>();
     }
 
     public static class PointF3D {

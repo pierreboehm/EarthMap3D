@@ -13,13 +13,12 @@ public class WidgetManager {
     public void setWidgetForInitiationOrUpdate(Widget widget, WidgetConfiguration widgetConfiguration) {
         this.widget = widget;
 
-        if (!widget.isInitialized()) {
+        if (!this.widget.isInitialized()) {
             Log.v(TAG, "start widget initiation for widget: " + widget.toString());
-            widget.initWidget(widgetConfiguration);
+            this.widget.initWidget(widgetConfiguration);
         } else {
             Log.v(TAG, "update widget configuration. (" + widget.toString() + ")");
-            widget.updateWidget(widgetConfiguration);
-
+            this.widget.updateWidget(widgetConfiguration);
         }
     }
 
