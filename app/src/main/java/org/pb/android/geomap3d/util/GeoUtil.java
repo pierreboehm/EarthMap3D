@@ -26,7 +26,7 @@ public class GeoUtil {
     public static final double DELTA_LATITUDE = 0.071865;
     public static final double DELTA_LONGITUDE = 0.114997;
 
-    private static final int RADIUS_OF_EARTH_IN_KILOMETER = 6371;
+    public static final int RADIUS_OF_EARTH_IN_KILOMETER = 6371;
     private static final double DEFAULT_SIDE_LENGTH = MapView.MINIMUM_GEO_FENCE_SIZE_IN_METER / 1000;
 
     public static boolean isLocationOnMap(Location location, GeoArea geoArea) {
@@ -173,7 +173,7 @@ public class GeoUtil {
         PositionOffsets(Location location, GeoArea geoArea) {
             xOffset = (float) ((TerrainWidget.XZ_DIMENSION * (location.getLongitude() - geoArea.getCenterPoint().getLongitude())) / (geoArea.getBoxEndPoint().getLongitude() - geoArea.getCenterPoint().getLongitude()));
             zOffset = -(float) ((TerrainWidget.XZ_DIMENSION * (location.getLatitude() - geoArea.getCenterPoint().getLatitude())) / (geoArea.getBoxStartPoint().getLatitude() - geoArea.getCenterPoint().getLatitude()));
-            yOffset = TerrainWidget.getElevationValueFromLocation(geoArea.getHeightMapBitmap(), (double) xOffset, (double) zOffset);
+            yOffset = TerrainWidget.getElevationValueFromLocation(geoArea.getHeightMapBitmap(), xOffset, zOffset);
         }
 
     }
