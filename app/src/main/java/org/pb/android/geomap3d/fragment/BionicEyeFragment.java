@@ -33,6 +33,7 @@ import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.BionicEyeView;
+import org.pb.android.geomap3d.view.CompassView;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -50,6 +51,9 @@ public class BionicEyeFragment extends Fragment {
 
     @ViewById(R.id.tvAzimuth)
     TextView tvAzimuth;
+
+    //@ViewById(R.id.compassView)
+    //CompassView compassView;
 
     @ViewById(R.id.ivHudLeft)
     ImageView ivHudLeft;
@@ -266,13 +270,53 @@ public class BionicEyeFragment extends Fragment {
     }
     */
 
+    private String getFormattedCompassValue(float azimuth) {
+        String direction = "";
+
+        if (azimuth >= 337.5f || azimuth <= 22.5f) {
+            direction = "N";
+        } else if (azimuth >= 0f && azimuth <= 45f) {
+            direction = "NNE";
+        } else if (azimuth >= 22.5f && azimuth <= 67.5f) {
+            direction = "NE";
+        } else if (azimuth >= 45f && azimuth <= 90f) {
+            direction = "NEE";
+        } else if (azimuth >= 67.5f && azimuth <= 112.5f) {
+            direction = "E";
+        } else if (azimuth >= 90f && azimuth <= 135f) {
+            direction = "SEE";
+        } else if (azimuth >= 112.5f && azimuth <= 157.5f) {
+            direction = "SE";
+        } else if (azimuth >= 135f && azimuth <= 180f) {
+            direction = "SSE";
+        } else if (azimuth >= 157.5f && azimuth <= 202.5f) {
+            direction = "S";
+        } else if (azimuth >= 180f && azimuth <= 225f) {
+            direction = "SSW";
+        } else if (azimuth >= 202.5f && azimuth <= 247.5f) {
+            direction = "SW";
+        } else if (azimuth >= 225f && azimuth <= 270f) {
+            direction = "SWW";
+        } else if (azimuth >= 247.5f && azimuth <= 292.5f) {
+            direction = "W";
+        } else if (azimuth >= 270f && azimuth <= 213f) {
+            direction = "NWW";
+        } else if (azimuth >= 292.5f && azimuth <= 337.5f) {
+            direction = "NW";
+        } else if (azimuth >= 315f && azimuth <= 359.5f) {
+            direction = "NNW";
+        }
+
+        return String.format(Locale.getDefault(),"%d° %s", (int) azimuth, direction);
+    }
+
     private Compass.CompassListener getCompassListener() {
         return new Compass.CompassListener() {
             @Override
             public void onRotationChanged(float azimuth, float pitch, float roll) {
                 bionicEyeView.updateDeviceRotation(azimuth, pitch, roll);
-                String azimuthText = String.format(Locale.getDefault(),"%d° %d° %d°", (int) azimuth, (int) pitch, (int) roll);
-                tvAzimuth.setText(azimuthText);
+                //compassView.updateRotation(azimuth);
+                tvAzimuth.setText(getFormattedCompassValue(azimuth));
             }
         };
     }

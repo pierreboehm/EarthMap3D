@@ -23,17 +23,25 @@
         android:layout_centerInParent="true"
         />
 
+    <!-- org.pb.android.geomap3d.view.CompassView_
+        android:id="@+id/compassView"
+        android:layout_width="400dp"
+        android:layout_height="10dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="20dp"
+        / -->
+
     <TextView
         android:id="@+id/tvAzimuth"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="30dp"
         android:textColor="@android:color/white"
         android:textStyle="bold"
-        android:textSize="20dp"
-        android:text="135°"
+        android:textSize="12dp"
         />
 
     <ImageView

@@ -5,6 +5,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 import android.view.Surface;
 import android.view.WindowManager;
 
@@ -12,6 +13,8 @@ import org.androidannotations.annotations.Bean;
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.SystemService;
 import org.pb.android.geomap3d.location.LocationManager;
+
+import java.util.Locale;
 
 @EBean(scope = EBean.Scope.Singleton)
 public class Compass implements SensorEventListener {
@@ -89,9 +92,17 @@ public class Compass implements SensorEventListener {
                 float[] orientation = new float[3];
                 SensorManager.getOrientation(adjustedRotationMatrix, orientation);
 
-                float azimuth = (float) (Math.toDegrees(orientation[0]) + 360f) % 360f;
-                float pitch = (float) (Math.toDegrees(orientation[1]) + 360f) % 360f;
-                float roll = (float) (Math.toDegrees(orientation[2]) + 360f) % 360f;
+                float azimuth = (float) Math.toDegrees(orientation[0]);
+                float pitch = (float) Math.toDegrees(orientation[1]);
+                float roll = (float) Math.toDegrees(orientation[2]);
+
+                //Log.v(TAG, String.format(Locale.getDefault(), "raw: %.2f° %.2f° %.2f°", azimuth, pitch, roll));
+
+                azimuth = (azimuth + 360f) % 360f;
+                pitch = (pitch + 360f) % 360f;
+                roll = (roll + 360f) % 360;
+
+                //Log.v(TAG, String.format(Locale.getDefault(), "%.2f° %.2f° %.2f°", azimuth, pitch, roll));
 
                 compassListener.onRotationChanged(azimuth, pitch, roll);
             }
@@ -100,5 +111,10 @@ public class Compass implements SensorEventListener {
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
+        Log.d(TAG, "Orientation sensor accuracy level: " + accuracy);
+
+        if (accuracy != SensorManager.SENSOR_STATUS_ACCURACY_HIGH) {
+            Log.w(TAG, "Sensor needs to be calibrated!");
+        }
     }
 }
