@@ -21,7 +21,7 @@ public abstract class Layer {
 //        POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
 
         POL(GLColor.BLUE),    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
-        ROB(GLColor.GREEN);
+        ROB(GLColor.GREEN);     // Route point
 
         private final GLColor glColor;
 

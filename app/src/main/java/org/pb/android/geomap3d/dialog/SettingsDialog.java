@@ -28,6 +28,9 @@ import java.util.Locale;
 @EViewGroup(R.layout.dialog_settings)
 public class SettingsDialog extends LinearLayout {
 
+    public static final int DEFAULT_TRACK_DISTANCE = 250;
+    private static final int TRACK_DISTANCE_MULTIPLIER = 50;
+
     @ViewById(R.id.switchCompass)
     Switch switchCompass;
 
@@ -59,6 +62,9 @@ public class SettingsDialog extends LinearLayout {
         boolean trackPosition = preferences.trackPosition().getOr(true);
         switchAutomaticTrack.setText(trackPosition ? R.string.trackOnText : R.string.trackOffText);
         switchAutomaticTrack.setChecked(trackPosition);
+
+        int trackDistance = preferences.defaultTrackDistanceInMeters().getOr(DEFAULT_TRACK_DISTANCE);
+        tvTrackDistanceInMeters.setText(String.format(Locale.getDefault(), "%d m", trackDistance));
     }
 
     @Click(R.id.switchCompass)
@@ -77,18 +83,18 @@ public class SettingsDialog extends LinearLayout {
         seekBarTrackDistance.setEnabled(isTrackOn);
         switchAutomaticTrack.setText(isTrackOn ? R.string.trackOnText : R.string.trackOffText);
         // don't send extra event. enabled-state and distance-value are updated at the same time
-        EventBus.getDefault().post(new Events.TrackDistanceChanged(preferences.defaultTrackDistanceInMeters().getOr(250)));
+        EventBus.getDefault().post(new Events.TrackDistanceChanged(preferences.defaultTrackDistanceInMeters().getOr(DEFAULT_TRACK_DISTANCE)));
     }
 
     @SeekBarProgressChange(R.id.sbTrackDistance)
     public void onTrackDistanceChange(SeekBar seekBar, int progress) {
-        int value = Util.roundUp(progress, 50);
+        int value = Util.roundUp(progress, TRACK_DISTANCE_MULTIPLIER);
         tvTrackDistanceInMeters.setText(String.format(Locale.getDefault(), "%d m", value));
     }
 
     @SeekBarTouchStop(R.id.sbTrackDistance)
     public void onTrackDistanceChanged(SeekBar seekBar) {
-        int progressValue = Util.roundUp(seekBar.getProgress(), 50);
+        int progressValue = Util.roundUp(seekBar.getProgress(), TRACK_DISTANCE_MULTIPLIER);
         preferences.defaultTrackDistanceInMeters().put(progressValue);
 
         EventBus.getDefault().post(new Events.TrackDistanceChanged(progressValue));

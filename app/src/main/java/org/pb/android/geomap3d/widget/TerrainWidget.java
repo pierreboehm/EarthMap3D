@@ -13,6 +13,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.data.route.model.Route;
 import org.pb.android.geomap3d.data.route.model.RoutePoint;
+import org.pb.android.geomap3d.dialog.SettingsDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.util.GeoUtil;
@@ -59,7 +60,7 @@ public class TerrainWidget extends Widget {
     private Location lastKnownLocation;
 
     private boolean trackEnabled = true;
-    private int trackDistanceInMeters = 250;
+    private int trackDistanceInMeters = SettingsDialog.DEFAULT_TRACK_DISTANCE;
 
     public TerrainWidget() {
         touch = new Util.PointF3D(0f, 0f, 0f);
@@ -172,7 +173,6 @@ public class TerrainWidget extends Widget {
                 lastKnownLocation = location;
             }
 
-            // FIXME: make distance-value modifiable
             if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownLocation, location) > (float) trackDistanceInMeters) {
                 updateTrackedLocation(lastKnownLocation);
                 lastKnownLocation = location;
