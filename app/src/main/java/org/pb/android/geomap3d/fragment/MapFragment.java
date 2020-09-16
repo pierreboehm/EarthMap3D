@@ -28,6 +28,7 @@ import org.pb.android.geomap3d.view.ProgressView;
 import org.pb.android.geomap3d.widget.WidgetManager;
 
 import java.util.List;
+import java.util.Objects;
 
 import androidx.fragment.app.Fragment;
 
@@ -60,19 +61,16 @@ public class MapFragment extends Fragment {
     @AfterViews
     void initViews() {
         progressView.setStrokeWidth(10f);
-        progressView.setColor(getContext().getColor(R.color.warm_blue));
+        progressView.setColor(Objects.requireNonNull(getContext()).getColor(R.color.warm_blue));
 
-        if (lastKnownLocation != null) {
-            Log.v(TAG, "Set last known location: " + lastKnownLocation);
-            mapView.resetToInitialState();
-            mapView.updateLocation(lastKnownLocation);
-        } else if (locationManager.getLastKnownLocation() != null) {
-            Location lastKnownLocation = locationManager.getLastKnownLocation();
-            Log.v(TAG, "Set last known location: " + lastKnownLocation);
-            mapView.resetToInitialState();
-            mapView.updateLocation(lastKnownLocation);
-        } else {
+        Location lastLocation = lastKnownLocation == null ? locationManager.getLastKnownLocation() : lastKnownLocation;
+
+        if (lastLocation == null) {
             Log.v(TAG, "No last known location available. Waiting for incoming location update.");
+        } else {
+            Log.v(TAG, "Set last known location: " + lastLocation);
+            mapView.resetToInitialState();
+            mapView.updateLocation(lastLocation);
         }
     }
 
@@ -82,7 +80,7 @@ public class MapFragment extends Fragment {
 
         setRetainInstance(true);
 
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        Objects.requireNonNull(getActivity()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         EventBus.getDefault().register(this);
         locationManager.setLocationUpdateListener(getLocationUpdateListener());
 
@@ -93,7 +91,7 @@ public class MapFragment extends Fragment {
     public void onPause() {
         locationManager.removeLocationUpdateListener();
         EventBus.getDefault().unregister(this);
-        getActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
+        Objects.requireNonNull(getActivity()).setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED);
         super.onPause();
     }
 
@@ -114,6 +112,7 @@ public class MapFragment extends Fragment {
 
         if (event.getLoadingState() == LoadingState.LOADING_SUCCESS) {
             mapView.addStoredArea(event.getAreaName(), event.getAreaLocation());
+            // TODO: notify terrain widget for being updated
         } else {
             progressView.stopBlink();
         }
