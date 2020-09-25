@@ -79,7 +79,7 @@ public class TerrainWidget extends Widget {
                 if (layer instanceof PositionLayer) {
                     // filter all positionLayer visible in this terrain
                     if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoArea) &&
-                            (trackEnabled || layer.getLayerType() == Layer.LayerType.CDP) || layer.getLayerType() == Layer.LayerType.CMP) {
+                            (trackEnabled || layer.getLayerType() == Layer.LayerType.CDP || layer.getLayerType() == Layer.LayerType.CMP)) {
                         layer.draw(gl, vertices, numberOfPoints);
                     }
                 } else {
