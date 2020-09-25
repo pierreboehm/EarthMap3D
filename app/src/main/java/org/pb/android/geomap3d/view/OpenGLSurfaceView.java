@@ -67,6 +67,10 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
         ((RendererOpenGL) openGLRenderer).setTackEnabled(trackEnabled);
     }
 
+    public void setCampLocation(Location location) {
+        ((RendererOpenGL) openGLRenderer).setCampLocation(location);
+    }
+
     public void setWidget(Widget widget) {
         ((RendererOpenGL) openGLRenderer).setWidget(widget);
     }

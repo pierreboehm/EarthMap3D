@@ -42,7 +42,7 @@ public class PositionLayer extends Layer {
         this.location = location;
         this.layerType = layerType;
 
-        pointSize = layerType == LayerType.CDP ? 12f : 6f;
+        pointSize = (layerType == LayerType.CDP || layerType == LayerType.CMP) ? 12f : 6f;
 
         initLayer();
     }
@@ -72,20 +72,22 @@ public class PositionLayer extends Layer {
         gl.glDrawArrays(GL10.GL_POINTS, 0, 1);
 
         // draw line and animated ring just for CDP
-        if (layerType == LayerType.CDP) {
+        if (layerType == LayerType.CDP || layerType == LayerType.CMP) {
             // draw line
             gl.glLineWidth(1f); // or 1f
             gl.glDrawArrays(GL10.GL_LINES, 1, 2);
 
-            gl.glScalef(scale, 1f, scale);
+            if (layerType == LayerType.CDP) {
+                gl.glScalef(scale, 1f, scale);
 
-            // draw ring
-            gl.glLineWidth(4f);
-            gl.glDrawArrays(GL10.GL_LINE_LOOP, 3, 359);
+                // draw ring
+                gl.glLineWidth(4f);
+                gl.glDrawArrays(GL10.GL_LINE_LOOP, 3, 359);
 
-            scale = scale + 0.04f;
-            if (scale > 6f) {
-                scale = 0.5f;
+                scale = scale + 0.04f;
+                if (scale > 6f) {
+                    scale = 0.5f;
+                }
             }
         }
 
@@ -147,7 +149,7 @@ public class PositionLayer extends Layer {
     private void initLayer() {
         points = new ArrayList<>();
 
-        if (layerType == LayerType.CDP) {
+        if (layerType == LayerType.CDP || layerType == LayerType.CMP) {
 
             // point
             points.add(new Util.PointF3D(0f, 0.1f, 0f));
@@ -156,13 +158,15 @@ public class PositionLayer extends Layer {
             points.add(new Util.PointF3D(0f, 0.1f, 0f));
             points.add(new Util.PointF3D(0f, 0f, 0f));
 
-            // ring
-            for (int i = 9; i < 368; i++) {
-                points.add(new Util.PointF3D(
-                        (float) (Math.cos((double) (i - 9) * Math.PI / 180.0) * 0.01f),
-                        0f,
-                        (float) (Math.sin((double) (i - 9) * Math.PI / 180.0) * 0.01f)
-                ));
+            if (layerType == LayerType.CDP) {
+                // ring
+                for (int i = 9; i < 368; i++) {
+                    points.add(new Util.PointF3D(
+                            (float) (Math.cos((double) (i - 9) * Math.PI / 180.0) * 0.01f),
+                            0f,
+                            (float) (Math.sin((double) (i - 9) * Math.PI / 180.0) * 0.01f)
+                    ));
+                }
             }
         } else if (layerType == LayerType.TDP) {
             points.add(new Util.PointF3D(0f, 0f, 0f));

@@ -126,6 +126,12 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
         }
     }
 
+    public void setCampLocation(Location location) {
+        if (widget != null) {
+            widget.setCampLocation(location);
+        }
+    }
+
     public synchronized void updateScale(float scale) {
         this.scale = scale;
     }

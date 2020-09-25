@@ -79,7 +79,7 @@ public class TerrainWidget extends Widget {
                 if (layer instanceof PositionLayer) {
                     // filter all positionLayer visible in this terrain
                     if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoArea) &&
-                            (trackEnabled || layer.getLayerType() == Layer.LayerType.CDP)) {
+                            (trackEnabled || layer.getLayerType() == Layer.LayerType.CDP) || layer.getLayerType() == Layer.LayerType.CMP) {
                         layer.draw(gl, vertices, numberOfPoints);
                     }
                 } else {
@@ -208,6 +208,29 @@ public class TerrainWidget extends Widget {
     }
 
     @Override
+    public void setCampLocation(@Nullable Location location) {
+        if (location == null) {
+            Log.d(TAG, "Camp location not set yet");
+            return;
+        }
+
+        PositionLayer campPositionLayer = getCampPositionLayer();
+
+        if (campPositionLayer == null) {
+            campPositionLayer = new PositionLayer(location, Layer.LayerType.CMP);
+            campPositionLayer.updateLocation(location, terrainGeoArea);
+
+            synchronized (this) {
+                layers.add(campPositionLayer);
+                Log.d(TAG, "New camp position layer added.");
+            }
+        } else {
+            campPositionLayer.updateLocation(location, terrainGeoArea);
+            Log.d(TAG, "Existing camp position layer updated.");
+        }
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -292,6 +315,15 @@ public class TerrainWidget extends Widget {
     private PositionLayer getDevicePositionLayer() {
         for (Layer layer : layers) {
             if (layer instanceof PositionLayer && layer.getLayerType() == Layer.LayerType.CDP) {
+                return (PositionLayer) layer;
+            }
+        }
+        return null;
+    }
+
+    private PositionLayer getCampPositionLayer() {
+        for (Layer layer : layers) {
+            if (layer instanceof PositionLayer && layer.getLayerType() == Layer.LayerType.CMP) {
                 return (PositionLayer) layer;
             }
         }

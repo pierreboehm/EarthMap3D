@@ -21,12 +21,12 @@ import org.pb.android.geomap3d.AppPreferences_;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.compass.Compass;
 import org.pb.android.geomap3d.data.PersistManager;
+import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.dialog.SettingsDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
-import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
 
 import androidx.annotation.NonNull;
@@ -68,7 +68,7 @@ public class TerrainFragment extends Fragment {
     public void initViews() {
 
         if (Util.getOrientation(Objects.requireNonNull(getContext())) == Util.Orientation.PORTRAIT) {
-            bionicEye.setVisibility(View.INVISIBLE);
+            bionicEye.setVisibility(View.GONE);
         }
 
         if (!isInitiated) {
@@ -96,6 +96,18 @@ public class TerrainFragment extends Fragment {
         if (openGLSurfaceView != null) {
             openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(false));
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
+
+            float campLatitude = preferences.campLatitude().getOr(-1f);
+            float campLongitude = preferences.campLongitude().getOr(-1f);
+
+            if (campLatitude == -1f || campLongitude == -1f) {
+                openGLSurfaceView.setCampLocation(null);
+            } else {
+                Location campLocation = new Location("");
+                campLocation.setLatitude(campLatitude);
+                campLocation.setLongitude(campLongitude);
+                openGLSurfaceView.setCampLocation(campLocation);
+            }
         }
     }
 
@@ -121,13 +133,29 @@ public class TerrainFragment extends Fragment {
 
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
-        Location lastKnownLocation = ((TerrainWidget) widget).getLastKnownLocation();
+        //Location lastKnownLocation = ((TerrainWidget) widget).getLastKnownLocation();
+        Location lastKnownLocation = locationManager.getLastKnownLocation();
         EventBus.getDefault().post(new Events.ShowMapFragment(lastKnownLocation));
     }
 
     @Click(R.id.bionicEye)
     public void onBionicEyeClick() {
         EventBus.getDefault().post(new Events.ShowBionicEyeFragment());
+    }
+
+    @Click(R.id.markCamp)
+    public void onMarkCampClick() {
+        new ConfirmDialog.Builder(getContext())
+            .setMessage("Set this location to camp location?")
+            .setConfirmAction(new Runnable() {
+                @Override
+                public void run() {
+                    Location lastKnownLocation = locationManager.getLastKnownLocation();
+                    setAndStoreCampLocation(lastKnownLocation);
+                }
+            })
+            .build()
+            .show();
     }
 
     @Click(R.id.trackSettings)
@@ -182,15 +210,22 @@ public class TerrainFragment extends Fragment {
         }
     }
 
+    private void setAndStoreCampLocation(Location location) {
+        if (openGLSurfaceView != null) {
+            openGLSurfaceView.setCampLocation(location);
+
+            float latitude = location == null ? -1f : (float) location.getLatitude();
+            float longitude = location == null ? -1f : (float) location.getLongitude();
+
+            preferences.campLatitude().put(latitude);
+            preferences.campLongitude().put(longitude);
+        }
+    }
+
     private void handleOrientation(Configuration configuration) {
-        // TODO: why not simply make invisible?
         if (configuration.orientation == Configuration.ORIENTATION_PORTRAIT) {
-//            bionicEye.setEnabled(false);
-//            bionicEye.setBackgroundResource(R.drawable.rectangle_shape_rounded_disabled);
-            bionicEye.setVisibility(View.INVISIBLE);
+            bionicEye.setVisibility(View.GONE);
         } else {
-//            bionicEye.setEnabled(true);
-//            bionicEye.setBackgroundResource(R.drawable.rectangle_shape_rounded);
             bionicEye.setVisibility(View.VISIBLE);
         }
     }

@@ -22,6 +22,8 @@ public abstract class Widget implements Parcelable {
 
     public abstract void updateTrackEnabled(boolean trackEnabled);
 
+    public abstract void setCampLocation(Location location);
+
     public abstract void initWidget(WidgetConfiguration widgetConfiguration);
 
     public abstract void updateWidget(WidgetConfiguration widgetConfiguration);
