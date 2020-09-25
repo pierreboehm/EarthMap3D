@@ -364,7 +364,22 @@ public class MainActivity extends AppCompatActivity {
             geoArea = persistManager.storeGeoArea(bitmap, geoLocationCenter, terrainService.getLastTargetBounds());
 
             List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(geoLocationCenter);
+            if (geoPlaceItems.isEmpty()) {
+                Log.d(TAG, "No geoplaces found for location.");
+                return;
+            }
+
+            Log.d(TAG, "Found geoplaces for location:");
             // TODO: store found places related to freshly created geoLocationModel ...
+            for (GeoPlaceItem geoPlaceItem : geoPlaceItems) {
+                Log.d(TAG, String.format(">> %s (%s) lat=%.4f lng=%.4f dist=%.2f km",
+                        geoPlaceItem.getCity(),
+                        geoPlaceItem.getName(),
+                        geoPlaceItem.getLatitude(),
+                        geoPlaceItem.getLongitude(),
+                        geoPlaceItem.getDistanceInKilometers())
+                );
+            }
         }
 
         notifyHeightMapLoaded(geoArea, location, loadingState);
