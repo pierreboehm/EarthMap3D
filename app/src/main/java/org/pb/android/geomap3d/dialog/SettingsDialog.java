@@ -65,6 +65,7 @@ public class SettingsDialog extends LinearLayout {
 
         int trackDistance = preferences.defaultTrackDistanceInMeters().getOr(DEFAULT_TRACK_DISTANCE);
         tvTrackDistanceInMeters.setText(String.format(Locale.getDefault(), "%d m", trackDistance));
+        seekBarTrackDistance.setProgress(trackDistance);
     }
 
     @Click(R.id.switchCompass)
