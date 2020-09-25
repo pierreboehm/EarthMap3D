@@ -123,7 +123,7 @@ public class MapView extends FrameLayout implements OnMapReadyCallback, GoogleMa
         uiSettings.setCompassEnabled(true);
 
         this.googleMap.setIndoorEnabled(false);
-//        googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+        //this.googleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);     // TODO: need to be re-colored !
 
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             this.googleMap.setMyLocationEnabled(true);
