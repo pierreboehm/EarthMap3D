@@ -1,6 +1,9 @@
 <Routes>
     <Route>
-        <RoutePoint latitude="51.339014" longitude="9.752689"/>
-        <RoutePoint latitude="51.306323" longitude="9.733986"/>
+        <RoutePoint latitude="51.836171" longitude="10.593968"/>
+        <RoutePoint latitude="51.842021" longitude="10.611916"/>
+        <RoutePoint latitude="51.842477" longitude="10.634479"/>
+        <RoutePoint latitude="51.843035" longitude="10.649491"/>
+        <RoutePoint latitude="51.850486" longitude="10.659587"/>
     </Route>
 </Routes>

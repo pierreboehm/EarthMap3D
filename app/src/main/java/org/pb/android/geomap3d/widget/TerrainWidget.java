@@ -252,9 +252,9 @@ public class TerrainWidget extends Widget {
         int zPosition = (int) roundScale((zCoordinate + XZ_DIMENSION) * 100);
 
         int color = bitmap.getPixel(xPosition, zPosition);      // 0 .. 255
-        int rgbValue = Color.red(color);
+        int grayScaleValue = Color.red(color);
 
-        double yCoordinate = rgbValue * 4 * XZ_DIMENSION / 1024;
+        double yCoordinate = grayScaleValue * 4 * XZ_DIMENSION / 1024;
         return (float) yCoordinate / 4f;
     }
 
