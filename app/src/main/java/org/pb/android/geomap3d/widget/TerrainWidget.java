@@ -28,6 +28,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -45,7 +46,7 @@ public class TerrainWidget extends Widget {
 
     private static final String TAG = TerrainWidget.class.getSimpleName();
 
-    private List<Layer> layers;
+    private CopyOnWriteArrayList<Layer> layers;
 
     private FloatBuffer vertices;
     private int numberOfPoints;
@@ -59,6 +60,7 @@ public class TerrainWidget extends Widget {
     private GeoArea terrainGeoArea;
     private Location lastKnownLocation;
 
+    private boolean routePointsLoaded = false;
     private boolean trackEnabled = true;
     private int trackDistanceInMeters = SettingsDialog.DEFAULT_TRACK_DISTANCE;
 
@@ -68,7 +70,7 @@ public class TerrainWidget extends Widget {
     }
 
     @Override
-    public synchronized void draw(GL10 gl) {
+    public void draw(GL10 gl) {
         gl.glPushMatrix();
 
         gl.glRotatef(xRotation, 1f, 0f, 0f);
@@ -104,7 +106,7 @@ public class TerrainWidget extends Widget {
 
     @Override
     public boolean isInitialized() {
-        return vertices != null;
+        return vertices != null && routePointsLoaded;
     }
 
     @Override
@@ -185,10 +187,8 @@ public class TerrainWidget extends Widget {
         PositionLayer trackedDevicePositionLayer = new PositionLayer(location, Layer.LayerType.TDP);
         trackedDevicePositionLayer.updateLocation(location, terrainGeoArea);
 
-        synchronized (this) {
-            layers.add(trackedDevicePositionLayer);
-            Log.d(TAG, "tracked location added");
-        }
+        layers.add(trackedDevicePositionLayer);
+        Log.d(TAG, "tracked location added");
 
         // TODO: persists tracked location (event?)
     }
@@ -220,10 +220,8 @@ public class TerrainWidget extends Widget {
             campPositionLayer = new PositionLayer(location, Layer.LayerType.CMP);
             campPositionLayer.updateLocation(location, terrainGeoArea);
 
-            synchronized (this) {
-                layers.add(campPositionLayer);
-                Log.d(TAG, "New camp position layer added.");
-            }
+            layers.add(campPositionLayer);
+            Log.d(TAG, "New camp position layer added.");
         } else {
             campPositionLayer.updateLocation(location, terrainGeoArea);
             Log.d(TAG, "Existing camp position layer updated.");
@@ -307,7 +305,7 @@ public class TerrainWidget extends Widget {
     private void initLayers() {
         lastKnownLocation = null;
         if (layers == null || layers.size() > 1) {
-            layers = new ArrayList<>();
+            layers = new CopyOnWriteArrayList<>();
             layers.add(new TerrainLayer());
         }
     }
@@ -351,6 +349,8 @@ public class TerrainWidget extends Widget {
                     }
                 }
             }
+
+            routePointsLoaded = true;
         }
 
         @Override
