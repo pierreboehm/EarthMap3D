@@ -131,7 +131,7 @@ public class PositionLayer extends Layer {
             positionYOffset = positionOffsets.yOffset;
             positionZOffset = positionOffsets.zOffset;
         } else {
-            if (showPointer) {
+            if (showPointer && layerType == LayerType.CDP) {
                 EventBus.getDefault().postSticky(new Events.OutsideOfMap(location));
             }
 
