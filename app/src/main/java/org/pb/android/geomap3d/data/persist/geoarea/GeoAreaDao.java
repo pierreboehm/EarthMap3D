@@ -46,6 +46,13 @@ public class GeoAreaDao {
     }
 
     public void deleteArea(String areaName) {
+        // FIXME: delete operation is just temporarily! After reload app all deleted data are still available.
+        // SQLite.delete() need to open writeableDatabase instance!
         SQLite.delete().from(GeoArea.class).where(GeoArea_Table.name.eq(areaName));
+
+        /* !!! JUST FOR TEST PURPOSES !!!
+        DatabaseWrapper databaseWrapper = FlowManager.getWritableDatabase(GeoArea.class);
+        databaseWrapper.execSQL("DELETE FROM " + GeoAreaConfiguration.NAME + " WHERE " + GeoArea_Table.name + " = " + areaName);
+         */
     }
 }
