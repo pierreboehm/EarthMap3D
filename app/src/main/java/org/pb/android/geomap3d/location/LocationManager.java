@@ -178,7 +178,7 @@ public class LocationManager {
         if (preferences.trackPosition().getOr(true) && lastKnownLocation != null) {
             Location lastKnownTrackedLocation = trackedLocations.isEmpty() ? lastKnownLocation : trackedLocations.get(trackedLocations.size() - 1);
 
-            if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(250)) {
+            if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(50)) {
                 Log.v(TAG, String.format(Locale.US, "new location tracked: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
                 trackedLocations.add(location);
                 vibrateTrackedPositionFound();

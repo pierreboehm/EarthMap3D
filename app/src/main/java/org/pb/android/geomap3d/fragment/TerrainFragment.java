@@ -94,8 +94,8 @@ public class TerrainFragment extends Fragment {
         }
 
         if (openGLSurfaceView != null) {
-            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(false));
-            openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
+            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(true));
+            openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(50));
 
             float campLatitude = preferences.campLatitude().getOr(-1f);
             float campLongitude = preferences.campLongitude().getOr(-1f);
@@ -184,7 +184,7 @@ public class TerrainFragment extends Fragment {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent(Events.TrackDistanceChanged event) {
         if (openGLSurfaceView != null) {
-            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(false));
+            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(true));
             openGLSurfaceView.setTrackDistance(event.getTrackDistance());
         }
     }
@@ -239,8 +239,8 @@ public class TerrainFragment extends Fragment {
         }
 
         if (openGLSurfaceView != null) {
-            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(false));
-            openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(250));
+            openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(true));
+            openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(50));
         }
     }
 

@@ -14,7 +14,7 @@ public interface AppPreferences {
     @DefaultBoolean(true)
     boolean trackPosition();
 
-    @DefaultInt(250)
+    @DefaultInt(50)
     int defaultTrackDistanceInMeters();
 
     @DefaultInt(0)

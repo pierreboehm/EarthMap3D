@@ -205,6 +205,7 @@ public class TerrainWidget extends Widget {
     @Override
     public void updateTrackEnabled(boolean trackEnabled) {
         this.trackEnabled = trackEnabled;
+        Log.d(TAG, "track enabled state changed --> " + trackEnabled);
     }
 
     @Override

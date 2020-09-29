@@ -28,7 +28,7 @@ import java.util.Locale;
 @EViewGroup(R.layout.dialog_settings)
 public class SettingsDialog extends LinearLayout {
 
-    public static final int DEFAULT_TRACK_DISTANCE = 250;
+    public static final int DEFAULT_TRACK_DISTANCE = 50;
     private static final int TRACK_DISTANCE_MULTIPLIER = 50;
 
     @ViewById(R.id.switchCompass)
