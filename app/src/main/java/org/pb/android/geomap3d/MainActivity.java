@@ -2,6 +2,11 @@ package org.pb.android.geomap3d;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.app.KeyguardManager;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
@@ -72,6 +77,9 @@ public class MainActivity extends AppCompatActivity {
     AudioManager audioManager;
 
     @SystemService
+    KeyguardManager keyguardManager;
+
+    @SystemService
     Vibrator vibrator;
 
     @Pref
@@ -112,11 +120,14 @@ public class MainActivity extends AppCompatActivity {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // setup location service
         if (preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).start();
         }
 
-        Log.d(TAG, "activity creation");
+        registerDeviceLockReceiver();
+
+        Log.d(TAG, "Activity created.");
     }
 
     @Override
@@ -127,14 +138,16 @@ public class MainActivity extends AppCompatActivity {
         preferences.lastStreamVolume().put(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
 
+        /*
         // setup location service
         if (!preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).start();
         }
+         */
 
         EventBus.getDefault().register(this);
 
-        Log.d(TAG, "activity resumed");
+        Log.d(TAG, "Activity resumed.");
     }
 
     @Override
@@ -143,24 +156,28 @@ public class MainActivity extends AppCompatActivity {
         // restore stream music volume
         audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, preferences.lastStreamVolume().get(), 0);
 
+        /*
         // cleanup location service
         if (!preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).stop();
         }
+         */
 
         EventBus.getDefault().unregister(this);
 
-        Log.d(TAG, "activity paused");
+        Log.d(TAG, "Activity paused.");
         super.onPause();
     }
 
     @Override
     public void onDestroy() {
+        unregisterDeviceLockReceiver();
+
         if (preferences.trackPosition().getOr(true)) {
             LocationService_.intent(getApplicationContext()).stop();
         }
 
-        Log.d(TAG, "activity termination");
+        Log.d(TAG, "Activity terminated.");
         super.onDestroy();
     }
 
@@ -189,7 +206,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (closeAppToast != null) {
             closeAppToast.cancel();
-            Log.d(TAG, "activity termination requested");
+            Log.d(TAG, "Activity termination requested.");
             finish();
         } else {
             closeAppToast = Toast.makeText(this, R.string.backPressedHintText, Toast.LENGTH_SHORT);
@@ -271,6 +288,36 @@ public class MainActivity extends AppCompatActivity {
     public void onEvent(Events.LoadHeightMap event) {
         preloadMapForLocation(event.getTargetLocation());
     }
+
+    private void registerDeviceLockReceiver() {
+        IntentFilter deviceLockFilter = new IntentFilter();
+
+        deviceLockFilter.addAction(Intent.ACTION_SCREEN_ON);
+        deviceLockFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        deviceLockFilter.addAction(Intent.ACTION_USER_PRESENT);
+        deviceLockFilter.addAction(Intent.ACTION_USER_BACKGROUND);
+        deviceLockFilter.addAction(Intent.ACTION_USER_FOREGROUND);
+
+        registerReceiver(deviceLockBroadcastReceiver, deviceLockFilter);
+        Log.d(TAG, "Device lock receiver registered.");
+    }
+
+    private void unregisterDeviceLockReceiver() {
+        unregisterReceiver(deviceLockBroadcastReceiver);
+        Log.d(TAG, "Device lock receiver unregistered.");
+    }
+
+    private BroadcastReceiver deviceLockBroadcastReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String intentAction = intent.getAction();
+            boolean deviceLocked = keyguardManager.isDeviceLocked();
+
+            if (intentAction.equals(Intent.ACTION_SCREEN_ON) || intentAction.equals(Intent.ACTION_SCREEN_OFF) || intentAction.equals(Intent.ACTION_USER_PRESENT)) {
+                Log.i(TAG, String.format("action = %s locked = %b", intentAction, deviceLocked));
+            }
+        }
+    };
 
     private boolean checkPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
