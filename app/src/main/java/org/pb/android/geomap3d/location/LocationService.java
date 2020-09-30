@@ -21,13 +21,13 @@ public class LocationService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.v(TAG, "onCreate()");
+        Log.v(TAG, "Location manager created.");
         locationManager.onResume();
     }
 
     @Override
     public void onDestroy() {
-        Log.v(TAG, "onDestroy()");
+        Log.v(TAG, "Location manager destroyed.");
         locationManager.onPause();
         super.onDestroy();
     }

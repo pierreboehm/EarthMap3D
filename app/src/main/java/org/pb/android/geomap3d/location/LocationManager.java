@@ -100,7 +100,7 @@ public class LocationManager {
     }
 
     private void startLocationUpdates() {
-        Log.v(TAG, "startLocationUpdates()");
+        Log.v(TAG, "Start location updates.");
         LocationRequest locationRequest = new LocationRequest();
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         locationRequest.setInterval(UPDATE_INTERVAL);
@@ -118,7 +118,7 @@ public class LocationManager {
     }
 
     private void stopLocationUpdates() {
-        Log.v(TAG, "stopLocationUpdates()");
+        Log.v(TAG, "Stop location updates.");
         if (fusedLocationProviderClient != null) {
             fusedLocationProviderClient.removeLocationUpdates(locationCallback);
         }
@@ -179,7 +179,7 @@ public class LocationManager {
             Location lastKnownTrackedLocation = trackedLocations.isEmpty() ? lastKnownLocation : trackedLocations.get(trackedLocations.size() - 1);
 
             if (GeoUtil.getDistanceBetweenTwoPointsInMeter(lastKnownTrackedLocation, location) >= preferences.defaultTrackDistanceInMeters().getOr(50)) {
-                Log.v(TAG, String.format(Locale.US, "new location tracked: lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
+                Log.v(TAG, String.format(Locale.US, ">> new location tracked (background): lat=%.06f, lng=%.06f", location.getLatitude(), location.getLongitude()));
                 trackedLocations.add(location);
                 vibrateTrackedPositionFound();
             }
