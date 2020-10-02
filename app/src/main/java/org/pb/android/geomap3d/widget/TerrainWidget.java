@@ -22,18 +22,11 @@ import org.pb.android.geomap3d.widget.layer.Layer;
 import org.pb.android.geomap3d.widget.layer.PositionLayer;
 import org.pb.android.geomap3d.widget.layer.RouteLayer;
 import org.pb.android.geomap3d.widget.layer.TerrainLayer;
-
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
 
 import androidx.annotation.Nullable;
-import androidx.core.util.Pair;
 
 import static org.pb.android.geomap3d.util.Util.roundScale;
 
@@ -48,14 +41,11 @@ public class TerrainWidget extends Widget {
 
     private CopyOnWriteArrayList<Layer> layers;
 
-    private FloatBuffer vertices;
-    private int numberOfPoints;
-
     private float xRotation;
     private float yRotation;
 
     private Util.PointF3D touch;
-    private int lastKnownProgressValue = 0;
+    //private int lastKnownProgressValue = 0;
 
     private GeoArea terrainGeoArea;
     private Location lastKnownLocation;
@@ -82,10 +72,12 @@ public class TerrainWidget extends Widget {
                     // filter all positionLayer visible in this terrain
                     if (GeoUtil.isLocationOnMap(((PositionLayer) layer).getLocation(), terrainGeoArea) &&
                             (trackEnabled || layer.getLayerType() == Layer.LayerType.CDP || layer.getLayerType() == Layer.LayerType.CMP)) {
-                        layer.draw(gl, vertices, numberOfPoints);
+                        layer.draw(gl, null, 0);
                     }
+                } else if (layer instanceof TerrainLayer) {
+                    layer.draw(gl, null, 0);
                 } else {
-                    layer.draw(gl, vertices, numberOfPoints);
+                    layer.draw(gl, null, 0);
                 }
             }
         }
@@ -106,7 +98,8 @@ public class TerrainWidget extends Widget {
 
     @Override
     public boolean isInitialized() {
-        return vertices != null && routePointsLoaded;
+        TerrainLayer terrainLayer = getTerrainLayer();
+        return terrainLayer != null && terrainLayer.isInitialized();
     }
 
     @Override
@@ -257,6 +250,7 @@ public class TerrainWidget extends Widget {
         return (float) yCoordinate / 4f;
     }
 
+    /*
     private void sendProgressUpdate(int currentCount, int maximalCount) {
         float progressValue = (float) currentCount * 100f / (float) maximalCount;
         if ((int) progressValue > lastKnownProgressValue) {
@@ -264,51 +258,12 @@ public class TerrainWidget extends Widget {
             EventBus.getDefault().post(new Events.ProgressUpdate(progressValue));
         }
     }
-
-    private List<Util.PointF3D> initPoints(Bitmap bitmap) {
-        List<Util.PointF3D> points = new ArrayList<>();
-
-        int currentCount = 0;
-        int maximalCount = BITMAP_DIMENSION * BITMAP_DIMENSION;
-
-        // Just create flat with 1081 x 1081 points. Values are based on generated elevation map.
-        for (double xCoordinate = -XZ_DIMENSION; xCoordinate <= XZ_DIMENSION; xCoordinate = roundScale(xCoordinate + XZ_STRIDE)) {
-            for (double zCoordinate = -XZ_DIMENSION; zCoordinate <= XZ_DIMENSION; zCoordinate = roundScale(zCoordinate + XZ_STRIDE)) {
-                float elevationValue = getElevationValueFromLocation(bitmap, xCoordinate, zCoordinate);
-                points.add(new Util.PointF3D((float) xCoordinate, elevationValue, (float) zCoordinate));
-                sendProgressUpdate(++currentCount, maximalCount);
-            }
-        }
-
-        return points;
-    }
-
-    private FloatBuffer initVertices(List<Util.PointF3D> points) {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * 3 * points.size());
-        byteBuffer.order(ByteOrder.nativeOrder());
-        FloatBuffer vertices = byteBuffer.asFloatBuffer();
-
-        for (Util.PointF3D point : points) {
-            vertices.put(point.x);
-            vertices.put(point.y);
-            vertices.put(point.z);
-        }
-
-        vertices.position(0);
-        return vertices;
-    }
-
-    private Pair<Integer, FloatBuffer> initLayer(Bitmap bitmap) {
-        List<Util.PointF3D> points = initPoints(bitmap);
-        return new Pair<>(points.size(), initVertices(points));
-    }
+    */
 
     private void initLayers() {
         lastKnownLocation = null;
-        if (layers == null || layers.size() > 1) {
-            layers = new CopyOnWriteArrayList<>();
-            layers.add(new TerrainLayer());
-        }
+        layers = new CopyOnWriteArrayList<>();
+        layers.add(new TerrainLayer());
     }
 
     private PositionLayer getDevicePositionLayer() {
@@ -324,6 +279,15 @@ public class TerrainWidget extends Widget {
         for (Layer layer : layers) {
             if (layer instanceof PositionLayer && layer.getLayerType() == Layer.LayerType.CMP) {
                 return (PositionLayer) layer;
+            }
+        }
+        return null;
+    }
+
+    private TerrainLayer getTerrainLayer() {
+        for (Layer layer : layers) {
+            if (layer instanceof TerrainLayer) {
+                return (TerrainLayer) layer;
             }
         }
         return null;
@@ -351,15 +315,15 @@ public class TerrainWidget extends Widget {
                 }
             }
 
-            routePointsLoaded = true;
+            //routePointsLoaded = true;
         }
 
         @Override
         public void run() {
-            Pair<Integer, FloatBuffer> layerInitResults = initLayer(terrainGeoArea.getHeightMapBitmap());
-            //noinspection ConstantConditions
-            numberOfPoints = layerInitResults.first;
-            vertices = layerInitResults.second;
+            TerrainLayer terrainLayer = getTerrainLayer();
+            if (terrainLayer !=  null) {    // actually this can never be called
+                terrainLayer.initLayer(terrainGeoArea.getHeightMapBitmap());
+            }
 
             yRotation = RendererOpenGL.ROTATION_INITIAL;
             xRotation = RendererOpenGL.ROTATION_INITIAL / 2f;
