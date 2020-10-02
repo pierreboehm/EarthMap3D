@@ -50,7 +50,6 @@ public class TerrainWidget extends Widget {
     private GeoArea terrainGeoArea;
     private Location lastKnownLocation;
 
-    private boolean routePointsLoaded = false;
     private boolean trackEnabled = true;
     private int trackDistanceInMeters = SettingsDialog.DEFAULT_TRACK_DISTANCE;
 
@@ -161,6 +160,19 @@ public class TerrainWidget extends Widget {
         }
 
         positionLayer.updateLocation(location, terrainGeoArea);
+
+        TerrainLayer terrainLayer = getTerrainLayer();
+        if (terrainLayer != null) {
+            // TODO: get elevationValue from current location
+            if (GeoUtil.isLocationOnMap(location, terrainGeoArea)) {
+                GeoUtil.PositionOffsets positionOffsets = GeoUtil.getPositionOffsets(location, terrainGeoArea);
+                int layerKey = (int) roundScale (positionOffsets.yOffset * 4 * 1024 / XZ_DIMENSION / 4);
+                //Log.d(TAG, ">> elevation = " + layerKey);
+                if (terrainLayer.isInitialized()) {
+                    terrainLayer.setCurrentElevationValue(layerKey);
+                }
+            }
+        }
 
         if (location != null && trackDistanceInMeters > 0) {
 
@@ -314,8 +326,6 @@ public class TerrainWidget extends Widget {
                     }
                 }
             }
-
-            //routePointsLoaded = true;
         }
 
         @Override
