@@ -97,8 +97,8 @@ public class TerrainFragment extends Fragment {
             openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(true));
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(50));
 
-            float campLatitude = preferences.campLatitude().getOr(-1f);
-            float campLongitude = preferences.campLongitude().getOr(-1f);
+            float campLatitude = preferences.campLatitude().get();
+            float campLongitude = preferences.campLongitude().get();
 
             if (campLatitude == -1f || campLongitude == -1f) {
                 openGLSurfaceView.setCampLocation(null);
