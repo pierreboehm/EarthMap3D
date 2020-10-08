@@ -167,7 +167,7 @@ public class CameraPreviewManager {
 
 
     public synchronized void setZoomActive(boolean zoomState) {
-        isZoomActive = zoomState;
+        //isZoomActive = zoomState;
         backgroundHandler.post(unlockFocus);
     }
 

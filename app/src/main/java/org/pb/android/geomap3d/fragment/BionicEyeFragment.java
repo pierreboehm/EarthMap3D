@@ -80,7 +80,7 @@ public class BionicEyeFragment extends Fragment {
     AudioPlayer audioPlayer;
 
     private Util.Orientation orientation;
-    private boolean zoomActive = false;
+    //private boolean zoomActive = false;
 
     @AfterViews
     public void initViews() {
@@ -148,14 +148,14 @@ public class BionicEyeFragment extends Fragment {
 
     @Click(R.id.switchZoom)
     public void onSwitchZoomClick() {
-        zoomActive = !zoomActive;
+        //zoomActive = !zoomActive;
 
-        ibSwitchZoom.setImageResource(zoomActive ? R.drawable.icn_zoom_out_c00 : R.drawable.icn_zoom_in_c00);
+        //ibSwitchZoom.setImageResource(zoomActive ? R.drawable.icn_zoom_out_c00 : R.drawable.icn_zoom_in_c00);
         //overlayView.setVisibility(zoomActive ? View.VISIBLE : View.INVISIBLE);
-        cameraPreviewManager.setZoomActive(zoomActive);
+        //cameraPreviewManager.setZoomActive(zoomActive);
 
         //if (zoomActive) {
-        //    cameraPreviewManager.captureImage();
+        cameraPreviewManager.captureImage();
         //}
     }
 

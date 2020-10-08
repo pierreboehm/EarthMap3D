@@ -85,7 +85,7 @@
         android:layout_width="60dp"
         android:layout_height="60dp"
         android:tint="@color/warm_blue"
-        android:src="@drawable/icn_zoom_in_c00"
+        android:src="@drawable/icn_zoom_out_c00"
         android:scaleType="centerInside"
         android:background="@drawable/rectangle_shape_rounded"
         android:padding="10dp"
