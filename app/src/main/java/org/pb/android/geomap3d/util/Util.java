@@ -126,6 +126,9 @@ public class Util {
         Serializer serializer = new Persister();
         InputStream xmlRoutes = context.getResources().openRawResource(R.raw.routes);
 
+        // TODO: also look at sdcard --> 'routes.xml'
+        //  --> BE CAREFUL AND ENSURE MALFORMED XML CAN'T CRASH THE APP
+
         try {
             Routes routes = serializer.read(Routes.class, xmlRoutes);
             if (routes != null) {

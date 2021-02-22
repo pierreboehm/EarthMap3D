@@ -375,6 +375,7 @@ public class MainActivity extends AppCompatActivity {
 
         List<Route> routeList = Util.loadAvailableRoutes(this);
         Route route = routeList.isEmpty() ? null : routeList.get(0);
+        // TODO: Getting first route is just for test. Otherwise route is selected by current location.
 
         WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
                 .setLocation(geoArea.getCenterPoint())
