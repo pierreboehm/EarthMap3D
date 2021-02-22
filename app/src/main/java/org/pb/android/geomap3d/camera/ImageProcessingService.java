@@ -22,6 +22,7 @@ public class ImageProcessingService extends Service {
     public static final String TAG = ImageProcessingService.class.getSimpleName();
 
     private IBinder binder = new LocalBinder();
+    private Bitmap latestBitmap;
     private boolean imageBusy = false;
 
     @Override
@@ -46,6 +47,10 @@ public class ImageProcessingService extends Service {
         return imageBusy;
     }
 
+    public synchronized Bitmap getLatestBitmap() {
+        return latestBitmap;
+    }
+
     @Background
     public void processImage(ImageReader imageReader, boolean isDetectorActive) {
 
@@ -60,6 +65,8 @@ public class ImageProcessingService extends Service {
             Log.d(TAG, "image dimension: " + width + "x" + height);
             Bitmap rgbFrameBitmap = extractBitmapFromImage(image);
             image.close();
+
+            latestBitmap = rgbFrameBitmap;
 
             if (isDetectorActive) {
                 // TODO: handle bitmap for detector logic
