@@ -70,10 +70,10 @@ public class TerrainLayer extends Layer {
             int layerKey = entry.getKey();
 
             if (elevationValue > -1 && (layerKey >= elevationValue - 1 && layerKey <= elevationValue + 1)) {
-                gl.glColor4f(0f, 1f, 1f, 1f);
+                gl.glColor4f(.56f, .93f, .56f, 0f);
             } else {
                 float color4fBlue = (float) entry.getKey() / 255f;
-                gl.glColor4f(0f, .6f, .8f, color4fBlue);
+                gl.glColor4f(0f, .5f, color4fBlue, 0f);
             }
 
             gl.glVertexPointer(3, GL10.GL_FLOAT, 0, entry.getValue().second);
