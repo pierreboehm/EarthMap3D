@@ -8,6 +8,7 @@ import android.location.Location;
 import android.util.Log;
 import android.view.SurfaceView;
 
+import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -61,8 +62,14 @@ public class BionicEyeFragment extends Fragment {
     @ViewById(R.id.ivHudRight)
     ImageView ivHudRight;
 
-    @ViewById(R.id.switchZoom)
-    ImageButton ibSwitchZoom;
+    @ViewById(R.id.zoomIn)
+    ImageButton ibZoomIn;
+
+    @ViewById(R.id.zoomOut)
+    ImageButton ibZoomOut;
+
+    @ViewById(R.id.tvZoom)
+    TextView tvZoom;
 
     @Bean
     CameraPreviewManager cameraPreviewManager;
@@ -98,6 +105,7 @@ public class BionicEyeFragment extends Fragment {
 
         cameraPreviewManager.resume(previewSurfaceView);
         cameraPreviewManager.orientationChanged(orientation);
+        cameraPreviewManager.setZoomActive(true);
 
         locationManager.setLocationUpdateListener(getLocationUpdateListener());
         compass.start();
@@ -131,6 +139,19 @@ public class BionicEyeFragment extends Fragment {
         animateBionicEyeReady();
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onEvent(Events.ZoomChanged event) {
+        EventBus.getDefault().removeStickyEvent(event);
+
+        float zoomValue = event.getZoomValue();
+        if (zoomValue == 1f) {
+            tvZoom.setVisibility(View.GONE);
+        } else {
+            tvZoom.setVisibility(View.VISIBLE);
+            tvZoom.setText(String.format(Locale.US, "%.1fx", zoomValue));
+        }
+    }
+
     /*@Subscribe(threadMode = ThreadMode.ASYNC)
     public void onEvent(Events.ShowZoomedRegion event) {
         showZoomedRegion(event.getBitmap());
@@ -146,17 +167,14 @@ public class BionicEyeFragment extends Fragment {
         animateBionicEyeClose(new Events.ShowTerrainFragment());
     }
 
-    @Click(R.id.switchZoom)
-    public void onSwitchZoomClick() {
-        //zoomActive = !zoomActive;
+    @Click(R.id.zoomIn)
+    public void onZoomInClick() {
+        cameraPreviewManager.increaseZoom();
+    }
 
-        //ibSwitchZoom.setImageResource(zoomActive ? R.drawable.icn_zoom_out_c00 : R.drawable.icn_zoom_in_c00);
-        //overlayView.setVisibility(zoomActive ? View.VISIBLE : View.INVISIBLE);
-        //cameraPreviewManager.setZoomActive(zoomActive);
-
-        //if (zoomActive) {
-        cameraPreviewManager.captureImage();
-        //}
+    @Click(R.id.zoomOut)
+    public void onZoomOutClick() {
+        cameraPreviewManager.decreaseZoom();
     }
 
     /*@UiThread

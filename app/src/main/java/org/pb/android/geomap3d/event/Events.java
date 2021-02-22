@@ -189,15 +189,15 @@ public class Events {
     public static class BionicEyeReady {
     }
 
-    public static class ShowZoomedRegion {
-        private final Bitmap bitmap;
+    public static class ZoomChanged {
+        private final float zoomValue;
 
-        public ShowZoomedRegion(Bitmap bitmap) {
-            this.bitmap = bitmap;
+        public ZoomChanged(float zoomValue) {
+            this.zoomValue = zoomValue;
         }
 
-        public Bitmap getBitmap() {
-            return bitmap;
+        public float getZoomValue() {
+            return zoomValue;
         }
     }
 

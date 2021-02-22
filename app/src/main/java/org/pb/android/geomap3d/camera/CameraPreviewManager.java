@@ -6,9 +6,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Rect;
-import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCaptureSession;
 import android.hardware.camera2.CameraCharacteristics;
 import android.hardware.camera2.CameraDevice;
@@ -29,7 +29,9 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
+import androidx.core.math.MathUtils;
 
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
@@ -40,6 +42,7 @@ import org.pb.android.geomap3d.util.Util;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /*
     TODO:
@@ -54,6 +57,7 @@ public class CameraPreviewManager {
 
     public static final String TAG = CameraPreviewManager.class.getSimpleName();
     public static final int CROP_REGION_XY = 512;
+    public static final float DEFAULT_ZOOM_FACTOR = 1f;
 
     @RootContext
     Context context;
@@ -80,6 +84,10 @@ public class CameraPreviewManager {
 
     private boolean isZoomActive = false;
     private boolean isDetectorActive = false;
+
+    private float zoomFactor = DEFAULT_ZOOM_FACTOR;
+    private float maxZoom = DEFAULT_ZOOM_FACTOR;
+    private Rect screenSize = new Rect();
 
     private enum State {
         STATE_PREVIEW, STATE_WAITING_LOCK, STATE_WAITING_PRE_CAPTURE, STATE_WAITING_NON_PRE_CAPTURE, STATE_PICTURE_TAKEN
@@ -133,8 +141,8 @@ public class CameraPreviewManager {
                 captureSession = null;
                 Log.d(TAG, "capture session closed");
             }
-        } catch (Exception ex) {
-            // not implemented
+        } catch (Exception exception) {
+            Log.e(TAG, Objects.requireNonNull(exception.getLocalizedMessage()));
         } finally {
             if (camera != null) {
                 camera.close();
@@ -149,8 +157,8 @@ public class CameraPreviewManager {
         try {
             backgroundHandlerThread.join();
             Log.d(TAG, "background handler thread closed");
-        } catch (InterruptedException ex) {
-            // implement
+        } catch (InterruptedException exception) {
+            Log.e(TAG, Objects.requireNonNull(exception.getLocalizedMessage()));
         } finally {
             backgroundHandlerThread = null;
             backgroundHandler = null;
@@ -167,7 +175,21 @@ public class CameraPreviewManager {
 
 
     public synchronized void setZoomActive(boolean zoomState) {
-        //isZoomActive = zoomState;
+        isZoomActive = zoomState;
+        backgroundHandler.post(unlockFocus);
+    }
+
+
+    public synchronized void increaseZoom() {
+        zoomFactor = MathUtils.clamp(zoomFactor + .1f, DEFAULT_ZOOM_FACTOR, maxZoom);
+        EventBus.getDefault().postSticky(new Events.ZoomChanged(zoomFactor));
+        backgroundHandler.post(unlockFocus);
+    }
+
+
+    public synchronized void decreaseZoom() {
+        zoomFactor = MathUtils.clamp(zoomFactor - .1f, DEFAULT_ZOOM_FACTOR, maxZoom);
+        EventBus.getDefault().postSticky(new Events.ZoomChanged(zoomFactor));
         backgroundHandler.post(unlockFocus);
     }
 
@@ -192,22 +214,30 @@ public class CameraPreviewManager {
     }
 
 
+    @Nullable
+    public Bitmap getLatestBitmap() {
+        if (imageProcessingService != null) {
+            return imageProcessingService.getLatestBitmap();
+        }
+        return null;
+    }
+
+
     private Runnable lockFocus = new Runnable() {
         @Override
         public void run() {
-            // TODO: lock focus
             if (captureSession == null) {
                 return;
             }
 
-            Log.d(TAG, "lock focus called");
+            //Log.d(TAG, "lock focus called");
 
             try {
                 captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_START);
                 captureState = State.STATE_WAITING_LOCK;
                 captureSession.capture(captureRequestBuilder.build(), captureCallback, null);
             } catch (Exception exception) {
-                Log.e(TAG, exception.getMessage());
+                Log.e(TAG, Objects.requireNonNull(exception.getMessage()));
             }
         }
     };
@@ -216,9 +246,11 @@ public class CameraPreviewManager {
     private Runnable unlockFocus = new Runnable() {
         @Override
         public void run() {
-            // TODO: unlock focus
+            if (captureSession == null) {
+                return;
+            }
 
-            Log.d(TAG, "unlock focus called. (zoom active: " + isZoomActive + ")");
+            //Log.d(TAG, "unlock focus called. (zoom active: " + isZoomActive + ")");
 
             try {
                 captureRequestBuilder.set(CaptureRequest.CONTROL_AF_TRIGGER, CameraMetadata.CONTROL_AF_TRIGGER_CANCEL);
@@ -232,7 +264,7 @@ public class CameraPreviewManager {
 
                 captureSession.setRepeatingRequest(captureRequestBuilder.build(), captureCallback, null);
             } catch (Exception exception) {
-                Log.e(TAG, exception.getMessage());
+                Log.e(TAG, Objects.requireNonNull(exception.getMessage()));
             }
         }
     };
@@ -249,7 +281,7 @@ public class CameraPreviewManager {
                 captureState = State.STATE_WAITING_PRE_CAPTURE;
                 captureSession.capture(captureRequestBuilder.build(), captureCallback, null);
             } catch (Exception exception) {
-                Log.e(TAG, exception.getMessage());
+                Log.e(TAG, Objects.requireNonNull(exception.getMessage()));
             }
         }
     };
@@ -268,7 +300,6 @@ public class CameraPreviewManager {
                 captureRequest.set(CaptureRequest.FLASH_MODE, CameraMetadata.FLASH_MODE_OFF);
                 captureRequest.set(CaptureRequest.CONTROL_AF_MODE, CaptureRequest.CONTROL_AF_MODE_CONTINUOUS_PICTURE);
 
-                // TODO: set exact crop region here
                 if (isZoomActive) {
                     Rect cropRect = getCropRegion();
                     captureRequest.set(CaptureRequest.SCALER_CROP_REGION, cropRect);
@@ -286,33 +317,19 @@ public class CameraPreviewManager {
                 captureSession.capture(captureRequest.build(), inlineCaptureCallback, null);
 
             } catch (Exception exception) {
-                Log.e(TAG, exception.getMessage());
+                Log.e(TAG, Objects.requireNonNull(exception.getMessage()));
             }
         }
     };
 
 
     private Rect getCropRegion() {
-        Rect screenSize;
-        try {
-            CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
-            screenSize = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
-        } catch (Exception exception) {
-            Log.w(TAG, "unable to determine sensor active array size. use preview size instead");
-            // TODO:
-            screenSize = new Rect(0, 0, 2688, 1512);
-        }
+        int centerX = screenSize.width() / 2;
+        int centerY = screenSize.height() / 2;
+        int deltaX = (int)(centerX / zoomFactor);
+        int deltaY = (int)(centerY / zoomFactor);
 
-        int halfCropRegion = CROP_REGION_XY / 2;
-        int halfScreenWidth = screenSize.right / 2;
-        int halfScreenHeight = screenSize.bottom / 2;
-
-        int left = halfScreenWidth - halfCropRegion;
-        int top = halfScreenHeight - halfCropRegion;
-        int right = halfScreenWidth + halfCropRegion;
-        int bottom = halfScreenHeight + halfCropRegion;
-
-        return new Rect(left, top, right, bottom);
+        return new Rect(centerX - deltaX, centerY - deltaY, centerX + deltaX, centerY + deltaY);
     }
 
 
@@ -332,12 +349,12 @@ public class CameraPreviewManager {
 
         if (optimalSize.getWidth() != requestedWidth || optimalSize.getHeight() != requestedHeight) {
             surfaceView.getHolder().setFixedSize(optimalSize.getWidth(), optimalSize.getHeight());
-            Log.d(TAG, "surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
+            Log.d(TAG, "Surface new size: " + optimalSize.getWidth() + "x" + optimalSize.getHeight());
             return;
         }
 
         if (captureBuffer == null) {
-            captureBuffer = ImageReader.newInstance(CROP_REGION_XY, CROP_REGION_XY, ImageFormat.YUV_420_888, 2);
+            captureBuffer = ImageReader.newInstance(optimalSize.getWidth(), optimalSize.getHeight(), ImageFormat.YUV_420_888, 2);
             captureBuffer.setOnImageAvailableListener(imageCaptureListener, backgroundHandler);
         }
 
@@ -346,17 +363,22 @@ public class CameraPreviewManager {
             Surface captureBufferSurface = captureBuffer.getSurface();
 
             if (surfaceViewSurface == null || captureBufferSurface == null) {
-                Log.w(TAG, "one surfaceview is NULL. (" + surfaceViewSurface + ", " + captureBufferSurface + ")");
+                Log.w(TAG, "One surface view is NULL. (" + surfaceViewSurface + ", " + captureBufferSurface + ")");
+                return;
+            }
+
+            if (camera == null) {
+                Log.w(TAG, "Camera is NULL");
                 return;
             }
 
             try {
                 List<Surface> outputs = Arrays.asList(surfaceViewSurface, captureBufferSurface);
                 camera.createCaptureSession(outputs, captureSessionCallback, null);
-            } catch (CameraAccessException ex) {
-                Log.e(TAG, ex.getLocalizedMessage());
+            } catch (Exception ex) {
+                Log.e(TAG, Objects.requireNonNull(ex.getLocalizedMessage()));
             } finally {
-                Log.d(TAG, "camera session created");
+                Log.d(TAG, "Camera session created");
             }
         }
     }
@@ -366,13 +388,14 @@ public class CameraPreviewManager {
         try {
             for (String cameraListId : cameraManager.getCameraIdList()) {
                 CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraListId);
+                Integer lensFacing = cameraCharacteristics.get(CameraCharacteristics.LENS_FACING);
 
-                if (cameraCharacteristics.get(cameraCharacteristics.LENS_FACING) == CameraCharacteristics.LENS_FACING_BACK) {
+                if (lensFacing != null && lensFacing == CameraCharacteristics.LENS_FACING_BACK) {
                     return cameraListId;
                 }
             }
-        } catch (Exception ex) {
-            // not implemented
+        } catch (Exception exception) {
+            Log.e(TAG, Objects.requireNonNull(exception.getLocalizedMessage()));
         }
 
         return null;
@@ -392,11 +415,17 @@ public class CameraPreviewManager {
 
         try {
             CameraCharacteristics cameraCharacteristics = cameraManager.getCameraCharacteristics(cameraId);
+
+            screenSize = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
+            Float maxZoomValue = cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
+            maxZoom = maxZoomValue == null || maxZoomValue < DEFAULT_ZOOM_FACTOR ? DEFAULT_ZOOM_FACTOR : maxZoomValue;
+
             StreamConfigurationMap info = cameraCharacteristics.get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP);
-            Size optimalSize = Util.chooseBigEnoughSize(info.getOutputSizes(SurfaceHolder.class), width, height);
-            return optimalSize;
+            assert info != null;
+            Size[] outputSizes = info.getOutputSizes(SurfaceHolder.class);
+            return Util.chooseBigEnoughSize(outputSizes, width, height);
         } catch (Exception exception) {
-            // not implemented
+            Log.e(TAG, Objects.requireNonNull(exception.getLocalizedMessage()));
         }
 
         return new Size(width, height);
@@ -457,7 +486,7 @@ public class CameraPreviewManager {
             try {
                 cameraManager.openCamera(cameraId, cameraStateCallback, backgroundHandler);
             } catch (Exception exception) {
-                // implement
+                Log.e(TAG, Objects.requireNonNull(exception.getLocalizedMessage()));
             }
         }
 
@@ -478,17 +507,17 @@ public class CameraPreviewManager {
         @Override
         public void onOpened(@NonNull CameraDevice cameraDevice) {
             camera = cameraDevice;
-            Log.d(TAG, "camera opened");
+            Log.d(TAG, "Camera opened");
         }
 
         @Override
         public void onDisconnected(@NonNull CameraDevice cameraDevice) {
-            Log.d(TAG, "camera has been disconnected");
+            Log.d(TAG, "Camera has been disconnected");
         }
 
         @Override
         public void onError(@NonNull CameraDevice cameraDevice, int i) {
-            // implement
+            Log.e(TAG, "Camera error");
         }
     };
 
@@ -514,15 +543,12 @@ public class CameraPreviewManager {
 
                     // Start displaying preview images
                     captureSession.setRepeatingRequest(captureRequestBuilder.build(), captureCallback, null);
-                } catch (Exception ex) {
-                    // implement
+                } catch (Exception exception) {
+                    Log.e(TAG, Objects.requireNonNull(exception.getLocalizedMessage()));
                 } finally {
-                    // send event (to parent fragment)
-                    // let animate preview frame to signal user bionic eye is ready ...
-                    EventBus.getDefault().post(new Events.BionicEyeReady());
-
+                    EventBus.getDefault().postSticky(new Events.BionicEyeReady());
+                    Log.d(TAG, "Camera capture session started (repeating request)");
                 }
-                Log.d(TAG, "captured session started (repeating request)");
             }
         }
 
@@ -533,7 +559,7 @@ public class CameraPreviewManager {
 
         @Override
         public void onConfigureFailed(@NonNull CameraCaptureSession cameraCaptureSession) {
-            // implement
+            Log.e(TAG, "Camera capture session configuration failed.");
         }
     };
 
