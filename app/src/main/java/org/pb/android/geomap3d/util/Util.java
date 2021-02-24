@@ -128,7 +128,7 @@ public class Util {
 
     public static List<Route> loadAvailableRoutes(Context context) {
         Serializer serializer = new Persister();
-        InputStream xmlRoutes; //context.getResources().openRawResource(R.raw.routes);  --> just for test phase
+        InputStream xmlRoutes; //context.getResources().openRawResource(R.raw.routes);  --> just for test purposes
 
         File sdCardFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + ROUTES_XML);
         try {

@@ -37,6 +37,7 @@ import org.pb.android.geomap3d.data.map.service.GeoPlaceService;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.data.route.model.Route;
+import org.pb.android.geomap3d.data.route.model.RoutePoint;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
 import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.fragment.BionicEyeFragment;
@@ -127,7 +128,7 @@ public class MainActivity extends AppCompatActivity {
 
         registerDeviceLockReceiver();
 
-        Log.d(TAG, "Activity created.");
+        Log.d(TAG, ">> activity created");
     }
 
     @Override
@@ -136,7 +137,8 @@ public class MainActivity extends AppCompatActivity {
 
         // store current stream music volume. set stream music volume to maximum
         preferences.lastStreamVolume().put(audioManager.getStreamVolume(AudioManager.STREAM_MUSIC));
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
+        // FIXME: Setting stream volume back to stored value still fails. Activate next line, if problem has been solved.
+        //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC), 0);
 
         /*
         // setup location service
@@ -147,14 +149,15 @@ public class MainActivity extends AppCompatActivity {
 
         EventBus.getDefault().register(this);
 
-        Log.d(TAG, "Activity resumed.");
+        Log.d(TAG, ">> activity resumed");
     }
 
     @Override
     public void onPause() {
 
         // restore stream music volume
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, preferences.lastStreamVolume().get(), 0);
+        // FIXME: Setting stream volume back to stored value still fails. Activate next line, if problem has been solved.
+        //audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, preferences.lastStreamVolume().get(), 0);
 
         /*
         // cleanup location service
@@ -165,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
 
         EventBus.getDefault().unregister(this);
 
-        Log.d(TAG, "Activity paused.");
+        Log.d(TAG, ">> activity paused");
         super.onPause();
     }
 
@@ -177,7 +180,7 @@ public class MainActivity extends AppCompatActivity {
             LocationService_.intent(getApplicationContext()).stop();
         }
 
-        Log.d(TAG, "Activity terminated.");
+        Log.d(TAG, ">> activity terminated");
         super.onDestroy();
     }
 
@@ -206,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if (closeAppToast != null) {
             closeAppToast.cancel();
-            Log.d(TAG, "Activity termination requested.");
+            Log.d(TAG, ">> activity termination requested");
             finish();
         } else {
             closeAppToast = Toast.makeText(this, R.string.backPressedHintText, Toast.LENGTH_SHORT);
@@ -299,12 +302,12 @@ public class MainActivity extends AppCompatActivity {
         deviceLockFilter.addAction(Intent.ACTION_USER_FOREGROUND);
 
         registerReceiver(deviceLockBroadcastReceiver, deviceLockFilter);
-        Log.d(TAG, "Device lock receiver registered.");
+        Log.d(TAG, ">> device lock receiver registered");
     }
 
     private void unregisterDeviceLockReceiver() {
         unregisterReceiver(deviceLockBroadcastReceiver);
-        Log.d(TAG, "Device lock receiver unregistered.");
+        Log.d(TAG, ">> device lock receiver unregistered");
     }
 
     private BroadcastReceiver deviceLockBroadcastReceiver = new BroadcastReceiver() {
@@ -314,7 +317,7 @@ public class MainActivity extends AppCompatActivity {
             boolean deviceLocked = keyguardManager.isDeviceLocked();
 
             if (intentAction.equals(Intent.ACTION_SCREEN_ON) || intentAction.equals(Intent.ACTION_SCREEN_OFF) || intentAction.equals(Intent.ACTION_USER_PRESENT)) {
-                Log.i(TAG, String.format("action = %s locked = %b", intentAction, deviceLocked));
+                Log.i(TAG, String.format(">> action = %s locked = %b", intentAction, deviceLocked));
             }
         }
     };
@@ -372,14 +375,18 @@ public class MainActivity extends AppCompatActivity {
         if (geoArea == null) {
             Log.d(TAG, ">> no matching geo-area found");
 
-            // FIXME: try calling loadMapForLocation(location) here
+            if (NetworkAvailabilityUtil.isNetworkAvailable()) {
+                Log.i(TAG, ">> try loading map for location");
+                loadMapForLocation(location);
+            } else {
+                Log.i(TAG, ">> unable to load map for location due to missing internet connection");
+            }
 
             return;
         }
 
         List<Route> routeList = Util.loadAvailableRoutes(this);
-        Route route = routeList.isEmpty() ? null : routeList.get(0);
-        // TODO: Getting first route is just for test. Otherwise route is selected by current location.
+        Route route = getNearestRoute(location, geoArea, routeList);
 
         WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
                 .setLocation(geoArea.getCenterPoint())
@@ -396,8 +403,48 @@ public class MainActivity extends AppCompatActivity {
         widgetManager.setWidgetForInitiationOrUpdate(terrainWidget, widgetConfiguration);
 
         if (NetworkAvailabilityUtil.isNetworkAvailable()) {
-            findGeoPlacesForLocation(geoArea.getCenter());
+            loadGeoPlacesForLocation(geoArea.getCenterPoint());
+        } else {
+            Log.i(TAG, ">> unable to load geo-places due to missing internet connection");
         }
+    }
+
+    @Deprecated
+    @Nullable
+    private Route getFirstMatchingRoute(GeoArea geoArea, List<Route> routeList) {
+        for (Route route : routeList) {
+            for (RoutePoint routePoint : route.getRoutePointList()) {
+                Location routePointLocation = GeoUtil.getLocation(routePoint.getLatitude(), routePoint.getLongitude());
+                if (GeoUtil.isLocationInsideBounds(routePointLocation, geoArea.getBoxStartPoint(), geoArea.getBoxEndPoint())) {
+                    return route;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    @Nullable
+    private Route getNearestRoute(Location currentLocation, GeoArea geoArea, List<Route> routeList) {
+        Route resultRoute = null;
+        float shortestDistance = GeoUtil.getDistanceBetweenTwoPointsInMeter(geoArea.getBoxStartPoint(), geoArea.getBoxEndPoint());
+
+        for (Route route : routeList) {
+            for (RoutePoint routePoint : route.getRoutePointList()) {
+                Location routePointLocation = GeoUtil.getLocation(routePoint.getLatitude(), routePoint.getLongitude());
+
+                if (GeoUtil.isLocationInsideBounds(routePointLocation, geoArea.getBoxStartPoint(), geoArea.getBoxEndPoint())) {
+
+                    float distance = GeoUtil.getDistanceBetweenTwoPointsInMeter(currentLocation, routePointLocation);
+                    if (distance < shortestDistance) {
+                        shortestDistance = distance;
+                        resultRoute = route;
+                    }
+                }
+            }
+        }
+
+        return resultRoute;
     }
 
     private void setFragment(Fragment fragment, String fragmentTag) {
@@ -443,14 +490,15 @@ public class MainActivity extends AppCompatActivity {
         EventBus.getDefault().post(new Events.HeightMapLoaded(geoModelName, location, loadingState));
     }
 
+    // NOTE: Do not call this in UI thread. Use loadGeoPlacesForLocation() (background) instead!
     private void findGeoPlacesForLocation(LatLng locationCenter) {
         List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(locationCenter);
         if (geoPlaceItems.isEmpty()) {
-            Log.d(TAG, "No geoplaces found for location.");
+            Log.i(TAG, ">> no geo-places found for location");
             return;
         }
 
-        Log.d(TAG, "Found geoplaces for location:");
+        Log.d(TAG, ">> found geo-places for location:");
         // TODO: store found places related to freshly created geoLocationModel ...
         for (GeoPlaceItem geoPlaceItem : geoPlaceItems) {
             Log.d(TAG, String.format(">> %s (%s) lat=%.4f lng=%.4f dist=%.2f km",
