@@ -322,7 +322,8 @@ public class MainActivity extends AppCompatActivity {
     private boolean checkPermissions() {
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
                 &&  ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             return true;
         } else {
             requestPermissions();
@@ -332,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void requestPermissions() {
         ActivityCompat.requestPermissions(this,
-                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA},
+                new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CAMERA, Manifest.permission.READ_EXTERNAL_STORAGE},
                 PERMISSION_REQUEST_CODE);
     }
 
@@ -370,6 +371,9 @@ public class MainActivity extends AppCompatActivity {
         GeoArea geoArea = persistManager.findGeoAreaByLocation(GeoUtil.getLatLngFromLocation(location));
         if (geoArea == null) {
             Log.d(TAG, ">> no matching geo-area found");
+
+            // FIXME: try calling loadMapForLocation(location) here
+
             return;
         }
 
@@ -390,6 +394,10 @@ public class MainActivity extends AppCompatActivity {
         }
 
         widgetManager.setWidgetForInitiationOrUpdate(terrainWidget, widgetConfiguration);
+
+        if (NetworkAvailabilityUtil.isNetworkAvailable()) {
+            findGeoPlacesForLocation(geoArea.getCenter());
+        }
     }
 
     private void setFragment(Fragment fragment, String fragmentTag) {
@@ -399,6 +407,12 @@ public class MainActivity extends AppCompatActivity {
                 .replace(R.id.fragmentContainer, fragment, fragmentTag)
                 .commit();
     }
+
+    /*
+        NOTE: separate loading geo-places from method loadMapForLocation()
+        (because getting geo-places is currently just called if a new map is added)
+        It should also be possible in other cases.
+     */
 
     @Background
     public void loadMapForLocation(Location location) {
@@ -411,31 +425,41 @@ public class MainActivity extends AppCompatActivity {
             LatLng geoLocationCenter = GeoUtil.getLatLngFromLocation(location);
             geoArea = persistManager.storeGeoArea(bitmap, geoLocationCenter, terrainService.getLastTargetBounds());
 
-            List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(geoLocationCenter);
-            if (geoPlaceItems.isEmpty()) {
-                Log.d(TAG, "No geoplaces found for location.");
-                return;
-            }
-
-            Log.d(TAG, "Found geoplaces for location:");
-            // TODO: store found places related to freshly created geoLocationModel ...
-            for (GeoPlaceItem geoPlaceItem : geoPlaceItems) {
-                Log.d(TAG, String.format(">> %s (%s) lat=%.4f lng=%.4f dist=%.2f km",
-                        geoPlaceItem.getCity(),
-                        geoPlaceItem.getName(),
-                        geoPlaceItem.getLatitude(),
-                        geoPlaceItem.getLongitude(),
-                        geoPlaceItem.getDistanceInKilometers())
-                );
-            }
+            findGeoPlacesForLocation(geoLocationCenter);
         }
 
         notifyHeightMapLoaded(geoArea, location, loadingState);
+    }
+
+    @Background
+    public void loadGeoPlacesForLocation(Location location) {
+        LatLng geoLocationCenter = GeoUtil.getLatLngFromLocation(location);
+        findGeoPlacesForLocation(geoLocationCenter);
     }
 
     @UiThread
     public void notifyHeightMapLoaded(GeoArea geoArea, Location location, LoadingState loadingState) {
         String geoModelName = geoArea == null ? null : geoArea.getName();
         EventBus.getDefault().post(new Events.HeightMapLoaded(geoModelName, location, loadingState));
+    }
+
+    private void findGeoPlacesForLocation(LatLng locationCenter) {
+        List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(locationCenter);
+        if (geoPlaceItems.isEmpty()) {
+            Log.d(TAG, "No geoplaces found for location.");
+            return;
+        }
+
+        Log.d(TAG, "Found geoplaces for location:");
+        // TODO: store found places related to freshly created geoLocationModel ...
+        for (GeoPlaceItem geoPlaceItem : geoPlaceItems) {
+            Log.d(TAG, String.format(">> %s (%s) lat=%.4f lng=%.4f dist=%.2f km",
+                    geoPlaceItem.getCity(),
+                    geoPlaceItem.getName(),
+                    geoPlaceItem.getLatitude(),
+                    geoPlaceItem.getLongitude(),
+                    geoPlaceItem.getDistanceInKilometers())
+            );
+        }
     }
 }

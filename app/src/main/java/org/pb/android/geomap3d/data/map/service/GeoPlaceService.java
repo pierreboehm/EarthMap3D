@@ -62,7 +62,7 @@ public class GeoPlaceService {
 
     private String getGeoPlacesForLocationUrl(LatLng location) {
         return String.format(Locale.US,
-                "%s/v1/geo/locations/+%.04f+%.04f/nearbyCities?radius=20",
+                "%s/v1/geo/locations/+%.04f+%.04f/nearbyCities?radius=30",
                 BASEURL,
                 location.latitude,
                 location.longitude

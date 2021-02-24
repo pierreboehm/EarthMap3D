@@ -7,6 +7,7 @@ import android.content.pm.ConfigurationInfo;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Environment;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -18,12 +19,14 @@ import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
-import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.data.route.model.Route;
 import org.pb.android.geomap3d.data.route.model.Routes;
 import org.simpleframework.xml.Serializer;
 import org.simpleframework.xml.core.Persister;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +38,7 @@ import static android.content.Context.WINDOW_SERVICE;
 public class Util {
 
     private static final String TAG = Util.class.getSimpleName();
+    private static final String ROUTES_XML = "routes.xml";
 
     public enum Orientation {
         PORTRAIT, LANDSCAPE
@@ -124,10 +128,15 @@ public class Util {
 
     public static List<Route> loadAvailableRoutes(Context context) {
         Serializer serializer = new Persister();
-        InputStream xmlRoutes = context.getResources().openRawResource(R.raw.routes);
+        InputStream xmlRoutes; //context.getResources().openRawResource(R.raw.routes);  --> just for test phase
 
-        // TODO: also look at sdcard --> 'routes.xml'
-        //  --> BE CAREFUL AND ENSURE MALFORMED XML CAN'T CRASH THE APP
+        File sdCardFile = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + ROUTES_XML);
+        try {
+            xmlRoutes = new FileInputStream(sdCardFile);
+        } catch (FileNotFoundException exception) {
+            Log.i(TAG, exception.getLocalizedMessage());
+            return new ArrayList<>();
+        }
 
         try {
             Routes routes = serializer.read(Routes.class, xmlRoutes);
@@ -135,7 +144,7 @@ public class Util {
                 return routes.getRouteList();
             }
         } catch (Exception exception) {
-            Log.e(TAG, exception.getMessage());
+            Log.e(TAG, exception.getLocalizedMessage());
         } finally {
             try {
                 xmlRoutes.close();

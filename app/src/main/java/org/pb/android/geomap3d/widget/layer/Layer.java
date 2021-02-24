@@ -17,11 +17,11 @@ public abstract class Layer {
     public enum LayerType {
         CDP(GLColor.WHITE),    // C(urrent) D(evice) P(osition)
         TDP(GLColor.GRAY),    // T(racked) D(evice) P(osition)
-        CMP(GLColor.YELLOW),    // camp
+        CMP(GLColor.GREEN),    // camp
 //        POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
 
         POL(GLColor.BLUE),    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
-        ROB(GLColor.GREEN);     // Route point
+        ROB(GLColor.YELLOW);     // Route point
 
         private final GLColor glColor;
 
