@@ -17,7 +17,7 @@ public abstract class Layer {
     public enum LayerType {
         CDP(GLColor.WHITE),    // C(urrent) D(evice) P(osition)
         TDP(GLColor.GRAY),    // T(racked) D(evice) P(osition)
-        CMP(GLColor.GREEN),    // camp
+        CMP(GLColor.ORANGE),    // camp
 //        POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
 
         POL(GLColor.BLUE),    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
@@ -36,10 +36,12 @@ public abstract class Layer {
 
     public enum GLColor {
         WHITE(1f, 1f, 1f),
-        YELLOW(1f, .7f, 0f),
+        YELLOW(1f, 1f, 0f),
+        ORANGE(1f, .7f, 0f),
         GREEN(0f, 1f, 0f),
         BLUE(0f, 0f, 1f),
-        GRAY(.7f, .7f, .7f);
+        GRAY(.7f, .7f, .7f),
+        RED(1f, 0f, 0f);
 
         public final float red, green, blue;
 
