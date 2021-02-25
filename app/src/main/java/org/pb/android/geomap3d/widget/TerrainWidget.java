@@ -21,6 +21,7 @@ import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.widget.layer.Layer;
+import org.pb.android.geomap3d.widget.layer.PlaceLayer;
 import org.pb.android.geomap3d.widget.layer.PositionLayer;
 import org.pb.android.geomap3d.widget.layer.RouteLayer;
 import org.pb.android.geomap3d.widget.layer.TerrainLayer;
@@ -341,8 +342,12 @@ public class TerrainWidget extends Widget {
                 GeoPlaces geoPlaces = widgetConfiguration.getGeoPlaces();
 
                 for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
-                    Log.d(TAG, "geo-place: " + geoPlace.getName());
-                    // TODO: implement
+                    Location location = geoPlace.getLocation();
+                    PlaceLayer placeLayer = new PlaceLayer(location, terrainGeoArea);
+
+                    if (placeLayer.isVisible()) {
+                        layers.add(placeLayer);
+                    }
                 }
             }
         }

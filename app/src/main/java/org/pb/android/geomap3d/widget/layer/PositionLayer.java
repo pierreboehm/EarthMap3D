@@ -10,8 +10,6 @@ import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -174,20 +172,5 @@ public class PositionLayer extends Layer {
         }
 
         vertices = initVertices(points);
-    }
-
-    private FloatBuffer initVertices(List<Util.PointF3D> points) {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * 3 * points.size());
-        byteBuffer.order(ByteOrder.nativeOrder());
-        FloatBuffer vertices = byteBuffer.asFloatBuffer();
-
-        for (Util.PointF3D point : points) {
-            vertices.put(point.x);
-            vertices.put(point.y);
-            vertices.put(point.z);
-        }
-
-        vertices.position(0);
-        return vertices;
     }
 }

@@ -2,7 +2,12 @@ package org.pb.android.geomap3d.widget.layer;
 
 import android.view.MotionEvent;
 
+import org.pb.android.geomap3d.util.Util;
+
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.List;
 
 import javax.microedition.khronos.opengles.GL10;
 
@@ -18,7 +23,7 @@ public abstract class Layer {
         CDP(GLColor.WHITE),    // C(urrent) D(evice) P(osition)
         TDP(GLColor.GRAY),    // T(racked) D(evice) P(osition)
         CMP(GLColor.ORANGE),    // camp
-//        POO(GLColor.GREEN),    // P(oint) O(f) O(bservation)
+        PLC(GLColor.MAGENTA),    // PL(a)C(e)
 
         POL(GLColor.BLUE),    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
         ROB(GLColor.YELLOW);     // Route point
@@ -41,6 +46,7 @@ public abstract class Layer {
         GREEN(0f, 1f, 0f),
         BLUE(0f, 0f, 1f),
         GRAY(.7f, .7f, .7f),
+        MAGENTA(1f, 0f, 1f),
         RED(1f, 0f, 0f);
 
         public final float red, green, blue;
@@ -50,5 +56,20 @@ public abstract class Layer {
             this.green = green;
             this.blue = blue;
         }
+    }
+
+    protected FloatBuffer initVertices(List<Util.PointF3D> points) {
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(4 * 3 * points.size());
+        byteBuffer.order(ByteOrder.nativeOrder());
+        FloatBuffer vertices = byteBuffer.asFloatBuffer();
+
+        for (Util.PointF3D point : points) {
+            vertices.put(point.x);
+            vertices.put(point.y);
+            vertices.put(point.z);
+        }
+
+        vertices.position(0);
+        return vertices;
     }
 }
