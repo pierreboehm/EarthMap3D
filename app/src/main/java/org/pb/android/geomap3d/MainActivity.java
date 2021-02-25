@@ -498,8 +498,10 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // FIXME: store found places related to freshly created geoLocationModel ...
+        persistManager.storeGeoPlaces(geoPlaceItems);
+
         Log.d(TAG, ">> found geo-places for location:");
-        // TODO: store found places related to freshly created geoLocationModel ...
         for (GeoPlaceItem geoPlaceItem : geoPlaceItems) {
             Log.d(TAG, String.format(">> %s (%s) lat=%.4f lng=%.4f dist=%.2f km",
                     geoPlaceItem.getCity(),
