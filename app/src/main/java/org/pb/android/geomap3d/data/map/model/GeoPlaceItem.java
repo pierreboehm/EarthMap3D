@@ -48,4 +48,20 @@ public class GeoPlaceItem {
     public String getName() {
         return name;
     }
+
+    public String getRegion() {
+        return region;
+    }
+
+    public String getRegionCode() {
+        return regionCode;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getType() {
+        return type;
+    }
 }
