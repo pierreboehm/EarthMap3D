@@ -7,6 +7,7 @@ import android.opengl.GLSurfaceView;
 import android.opengl.GLU;
 import android.view.MotionEvent;
 
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 import org.pb.android.geomap3d.widget.Widget;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -129,6 +130,12 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
     public void setCampLocation(Location location) {
         if (widget != null) {
             widget.setCampLocation(location);
+        }
+    }
+
+    public void setGeoPlaces(GeoPlaces geoPlaces) {
+        if (widget != null) {
+            widget.setGeoPlaces(geoPlaces);
         }
     }
 

@@ -15,6 +15,7 @@ import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoAreaDao;
 import org.pb.android.geomap3d.data.persist.geoplace.GeoPlace;
 import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaceDao;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 import org.pb.android.geomap3d.data.persist.geotrack.GeoTrack;
 import org.pb.android.geomap3d.data.persist.geotrack.GeoTrackDao;
 
@@ -80,9 +81,12 @@ public class PersistManager {
         geoTrack.save();
     }
 
-    public void storeGeoPlaces(List<GeoPlaceItem> geoPlaceItemList) {
+    public GeoPlaces storeGeoPlacesForArea(GeoArea geoArea, List<GeoPlaceItem> geoPlaceItemList) {
+        List<GeoPlace> geoPlaceList = new ArrayList<>();
+
         for (GeoPlaceItem geoPlaceItem : geoPlaceItemList) {
             GeoPlace geoPlace = new GeoPlace.Builder()
+                    .setAreaName(geoArea.getName())
                     .setName(geoPlaceItem.getName())
                     .setCity(geoPlaceItem.getCity())
                     .setLocation(geoPlaceItem.getLatitude(), geoPlaceItem.getLongitude())
@@ -93,16 +97,19 @@ public class PersistManager {
                     .setId(geoPlaceItem.getId())
                     .build();
 
+            geoPlaceList.add(geoPlace);
+
             if (geoPlace.exists()) {
                 geoPlace.update();
             } else {
                 geoPlace.save();
             }
         }
+
+        return new GeoPlaces(geoArea.getName(), geoPlaceList);
     }
 
-    public List<GeoPlace> findGeoPlacesForArea() {
-        // TODO: implement
-        return new ArrayList<>();
+    public GeoPlaces findGeoPlacesForArea(GeoArea geoArea) {
+        return geoPlaceDao.getGeoPlacesForArea(geoArea.getName());
     }
 }

@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 import org.greenrobot.eventbus.EventBus;
 
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlace;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 import org.pb.android.geomap3d.data.route.model.Route;
 import org.pb.android.geomap3d.data.route.model.RoutePoint;
 import org.pb.android.geomap3d.dialog.SettingsDialog;
@@ -235,6 +237,14 @@ public class TerrainWidget extends Widget {
     }
 
     @Override
+    public void setGeoPlaces(GeoPlaces geoPlaces) {
+        for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
+            Log.d(TAG, "geo-place: " + geoPlace.getName());
+            // TODO: implement
+        }
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -324,6 +334,15 @@ public class TerrainWidget extends Widget {
                     if (routeLayer.isVisible()) {
                         layers.add(routeLayer);
                     }
+                }
+            }
+
+            if (widgetConfiguration.hasGeoPlaces()) {
+                GeoPlaces geoPlaces = widgetConfiguration.getGeoPlaces();
+
+                for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
+                    Log.d(TAG, "geo-place: " + geoPlace.getName());
+                    // TODO: implement
                 }
             }
         }

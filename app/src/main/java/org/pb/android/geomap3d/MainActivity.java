@@ -36,6 +36,8 @@ import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
 import org.pb.android.geomap3d.data.map.service.GeoPlaceService;
 import org.pb.android.geomap3d.data.map.service.TerrainService;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlace;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 import org.pb.android.geomap3d.data.route.model.Route;
 import org.pb.android.geomap3d.data.route.model.RoutePoint;
 import org.pb.android.geomap3d.dialog.ConfirmDialog;
@@ -385,12 +387,25 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
+        // try getting already stored geo-places for area
+        GeoPlaces geoPlaces = persistManager.findGeoPlacesForArea(geoArea);
+
+        // if object is empty try to load geo-places from internet
+        if (geoPlaces.isEmpty()) {
+            if (NetworkAvailabilityUtil.isNetworkAvailable()) {
+                loadGeoPlacesForArea(geoArea);
+            } else {
+                Log.i(TAG, ">> unable to load geo-places due to missing internet connection");
+            }
+        }
+
         List<Route> routeList = Util.loadAvailableRoutes(this);
         Route route = getNearestRoute(location, geoArea, routeList);
 
         WidgetConfiguration widgetConfiguration = WidgetConfiguration.create()
                 .setLocation(geoArea.getCenterPoint())
                 .setHeightMapBitmap(geoArea.getHeightMapBitmap())
+                .setGeoPlaces(geoPlaces)
                 .setRoute(route)
                 .getConfiguration();
 
@@ -401,12 +416,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         widgetManager.setWidgetForInitiationOrUpdate(terrainWidget, widgetConfiguration);
-
-        if (NetworkAvailabilityUtil.isNetworkAvailable()) {
-            loadGeoPlacesForLocation(geoArea.getCenterPoint());
-        } else {
-            Log.i(TAG, ">> unable to load geo-places due to missing internet connection");
-        }
     }
 
     @Deprecated
@@ -472,16 +481,15 @@ public class MainActivity extends AppCompatActivity {
             LatLng geoLocationCenter = GeoUtil.getLatLngFromLocation(location);
             geoArea = persistManager.storeGeoArea(bitmap, geoLocationCenter, terrainService.getLastTargetBounds());
 
-            findGeoPlacesForLocation(geoLocationCenter);
+            findGeoPlacesForArea(geoArea);
         }
 
         notifyHeightMapLoaded(geoArea, location, loadingState);
     }
 
     @Background
-    public void loadGeoPlacesForLocation(Location location) {
-        LatLng geoLocationCenter = GeoUtil.getLatLngFromLocation(location);
-        findGeoPlacesForLocation(geoLocationCenter);
+    public void loadGeoPlacesForArea(GeoArea geoArea) {
+        findGeoPlacesForArea(geoArea);
     }
 
     @UiThread
@@ -491,25 +499,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // NOTE: Do not call this in UI thread. Use loadGeoPlacesForLocation() (background) instead!
-    private void findGeoPlacesForLocation(LatLng locationCenter) {
-        List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(locationCenter);
+    private void findGeoPlacesForArea(GeoArea geoArea) {
+        List<GeoPlaceItem> geoPlaceItems = geoPlaceService.findGeoPlacesForLocation(geoArea.getCenter());
         if (geoPlaceItems.isEmpty()) {
             Log.i(TAG, ">> no geo-places found for location");
             return;
         }
 
-        // FIXME: store found places related to freshly created geoLocationModel ...
-        persistManager.storeGeoPlaces(geoPlaceItems);
+        GeoPlaces geoPlaces = persistManager.storeGeoPlacesForArea(geoArea, geoPlaceItems);
 
-        Log.d(TAG, ">> found geo-places for location:");
-        for (GeoPlaceItem geoPlaceItem : geoPlaceItems) {
-            Log.d(TAG, String.format(">> %s (%s) lat=%.4f lng=%.4f dist=%.2f km",
-                    geoPlaceItem.getCity(),
-                    geoPlaceItem.getName(),
-                    geoPlaceItem.getLatitude(),
-                    geoPlaceItem.getLongitude(),
-                    geoPlaceItem.getDistanceInKilometers())
-            );
+        if (!geoPlaces.isEmpty()) {
+            // TODO: update current widget configuration and force widget update
+            EventBus.getDefault().postSticky(new Events.GeoPlacesAvailable(geoPlaces));
+
+            Log.d(TAG, ">> found geo-places for location:");
+            for (GeoPlaceItem geoPlaceItem : geoPlaceItems) {
+                Log.d(TAG, String.format(">> %s (%s) lat=%.4f lng=%.4f dist=%.2f km",
+                        geoPlaceItem.getCity(),
+                        geoPlaceItem.getName(),
+                        geoPlaceItem.getLatitude(),
+                        geoPlaceItem.getLongitude(),
+                        geoPlaceItem.getDistanceInKilometers())
+                );
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ import android.graphics.BitmapFactory;
 import android.location.Location;
 
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 import org.pb.android.geomap3d.data.route.model.Route;
 import org.pb.android.geomap3d.util.GeoUtil;
 
@@ -17,11 +18,13 @@ public class WidgetConfiguration {
 
     private Location location;
     private GeoArea geoArea;
+    private GeoPlaces geoPlaces;
     private Route route;
 
     private WidgetConfiguration(Builder builder) {
         location = builder.location;
         geoArea = builder.geoArea;
+        geoPlaces = builder.geoPlaces;
         route = builder.route;
 
         if (geoArea == null) {
@@ -65,6 +68,14 @@ public class WidgetConfiguration {
         return route;
     }
 
+    public boolean hasGeoPlaces() {
+        return !geoPlaces.getGeoPlaceList().isEmpty();
+    }
+
+    public GeoPlaces getGeoPlaces() {
+        return geoPlaces;
+    }
+
     public static Builder create() {
         return new Builder();
     }
@@ -73,6 +84,7 @@ public class WidgetConfiguration {
         Location location;
         Bitmap heightMapBitmap = null;
         GeoArea geoArea = null;
+        GeoPlaces geoPlaces = null;
         Route route = null;
 
         public Builder setLocation(Location location) {
@@ -81,8 +93,8 @@ public class WidgetConfiguration {
         }
 
         public Builder setHeightMapBitmapFromResource(Context context, int heightMapResourceId) {
-            Bitmap rawmap = BitmapFactory.decodeResource(context.getResources(), heightMapResourceId);
-            heightMapBitmap = Bitmap.createScaledBitmap(rawmap, BITMAP_DIMENSION, BITMAP_DIMENSION, true);
+            Bitmap rawMap = BitmapFactory.decodeResource(context.getResources(), heightMapResourceId);
+            heightMapBitmap = Bitmap.createScaledBitmap(rawMap, BITMAP_DIMENSION, BITMAP_DIMENSION, true);
             return this;
         }
 
@@ -96,14 +108,18 @@ public class WidgetConfiguration {
             return this;
         }
 
+        public Builder setGeoPlaces(GeoPlaces geoPlaces) {
+            this.geoPlaces = geoPlaces;
+            return this;
+        }
+
         public Builder setRoute(@Nullable Route route) {
             this.route = route;
             return this;
         }
 
         public WidgetConfiguration getConfiguration() {
-            WidgetConfiguration widgetConfiguration = new WidgetConfiguration(this);
-            return widgetConfiguration;
+            return new WidgetConfiguration(this);
         }
     }
 

@@ -6,6 +6,7 @@ import android.location.Location;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -210,6 +211,18 @@ public class Events {
 
         public int getTrackDistance() {
             return trackDistance;
+        }
+    }
+
+    public static class GeoPlacesAvailable {
+        private final GeoPlaces geoPlaces;
+
+        public GeoPlacesAvailable(GeoPlaces geoPlaces) {
+            this.geoPlaces = geoPlaces;
+        }
+
+        public GeoPlaces getGeoPlaces() {
+            return geoPlaces;
         }
     }
 }

@@ -51,6 +51,9 @@ public class GeoPlace extends BaseModel implements Serializable {
     @Column
     String type;
 
+    @Column
+    String areaName;
+
     public GeoPlace() {
     }
 
@@ -137,6 +140,11 @@ public class GeoPlace extends BaseModel implements Serializable {
 
         public Builder setId(int id) {
             geoPlace.placeId = id;
+            return this;
+        }
+
+        public Builder setAreaName(String areaName) {
+            geoPlace.areaName = areaName;
             return this;
         }
 

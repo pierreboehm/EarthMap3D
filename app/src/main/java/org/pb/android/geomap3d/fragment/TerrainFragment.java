@@ -189,6 +189,14 @@ public class TerrainFragment extends Fragment {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onEvent(Events.GeoPlacesAvailable event) {
+        EventBus.getDefault().removeStickyEvent(event);
+        if (openGLSurfaceView != null) {
+            openGLSurfaceView.setGeoPlaces(event.getGeoPlaces());
+        }
+    }
+
     @UiThread(propagation = REUSE)
     void updateDeviceRotation(float azimuth) {
         if (openGLSurfaceView != null) {

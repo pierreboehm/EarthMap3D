@@ -8,6 +8,7 @@ import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 import org.pb.android.geomap3d.renderer.OpenGLRenderer;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.widget.Widget;
@@ -69,6 +70,10 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
 
     public void setCampLocation(Location location) {
         ((RendererOpenGL) openGLRenderer).setCampLocation(location);
+    }
+
+    public void setGeoPlaces(GeoPlaces geoPlaces) {
+        ((RendererOpenGL) openGLRenderer).setGeoPlaces(geoPlaces);
     }
 
     public void setWidget(Widget widget) {
