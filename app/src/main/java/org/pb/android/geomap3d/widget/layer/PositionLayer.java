@@ -110,13 +110,14 @@ public class PositionLayer extends Layer {
             return;
         }
 
+        float distance = GeoUtil.getDistanceBetweenTwoPointsInMeter(this.location, location);
         // ignore location updates that equal current position
-        if (layerType == LayerType.CDP && GeoUtil.getDistanceBetweenTwoPointsInMeter(this.location, location) == 0f) {
+        if (layerType == LayerType.CDP && distance == 0f) {
             return;
         }
 
         this.location = location;
-        Log.v(TAG, String.format(Locale.US, "new location: lat=%.06f, lng=%.06f, layerType=%s", location.getLatitude(), location.getLongitude(), layerType.name()));
+        Log.v(TAG, String.format(Locale.US, "new location: lat=%.06f, lng=%.06f, layerType=%s, dist=%.2fm", location.getLatitude(), location.getLongitude(), layerType.name(), distance));
 
         if (GeoUtil.isLocationOnMap(location, geoArea)) {
 

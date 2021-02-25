@@ -57,10 +57,7 @@ public class GeoArea extends BaseModel implements Serializable {
     }
 
     public Location getCenterPoint() {
-        Location centerPoint = new Location("");
-        centerPoint.setLatitude(centerPointLatitude);
-        centerPoint.setLongitude(centerPointLongitude);
-        return centerPoint;
+        return GeoUtil.getLocation(centerPointLatitude, centerPointLongitude);
     }
 
     public LatLng getCenter() {
@@ -80,25 +77,20 @@ public class GeoArea extends BaseModel implements Serializable {
     }
 
     public Location getBoxStartPoint() {
-        Location boxStartLocation = new Location("");
-        boxStartLocation.setLatitude(centerPointLatitude + GeoUtil.DELTA_LATITUDE / 2.0);
-        boxStartLocation.setLongitude(centerPointLongitude - GeoUtil.DELTA_LONGITUDE / 2.0);
-        return boxStartLocation;
+        return GeoUtil.getLocation(centerPointLatitude + GeoUtil.DELTA_LATITUDE / 2.0,
+                centerPointLongitude - GeoUtil.DELTA_LONGITUDE / 2.0);
     }
 
     public Location getBoxEndPoint() {
-        Location boxEndLocation = new Location("");
-        boxEndLocation.setLatitude(centerPointLatitude - GeoUtil.DELTA_LATITUDE / 2.0);
-        boxEndLocation.setLongitude(centerPointLongitude + GeoUtil.DELTA_LONGITUDE / 2.0);
-        return boxEndLocation;
+        return GeoUtil.getLocation(centerPointLatitude - GeoUtil.DELTA_LATITUDE / 2.0,
+                centerPointLongitude + GeoUtil.DELTA_LONGITUDE / 2.0);
     }
 
     private String convertBitmapToString(Bitmap bitmap) {
         ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG,100, byteArrayOutputStream);
         byte [] byteArray = byteArrayOutputStream.toByteArray();
-        String encodeToString = Base64.encodeToString(byteArray, Base64.DEFAULT);
-        return encodeToString;
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 
     private Blob convertBitmapToBlob(Bitmap bitmap) {
