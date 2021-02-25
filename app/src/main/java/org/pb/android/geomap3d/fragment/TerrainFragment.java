@@ -95,6 +95,7 @@ public class TerrainFragment extends Fragment {
 
         if (openGLSurfaceView != null) {
             openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(true));
+            openGLSurfaceView.setShowGeoPlaces(preferences.showPlaces().getOr(true));
             openGLSurfaceView.setTrackDistance(preferences.defaultTrackDistanceInMeters().getOr(50));
 
             float campLatitude = preferences.campLatitude().get();
@@ -186,6 +187,13 @@ public class TerrainFragment extends Fragment {
         if (openGLSurfaceView != null) {
             openGLSurfaceView.setTrackEnabled(preferences.trackPosition().getOr(true));
             openGLSurfaceView.setTrackDistance(event.getTrackDistance());
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.ShowGeoPlaces event) {
+        if (openGLSurfaceView != null) {
+            openGLSurfaceView.setShowGeoPlaces(event.show());
         }
     }
 

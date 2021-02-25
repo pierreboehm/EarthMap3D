@@ -12,6 +12,9 @@ public interface AppPreferences {
     boolean useCompass();
 
     @DefaultBoolean(true)
+    boolean showPlaces();
+
+    @DefaultBoolean(true)
     boolean trackPosition();
 
     @DefaultInt(50)

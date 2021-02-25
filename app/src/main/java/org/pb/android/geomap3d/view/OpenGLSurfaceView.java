@@ -76,6 +76,10 @@ public class OpenGLSurfaceView extends GLSurfaceView implements View.OnTouchList
         ((RendererOpenGL) openGLRenderer).setGeoPlaces(geoPlaces);
     }
 
+    public void setShowGeoPlaces(boolean show) {
+        ((RendererOpenGL) openGLRenderer).setShowGeoPlaces(show);
+    }
+
     public void setWidget(Widget widget) {
         ((RendererOpenGL) openGLRenderer).setWidget(widget);
     }

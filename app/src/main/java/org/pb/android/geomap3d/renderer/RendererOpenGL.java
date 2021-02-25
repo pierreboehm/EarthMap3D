@@ -139,6 +139,12 @@ public class RendererOpenGL implements GLSurfaceView.Renderer {
         }
     }
 
+    public void setShowGeoPlaces(boolean show) {
+        if (widget != null) {
+            widget.setShowGeoPlaces(show);
+        }
+    }
+
     public synchronized void updateScale(float scale) {
         this.scale = scale;
     }

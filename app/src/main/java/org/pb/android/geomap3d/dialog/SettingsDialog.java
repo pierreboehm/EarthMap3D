@@ -34,6 +34,9 @@ public class SettingsDialog extends LinearLayout {
     @ViewById(R.id.switchCompass)
     Switch switchCompass;
 
+    @ViewById(R.id.switchPlaces)
+    Switch switchPlaces;
+
     @ViewById(R.id.switchAutomaticTrack)
     Switch switchAutomaticTrack;
 
@@ -59,6 +62,10 @@ public class SettingsDialog extends LinearLayout {
         switchCompass.setText(useCompass ? R.string.compassOnText : R.string.compassOffText);
         switchCompass.setChecked(useCompass);
 
+        boolean showPlaces = preferences.showPlaces().getOr(true);
+        switchPlaces.setText(showPlaces ? R.string.placesOnText : R.string.placesOffText);
+        switchPlaces.setChecked(showPlaces);
+
         boolean trackPosition = preferences.trackPosition().getOr(true);
         switchAutomaticTrack.setText(trackPosition ? R.string.trackOnText : R.string.trackOffText);
         switchAutomaticTrack.setChecked(trackPosition);
@@ -74,6 +81,15 @@ public class SettingsDialog extends LinearLayout {
         preferences.useCompass().put(useCompass);
 
         switchCompass.setText(useCompass ? R.string.compassOnText : R.string.compassOffText);
+    }
+
+    @Click(R.id.switchPlaces)
+    public void onSwitchPlacesClicked() {
+        boolean showPlaces = switchPlaces.isChecked();
+        preferences.showPlaces().put(showPlaces);
+        switchPlaces.setText(showPlaces ? R.string.placesOnText : R.string.placesOffText);
+
+        EventBus.getDefault().post(new Events.ShowGeoPlaces(showPlaces));
     }
 
     @Click(R.id.switchAutomaticTrack)

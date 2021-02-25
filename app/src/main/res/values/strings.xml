@@ -4,6 +4,9 @@
     <string name="compassOnText">Compass enabled</string>
     <string name="compassOffText">Compass disabled</string>
 
+    <string name="placesOnText">Show places enabled</string>
+    <string name="placesOffText">Show places disabled</string>
+
     <string name="trackOnText">Automatic track position enabled</string>
     <string name="trackOffText">Automatic track position disabled</string>
 

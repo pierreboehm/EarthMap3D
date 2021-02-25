@@ -239,9 +239,23 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void setGeoPlaces(GeoPlaces geoPlaces) {
+        // TODO: remove old places
         for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
-            Log.d(TAG, "geo-place: " + geoPlace.getName());
-            // TODO: implement
+            Location location = geoPlace.getLocation();
+            PlaceLayer placeLayer = new PlaceLayer(location, terrainGeoArea);
+
+            if (placeLayer.isVisible()) {
+                layers.add(placeLayer);
+            }
+        }
+    }
+
+    @Override
+    public void setShowGeoPlaces(boolean show) {
+        for (Layer layer : layers) {
+            if (layer instanceof PlaceLayer && layer.getLayerType() == Layer.LayerType.PLC) {
+                ((PlaceLayer) layer).setVisible(show);
+            }
         }
     }
 

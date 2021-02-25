@@ -25,7 +25,7 @@ public class PlaceLayer extends Layer {
     private float positionZOffset = 0f;
 
     private float yRotation = 0f;
-    private boolean isVisible = false;
+    private boolean isVisible = true;
 
     public PlaceLayer(Location location, GeoArea geoArea) {
         setupPositionOffsets(location, geoArea);
@@ -65,6 +65,10 @@ public class PlaceLayer extends Layer {
 
     public boolean isVisible() {
         return isVisible;
+    }
+
+    public void setVisible(boolean isVisible) {
+        this.isVisible = isVisible;
     }
 
     private void setupPositionOffsets(Location location, GeoArea geoArea) {

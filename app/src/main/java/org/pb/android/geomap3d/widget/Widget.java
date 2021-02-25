@@ -28,6 +28,8 @@ public abstract class Widget implements Parcelable {
 
     public abstract void setGeoPlaces(GeoPlaces geoPlaces);
 
+    public abstract void setShowGeoPlaces(boolean show);
+
     public abstract void initWidget(WidgetConfiguration widgetConfiguration);
 
     public abstract void updateWidget(WidgetConfiguration widgetConfiguration);

@@ -225,4 +225,16 @@ public class Events {
             return geoPlaces;
         }
     }
+
+    public static class ShowGeoPlaces {
+        private final boolean show;
+
+        public ShowGeoPlaces(boolean show) {
+            this.show = show;
+        }
+
+        public boolean show() {
+            return show;
+        }
+    }
 }

@@ -57,6 +57,20 @@
         />
 
         <Switch
+            android:id="@+id/switchPlaces"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:checked="true"
+            android:layout_marginTop="20dp"
+            android:layout_marginStart="20dp"
+            android:layout_marginEnd="20dp"
+            android:thumbTint="@color/warm_blue"
+            android:trackTint="@color/switch_trackColor"
+            android:textColor="@color/switch_textColor"
+            tools:text="@string/placesOnText"
+            />
+
+        <Switch
             android:id="@+id/switchAutomaticTrack"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
