@@ -13,6 +13,10 @@ public class GeoPlaces {
         this.geoPlaceList = geoPlaceList;
     }
 
+    public int getCount() {
+        return geoPlaceList.size();
+    }
+
     public String getAreaName() {
         return areaName;
     }

@@ -33,8 +33,10 @@ public class OverlayInfoItem extends RelativeLayout {
 
     public void bind(GeoPlace geoPlace) {
         tvName.setText(geoPlace.getName());
+        updateDistance(geoPlace.getDistance());
+    }
 
-        double distance = geoPlace.getDistance();
+    public void updateDistance(double distance) {
         if (distance >= 1.0) {
             tvDistance.setText(String.format(Locale.US, "%.1f km", distance));
         } else {

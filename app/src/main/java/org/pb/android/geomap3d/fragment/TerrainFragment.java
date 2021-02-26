@@ -227,6 +227,13 @@ public class TerrainFragment extends Fragment {
         overlayView.addInfoItem(event.getGeoPlace());
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.WidgetReady event) {
+        if (overlayView.getVisibility() == View.VISIBLE) {
+            overlayView.resetGeoPlaces(((TerrainWidget) widget).getGeoPlaces());
+        }
+    }
+
     @UiThread(propagation = REUSE)
     void updateDeviceRotation(float azimuth) {
         if (openGLSurfaceView != null) {
@@ -238,6 +245,10 @@ public class TerrainFragment extends Fragment {
     void updateDeviceLocation(Location location) {
         if (openGLSurfaceView != null) {
             openGLSurfaceView.updateDeviceLocation(location);
+        }
+
+        if (overlayView.getVisibility() == View.VISIBLE) {
+            overlayView.updateDeviceLocation(location);
         }
     }
 

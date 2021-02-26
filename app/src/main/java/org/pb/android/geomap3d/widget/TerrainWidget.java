@@ -25,6 +25,9 @@ import org.pb.android.geomap3d.widget.layer.PlaceLayer;
 import org.pb.android.geomap3d.widget.layer.PositionLayer;
 import org.pb.android.geomap3d.widget.layer.RouteLayer;
 import org.pb.android.geomap3d.widget.layer.TerrainLayer;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import javax.microedition.khronos.opengles.GL10;
@@ -53,6 +56,7 @@ public class TerrainWidget extends Widget {
     //private int lastKnownProgressValue = 0;
 
     private GeoArea terrainGeoArea;
+    private GeoPlaces geoPlaces;
     private Location lastKnownLocation;
 
     private boolean trackEnabled = true;
@@ -243,7 +247,7 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void setGeoPlaces(GeoPlaces geoPlaces) {
-        // TODO: remove old places
+        this.geoPlaces = geoPlaces;
         setupGeoPlaces(geoPlaces);
     }
 
@@ -267,13 +271,11 @@ public class TerrainWidget extends Widget {
     }
 
     public int getGeoPlacesCount() {
-        int count = 0;
-        for (Layer layer : layers) {
-            if (layer instanceof PlaceLayer && layer.getLayerType() == Layer.LayerType.PLC) {
-                count++;
-            }
-        }
-        return count;
+        return geoPlaces.getCount();
+    }
+
+    public GeoPlaces getGeoPlaces() {
+        return geoPlaces;
     }
 
     @Nullable
@@ -358,10 +360,7 @@ public class TerrainWidget extends Widget {
     private void setupGeoPlaces(GeoPlaces geoPlaces) {
         for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
             PlaceLayer placeLayer = new PlaceLayer(geoPlace, terrainGeoArea);
-
-            if (placeLayer.isVisible()) {
-                layers.add(placeLayer);
-            }
+            layers.add(placeLayer);
         }
     }
 
@@ -388,7 +387,7 @@ public class TerrainWidget extends Widget {
             }
 
             if (widgetConfiguration.hasGeoPlaces()) {
-                GeoPlaces geoPlaces = widgetConfiguration.getGeoPlaces();
+                geoPlaces = widgetConfiguration.getGeoPlaces();
                 setupGeoPlaces(geoPlaces);
             }
         }
