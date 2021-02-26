@@ -31,6 +31,8 @@ import javax.microedition.khronos.opengles.GL10;
 
 import androidx.annotation.Nullable;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import static org.pb.android.geomap3d.util.Util.roundScale;
 
 @SuppressLint("ParcelCreator")
@@ -155,6 +157,8 @@ public class TerrainWidget extends Widget {
 
     @Override
     public void updateDeviceLocation(@Nullable Location location) {
+        updateGeoPlaces(location);
+
         PositionLayer positionLayer = getDevicePositionLayer();
 
         if (positionLayer == null) {
@@ -240,14 +244,7 @@ public class TerrainWidget extends Widget {
     @Override
     public void setGeoPlaces(GeoPlaces geoPlaces) {
         // TODO: remove old places
-        for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
-            Location location = geoPlace.getLocation();
-            PlaceLayer placeLayer = new PlaceLayer(location, terrainGeoArea);
-
-            if (placeLayer.isVisible()) {
-                layers.add(placeLayer);
-            }
-        }
+        setupGeoPlaces(geoPlaces);
     }
 
     @Override
@@ -267,6 +264,16 @@ public class TerrainWidget extends Widget {
     @Override
     public void writeToParcel(Parcel parcel, int i) {
         // not implemented
+    }
+
+    public int getGeoPlacesCount() {
+        int count = 0;
+        for (Layer layer : layers) {
+            if (layer instanceof PlaceLayer && layer.getLayerType() == Layer.LayerType.PLC) {
+                count++;
+            }
+        }
+        return count;
     }
 
     @Nullable
@@ -296,6 +303,24 @@ public class TerrainWidget extends Widget {
         }
     }
     */
+
+    private void updateGeoPlaces(Location location) {
+        for (Layer layer : layers) {
+            if (layer instanceof PlaceLayer) {
+
+                // method 1: calculation takes care of rounded surface of earth
+                LatLng startPoint = GeoUtil.getLatLngFromLocation(location);
+                LatLng endPoint = GeoUtil.getLatLngFromLocation(((PlaceLayer) layer).getLocation());
+                double distance = (double) (GeoUtil.getDistanceBetweenTwoPointsInMeter(startPoint, endPoint) / 1000.00);
+
+                // method 2: official google api calculation
+                //Location placeLocation = ((PlaceLayer) layer).getLocation();
+                //double distance = (double) (GeoUtil.getDistanceBetweenTwoPointsInMeter(location, placeLocation) / 1000.00);
+
+                ((PlaceLayer) layer).setDistance(distance);
+            }
+        }
+    }
 
     private void initLayers() {
         lastKnownLocation = null;
@@ -330,6 +355,16 @@ public class TerrainWidget extends Widget {
         return null;
     }
 
+    private void setupGeoPlaces(GeoPlaces geoPlaces) {
+        for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
+            PlaceLayer placeLayer = new PlaceLayer(geoPlace, terrainGeoArea);
+
+            if (placeLayer.isVisible()) {
+                layers.add(placeLayer);
+            }
+        }
+    }
+
     private class InitiationThread implements Runnable {
 
         InitiationThread(WidgetConfiguration widgetConfiguration) {
@@ -354,15 +389,7 @@ public class TerrainWidget extends Widget {
 
             if (widgetConfiguration.hasGeoPlaces()) {
                 GeoPlaces geoPlaces = widgetConfiguration.getGeoPlaces();
-
-                for (GeoPlace geoPlace : geoPlaces.getGeoPlaceList()) {
-                    Location location = geoPlace.getLocation();
-                    PlaceLayer placeLayer = new PlaceLayer(location, terrainGeoArea);
-
-                    if (placeLayer.isVisible()) {
-                        layers.add(placeLayer);
-                    }
-                }
+                setupGeoPlaces(geoPlaces);
             }
         }
 

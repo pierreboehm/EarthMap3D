@@ -1,9 +1,13 @@
 package org.pb.android.geomap3d.widget.layer;
 
 import android.location.Location;
+import android.util.Log;
 import android.view.MotionEvent;
 
+import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.data.persist.geoarea.GeoArea;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlace;
+import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
 
@@ -26,9 +30,11 @@ public class PlaceLayer extends Layer {
 
     private float yRotation = 0f;
     private boolean isVisible = true;
+    private final GeoPlace geoPlace;
 
-    public PlaceLayer(Location location, GeoArea geoArea) {
-        setupPositionOffsets(location, geoArea);
+    public PlaceLayer(GeoPlace geoPlace, GeoArea geoArea) {
+        this.geoPlace = geoPlace;
+        setupPositionOffsets(geoPlace.getLocation(), geoArea);
         initLayer();
     }
 
@@ -61,6 +67,19 @@ public class PlaceLayer extends Layer {
     @Override
     public void updateTouch(MotionEvent motionEvent, float xRotation, float yRotation) {
         this.yRotation = yRotation;
+
+        long duration = motionEvent.getEventTime() - motionEvent.getDownTime();
+        if (motionEvent.getAction() == MotionEvent.ACTION_UP && duration < 200) {
+            EventBus.getDefault().post(new Events.ShowGeoPlaceInfo(geoPlace));
+        }
+    }
+
+    public Location getLocation() {
+        return geoPlace.getLocation();
+    }
+
+    public void setDistance(double distance) {
+        geoPlace.setDistance(distance);
     }
 
     public boolean isVisible() {

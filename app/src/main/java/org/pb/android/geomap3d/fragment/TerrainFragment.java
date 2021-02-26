@@ -27,6 +27,8 @@ import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.location.LocationManager;
 import org.pb.android.geomap3d.util.Util;
 import org.pb.android.geomap3d.view.OpenGLSurfaceView;
+import org.pb.android.geomap3d.view.OverlayView;
+import org.pb.android.geomap3d.widget.TerrainWidget;
 import org.pb.android.geomap3d.widget.Widget;
 
 import androidx.annotation.NonNull;
@@ -58,6 +60,9 @@ public class TerrainFragment extends Fragment {
 
     @ViewById(R.id.glSurfaceView)
     OpenGLSurfaceView openGLSurfaceView;
+
+    @ViewById(R.id.overlayView)
+    OverlayView overlayView;
 
     @ViewById(R.id.bionicEye)
     ImageView bionicEye;
@@ -172,6 +177,12 @@ public class TerrainFragment extends Fragment {
             .show();
     }
 
+    @Click(R.id.overlayView)
+    public void onOverlayViewClick() {
+        overlayView.cleanup();
+        overlayView.setVisibility(View.GONE);
+    }
+
     @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
     public void onEvent(Events.LocationUpdate event) {
         EventBus.getDefault().removeStickyEvent(event);
@@ -203,6 +214,17 @@ public class TerrainFragment extends Fragment {
         if (openGLSurfaceView != null) {
             openGLSurfaceView.setGeoPlaces(event.getGeoPlaces());
         }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.ShowGeoPlaceInfo event) {
+        if (overlayView.getVisibility() == View.GONE) {
+            overlayView.setVisibility(View.VISIBLE);
+            int geoPlacesCount = ((TerrainWidget) widget).getGeoPlacesCount();
+            overlayView.setMaxViewCount(geoPlacesCount);
+        }
+
+        overlayView.addInfoItem(event.getGeoPlace());
     }
 
     @UiThread(propagation = REUSE)

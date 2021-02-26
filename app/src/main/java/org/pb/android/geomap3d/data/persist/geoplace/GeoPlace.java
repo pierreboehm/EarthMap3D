@@ -89,6 +89,10 @@ public class GeoPlace extends BaseModel implements Serializable {
         return distance;
     }
 
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
     public static class Builder {
 
         private GeoPlace geoPlace;

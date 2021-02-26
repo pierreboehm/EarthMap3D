@@ -6,6 +6,7 @@ import android.location.Location;
 import com.google.android.gms.maps.model.LatLng;
 
 import org.pb.android.geomap3d.data.map.model.TerrainMapData.LoadingState;
+import org.pb.android.geomap3d.data.persist.geoplace.GeoPlace;
 import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
 
 import java.util.ArrayList;
@@ -235,6 +236,18 @@ public class Events {
 
         public boolean show() {
             return show;
+        }
+    }
+
+    public static class ShowGeoPlaceInfo {
+        private final GeoPlace geoPlace;
+
+        public ShowGeoPlaceInfo(GeoPlace geoPlace) {
+            this.geoPlace = geoPlace;
+        }
+
+        public GeoPlace getGeoPlace() {
+            return geoPlace;
         }
     }
 }
