@@ -139,7 +139,6 @@ public class TerrainFragment extends Fragment {
 
     @Click(R.id.screenSwitch)
     public void onScreenSwitchClick() {
-        //Location lastKnownLocation = ((TerrainWidget) widget).getLastKnownLocation();
         Location lastKnownLocation = locationManager.getLastKnownLocation();
         EventBus.getDefault().post(new Events.ShowMapFragment(lastKnownLocation));
     }
@@ -177,11 +176,11 @@ public class TerrainFragment extends Fragment {
             .show();
     }
 
-    @Click(R.id.overlayView)
+    /*@Click(R.id.overlayView)
     public void onOverlayViewClick() {
         overlayView.cleanup();
         overlayView.setVisibility(View.GONE);
-    }
+    }*/
 
     @Subscribe(threadMode = ThreadMode.ASYNC, sticky = true)
     public void onEvent(Events.LocationUpdate event) {
@@ -220,11 +219,9 @@ public class TerrainFragment extends Fragment {
     public void onEvent(Events.ShowGeoPlaceInfo event) {
         if (overlayView.getVisibility() == View.GONE) {
             overlayView.setVisibility(View.VISIBLE);
-            int geoPlacesCount = ((TerrainWidget) widget).getGeoPlacesCount();
-            overlayView.setMaxViewCount(geoPlacesCount);
         }
 
-        overlayView.addInfoItem(event.getGeoPlace());
+        overlayView.addGeoPlace(event.getGeoPlace());
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

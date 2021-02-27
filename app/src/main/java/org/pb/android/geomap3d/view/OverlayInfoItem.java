@@ -2,6 +2,9 @@ package org.pb.android.geomap3d.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+
+import android.view.MotionEvent;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -17,11 +20,18 @@ import java.util.Locale;
 @EViewGroup(R.layout.view_overlay_info_item)
 public class OverlayInfoItem extends RelativeLayout {
 
+    private static final String TAG = OverlayInfoItem.class.getSimpleName();
+
     @ViewById(R.id.tvName)
     TextView tvName;
 
     @ViewById(R.id.tvDistance)
     TextView tvDistance;
+
+    @ViewById(R.id.ivSelected)
+    ImageView ivSelected;
+
+    private GeoPlace geoPlace;
 
     public OverlayInfoItem(Context context) {
         this(context, null);
@@ -31,16 +41,31 @@ public class OverlayInfoItem extends RelativeLayout {
         super(context, attrs);
     }
 
-    public void bind(GeoPlace geoPlace) {
-        tvName.setText(geoPlace.getName());
-        updateDistance(geoPlace.getDistance());
+    @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        return true;
     }
 
-    public void updateDistance(double distance) {
+    public void bind(GeoPlace geoPlace) {
+        this.geoPlace = geoPlace;
+
+        select(geoPlace.isSelected());
+        tvName.setText(geoPlace.getName());
+
+        double distance = geoPlace.getDistance();
         if (distance >= 1.0) {
             tvDistance.setText(String.format(Locale.US, "%.1f km", distance));
         } else {
             tvDistance.setText(String.format(Locale.US, "%d m", (int) (distance * 1000)));
+        }
+    }
+
+    public void select(boolean select) {
+        ivSelected.setVisibility(select ? VISIBLE : INVISIBLE);
+        if (select) {
+            // TODO: increase textView textSize, textColor?
+        } else {
+            // TODO: reset textView changes to default
         }
     }
 }

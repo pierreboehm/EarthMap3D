@@ -54,6 +54,8 @@ public class GeoPlace extends BaseModel implements Serializable {
     @Column
     String areaName;
 
+    private boolean selected;
+
     public GeoPlace() {
     }
 
@@ -91,6 +93,14 @@ public class GeoPlace extends BaseModel implements Serializable {
 
     public void setDistance(double distance) {
         this.distance = distance;
+    }
+
+    public void setSelected(boolean selected) {
+        this.selected = selected;
+    }
+
+    public boolean isSelected() {
+        return selected;
     }
 
     public static class Builder {

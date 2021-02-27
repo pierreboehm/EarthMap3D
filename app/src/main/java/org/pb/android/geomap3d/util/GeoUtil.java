@@ -93,7 +93,7 @@ public class GeoUtil {
     public static LatLng computeOffset(LatLng from, double distance, double heading) {
         distance /= RADIUS_OF_EARTH_IN_KILOMETER;
         heading = toRadians(heading);
-        // http://williams.best.vwh.net/avform.htm#LL
+
         double fromLat = toRadians(from.latitude);
         double fromLng = toRadians(from.longitude);
         double cosDistance = cos(distance);
@@ -103,6 +103,21 @@ public class GeoUtil {
         double sinLat = cosDistance * sinFromLat + sinDistance * cosFromLat * cos(heading);
         double dLng = atan2(sinDistance * cosFromLat * sin(heading), cosDistance - sinFromLat * sinLat);
         return new LatLng(toDegrees(asin(sinLat)), toDegrees(fromLng + dLng));
+    }
+
+    public static double getBearing(Location startPoint, Location endPoint) {
+        double longitude1 = startPoint.getLongitude();
+        double latitude1 = Math.toRadians(startPoint.getLatitude());
+
+        double longitude2 = endPoint.getLongitude();
+        double latitude2 = Math.toRadians(endPoint.getLatitude());
+
+        double longDiff = Math.toRadians(longitude2 - longitude1);
+
+        double y = Math.sin(longDiff) * Math.cos(latitude2);
+        double x = Math.cos(latitude1) * Math.sin(latitude2) - Math.sin(latitude1) * Math.cos(latitude2) * Math.cos(longDiff);
+
+        return Math.toDegrees(Math.atan2(y, x));
     }
 
     private static double getDistanceBetweenTwoPointsInKilometer(LatLng startPoint, LatLng endPoint) {

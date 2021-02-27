@@ -1,7 +1,6 @@
 package org.pb.android.geomap3d.widget.layer;
 
 import android.location.Location;
-import android.util.Log;
 import android.view.MotionEvent;
 
 import org.greenrobot.eventbus.EventBus;
