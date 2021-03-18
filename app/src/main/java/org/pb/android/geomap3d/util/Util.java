@@ -184,6 +184,11 @@ public class Util {
         return (valueInPx / ((float) metrics.densityDpi / DisplayMetrics.DENSITY_DEFAULT));
     }
 
+    public static float convertPixelsToSp(Context context, float valueInPx) {
+        float scaledDensity = context.getResources().getDisplayMetrics().scaledDensity;
+        return valueInPx / scaledDensity;
+    }
+
     public static Size chooseBigEnoughSize(Size[] choices, int width, int height) {
         // Collect the supported resolutions that are at least as big as the preview Surface
         List<Size> bigEnough = new ArrayList<>();
