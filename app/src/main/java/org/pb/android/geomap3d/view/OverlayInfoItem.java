@@ -10,10 +10,12 @@ import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 
+import org.androidannotations.annotations.AfterViews;
 import org.androidannotations.annotations.EViewGroup;
 import org.androidannotations.annotations.ViewById;
 import org.pb.android.geomap3d.R;
 import org.pb.android.geomap3d.data.persist.geoplace.GeoPlace;
+import org.pb.android.geomap3d.util.Util;
 
 import java.util.Locale;
 
@@ -32,6 +34,9 @@ public class OverlayInfoItem extends RelativeLayout {
     ImageView ivSelected;
 
     private GeoPlace geoPlace;
+    private float defaultNameTextSize;
+    private float defaultDistanceTextSize;
+    private int defaultTextColor;
 
     public OverlayInfoItem(Context context) {
         this(context, null);
@@ -39,6 +44,13 @@ public class OverlayInfoItem extends RelativeLayout {
 
     public OverlayInfoItem(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
+    }
+
+    @AfterViews
+    public void initViews() {
+        defaultNameTextSize = Util.convertPixelsToSp(getContext(), tvName.getTextSize());
+        defaultDistanceTextSize = Util.convertPixelsToSp(getContext(), tvDistance.getTextSize());
+        defaultTextColor = tvName.getCurrentTextColor();
     }
 
     @Override
@@ -62,10 +74,18 @@ public class OverlayInfoItem extends RelativeLayout {
 
     public void select(boolean select) {
         ivSelected.setVisibility(select ? VISIBLE : INVISIBLE);
+
         if (select) {
-            // TODO: increase textView textSize, textColor?
+            int selectColor = getContext().getColor(R.color.warm_blue);
+            tvName.setTextSize(defaultNameTextSize + (defaultNameTextSize * .2f));
+            tvName.setTextColor(selectColor);
+            tvDistance.setTextSize(defaultDistanceTextSize + (defaultDistanceTextSize * .2f));
+            tvDistance.setTextColor(selectColor);
         } else {
-            // TODO: reset textView changes to default
+            tvName.setTextSize(defaultNameTextSize);
+            tvName.setTextColor(defaultTextColor);
+            tvDistance.setTextSize(defaultDistanceTextSize);
+            tvDistance.setTextColor(defaultTextColor);
         }
     }
 }

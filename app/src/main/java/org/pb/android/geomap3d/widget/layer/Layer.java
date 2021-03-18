@@ -15,7 +15,7 @@ public abstract class Layer {
 
     public abstract LayerType getLayerType();
 
-    public abstract void draw(GL10 gl, FloatBuffer vertices, int numberOfPoints);
+    public abstract void draw(GL10 gl, FloatBuffer p1, int p2);
 
     public abstract void updateTouch(MotionEvent motionEvent, float xRotation, float yRotation);
 
@@ -24,7 +24,7 @@ public abstract class Layer {
         TDP(GLColor.GRAY),    // T(racked) D(evice) P(osition)
         CMP(GLColor.ORANGE),    // camp
         PLC(GLColor.MAGENTA),    // PL(a)C(e)
-
+        PTR(GLColor.WHITE),     // (Target) P(oin)T(e)R
         POL(GLColor.BLUE),    // P(oint) O(f) L(air)  (also den, burrow, etc. location where animals sleep)
         ROB(GLColor.YELLOW);     // Route point
 

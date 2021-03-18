@@ -10,8 +10,10 @@ import com.google.android.gms.maps.model.LatLng;
 
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
+import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.data.persist.geoplace.GeoPlace;
 import org.pb.android.geomap3d.data.persist.geoplace.GeoPlaces;
+import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
 
 import java.util.ArrayList;
@@ -99,7 +101,13 @@ public class OverlayViewAdapter extends BaseAdapter {
 
     private void setSelection(int indexSelected) {
         for (int index = 0; index < geoPlaceList.size(); index++) {
-            getItem(index).setSelected(indexSelected == index);
+            boolean selected = indexSelected == index;
+            GeoPlace geoPlace = getItem(index);
+            geoPlace.setSelected(selected);
+
+            if (selected) {
+                EventBus.getDefault().post(new Events.TargetSelected(geoPlace));
+            }
         }
         notifyDataSetChanged();
     }

@@ -20,6 +20,7 @@ import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.renderer.RendererOpenGL;
 import org.pb.android.geomap3d.util.GeoUtil;
 import org.pb.android.geomap3d.util.Util;
+import org.pb.android.geomap3d.widget.layer.DirectionLayer;
 import org.pb.android.geomap3d.widget.layer.Layer;
 import org.pb.android.geomap3d.widget.layer.PlaceLayer;
 import org.pb.android.geomap3d.widget.layer.PositionLayer;
@@ -172,6 +173,11 @@ public class TerrainWidget extends Widget {
 
         positionLayer.updateLocation(location, terrainGeoArea);
 
+        DirectionLayer directionLayer = getDirectionLayer();
+        if (directionLayer != null) {
+            directionLayer.updateLocation(location, terrainGeoArea);
+        }
+
         TerrainLayer terrainLayer = getTerrainLayer();
         if (terrainLayer != null) {
             // TODO: get elevationValue from current location
@@ -276,6 +282,25 @@ public class TerrainWidget extends Widget {
 
     public GeoPlaces getGeoPlaces() {
         return geoPlaces;
+    }
+
+    public void setTarget(GeoPlace geoPlace) {
+        DirectionLayer directionLayer = getDirectionLayer();
+
+        if (directionLayer == null) {
+            layers.add(new DirectionLayer(getLastKnownLocation(), geoPlace, terrainGeoArea));
+        } else {
+            directionLayer.setTargetGeoPlace(geoPlace);
+        }
+    }
+
+    public DirectionLayer getDirectionLayer() {
+        for (Layer layer : layers) {
+            if (layer instanceof DirectionLayer) {
+                return (DirectionLayer) layer;
+            }
+        }
+        return null;
     }
 
     @Nullable

@@ -231,6 +231,11 @@ public class TerrainFragment extends Fragment {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent(Events.TargetSelected event) {
+        ((TerrainWidget) widget).setTarget(event.getTarget());
+    }
+
     @UiThread(propagation = REUSE)
     void updateDeviceRotation(float azimuth) {
         if (openGLSurfaceView != null) {

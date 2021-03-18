@@ -250,4 +250,16 @@ public class Events {
             return geoPlace;
         }
     }
+
+    public static class TargetSelected {
+        private final GeoPlace geoPlace;
+
+        public TargetSelected(GeoPlace geoPlace) {
+            this.geoPlace = geoPlace;
+        }
+
+        public GeoPlace getTarget() {
+            return geoPlace;
+        }
+    }
 }
