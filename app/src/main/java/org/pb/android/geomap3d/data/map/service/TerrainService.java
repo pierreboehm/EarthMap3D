@@ -9,7 +9,9 @@ import com.google.android.gms.maps.model.LatLngBounds;
 
 import org.androidannotations.annotations.EBean;
 import org.androidannotations.annotations.RootContext;
+import org.greenrobot.eventbus.EventBus;
 import org.pb.android.geomap3d.data.map.model.TerrainMapData;
+import org.pb.android.geomap3d.event.Events;
 import org.pb.android.geomap3d.util.GeoUtil;
 
 import java.io.InterruptedIOException;
@@ -41,6 +43,9 @@ public class TerrainService {
         if (terrainMapData.getLoadingState() == TerrainMapData.LoadingState.LOADING_SUCCESS) {
             Log.v(TAG, "getMapForLocation(): LOADING_SUCCESS");
             return terrainMapData.getBitmap();
+        } else if (terrainMapData.getLoadingState() == TerrainMapData.LoadingState.LOADING_EMPTY) {
+            Log.v(TAG, "getMapForLocation(): LOADING_EMPTY");
+            EventBus.getDefault().post(new Events.ShowToast("No heightmap found"));
         }
 
         return null;

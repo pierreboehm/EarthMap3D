@@ -28,6 +28,7 @@ public class TerrainMapData {
     public enum LoadingState {
         LOADING_INTERRUPTED,
         LOADING_FAILED,
+        LOADING_EMPTY,
         LOADING_SUCCESS
     }
 
@@ -105,8 +106,15 @@ public class TerrainMapData {
             }
         }
 
-        downloadSuccess &= readZipAndExtractBitmap(zipFile);
-        return downloadSuccess ? LoadingState.LOADING_SUCCESS : LoadingState.LOADING_FAILED;
+        boolean bitmapExtracted = readZipAndExtractBitmap(zipFile);
+
+        if (downloadSuccess && bitmapExtracted) {
+            return LoadingState.LOADING_SUCCESS;
+        } else if (downloadSuccess && !bitmapExtracted) {
+            return LoadingState.LOADING_EMPTY;
+        } else {
+            return LoadingState.LOADING_FAILED;
+        }
     }
 
     private boolean readZipAndExtractBitmap(File downloadedZipFile) {
