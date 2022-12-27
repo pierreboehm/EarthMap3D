@@ -27,7 +27,45 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 public class TerrainService {
 
     private static final String TAG = TerrainService.class.getSimpleName();
-    // http://terrain.party/api/export?name=kaufunger_wald_2&box=9.858200,51.317693,9.743203,51.245828
+    // http://terrain.party/api/export?name=kaufunger_wald_2&box=9.858200,51.317693,9.743203,51.245828      // don't works anymore
+    // --> alternative?: https://heightmap.skydark.pl/
+    // (for details see here: https://github.com/sysoppl/Cities-Skylines-heightmap-generator)
+
+    /*  blob/master/src/app.js
+        async function getMapImage() {
+            let bounds = getExtent(grid.lng, grid.lat, mapSize);
+            let minLng = Math.min(bounds.topleft[0], bounds.bottomright[0]);
+            let minLat = Math.min(bounds.topleft[1], bounds.bottomright[1]);
+            let maxLng = Math.max(bounds.topleft[0], bounds.bottomright[0]);
+            let maxLat = Math.max(bounds.topleft[1], bounds.bottomright[1]);
+
+            let styleName = map.getStyle().metadata['mapbox:origin'];
+            if (!(styleName)) {
+                styleName = 'satellite-v9';
+            }
+
+            let url = 'https://api.mapbox.com/styles/v1/mapbox/'
+                + styleName + '/static/['
+                + minLng + ','
+                + minLat + ','
+                + maxLng + ','
+                + maxLat + ']/1280x1280@2x?access_token='
+                + mapboxgl.accessToken;
+
+            try {
+                const response = await fetch(url);
+                if (response.ok) {
+                    let png = await response.blob();
+                    download('map.png', png);
+                    console.log(bounds.topleft[0], bounds.topleft[1], bounds.bottomright[0], bounds.bottomright[1]);
+                } else {
+                    throw new Error('download map error:', response.status);
+                }
+            } catch (e) {
+                console.log(e.message);
+            }
+        }
+     */
 
     private static final String BASEURL = "http://terrain.party/api/export/";
 
