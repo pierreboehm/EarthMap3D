@@ -11,4 +11,5 @@ Perfect suitable for bicyclists, bikers, drivers, hikers, walkers or everyone el
 
 (NOTE: Unfortunately this project is currently on ice due to technical problems with terrain data server. 
 NASA switched off one satelite, so terrain data server cannot generate data files as usual.
+
 NEWS: I found an alternative API that provides data similar to latest source. To make it run again I "only" need to adapt the modified terrain measurement consiting of scope of terrain (means high of satelite during shot) and interpretation of (high profile) bitmap pixel colors (colors between 0..255 represent altitude in relation to a predefined measurement range))
